@@ -1,5 +1,9 @@
-import app from "../server.js";
+import { Router } from "express";
 
-app.use("/health", (req, res) => {
-  res.status(200).send("OK");
-});
+import { health } from "./health.js";
+
+const rotas = Router();
+
+rotas.get("/health", health);
+
+export default rotas;
