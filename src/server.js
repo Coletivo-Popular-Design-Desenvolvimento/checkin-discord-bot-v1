@@ -1,10 +1,12 @@
-import express from 'express';
+import "dotenv/config";
+
+import express from "express";
 
 const app = express();
 
-// Cria uma rota para manter o servidor ativo
-app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+app // Cria uma rota para manter o servidor ativo
+  .get("/health", (req, res) => {
+    res.status(200).send("OK");
   });
 
 export default app;

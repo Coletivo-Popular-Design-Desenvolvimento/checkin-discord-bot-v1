@@ -1,5 +1,4 @@
 import { Client, GatewayIntentBits, ChannelType } from "discord.js"; // Importando ChannelType
-import "dotenv/config";
 import { promises as fs } from "fs";
 import bcrypt from "bcrypt";
 
