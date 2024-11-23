@@ -4,8 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "worker": "pm2 start index.js --no-daemon",
+    "start": "node src/app/index.js",
+    "worker": "pm2 start src/app/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save"
   },
   "dependencies": {
