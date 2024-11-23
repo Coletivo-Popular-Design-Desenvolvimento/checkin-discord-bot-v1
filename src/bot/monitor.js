@@ -3,7 +3,7 @@ import { messageCount, voiceParticipation } from "./index.js";
 const { BOT_AUTHOR_ID } = process.env;
 
 // Monitoramento de Mensagens
-client.on("messageCreate", (message) => {
+export const monitorMessages = (message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
     if (!message.guild) return;
 
@@ -23,10 +23,10 @@ client.on("messageCreate", (message) => {
       `Messages by ${message.author.tag}: ${messageCount[userId][currentMonth]}`
     );
   }
-});
+};
 
 // Monitoramento de Voz
-client.on("voiceStateUpdate", (oldState, newState) => {
+export const voiceStateUpdate = (oldState, newState) => {
   const userId = newState.id;
   const currentMonth = new Date().getMonth() + 1;
 
@@ -63,4 +63,4 @@ client.on("voiceStateUpdate", (oldState, newState) => {
       );
     }
   }
-});
+};

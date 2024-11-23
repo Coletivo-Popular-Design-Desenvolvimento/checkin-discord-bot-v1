@@ -2,18 +2,13 @@ import bcrypt from "bcrypt";
 
 import { ChannelType } from "discord.js";
 
-import client from "./bot";
 import { readUsers, saveUsers } from "./file.js";
 import { modules } from "./index.js";
 
 const { AUTH_ROLE_ID, AUTH_CHANNEL_ID, BOT_AUTHOR_ID } = process.env;
 
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}`);
-});
-
 // Autentica usuário
-client.on("messageCreate", async (message) => {
+export const authUser = async (message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
     if (message.channel.id === AUTH_CHANNEL_ID) {
       const [command, ...args] = message.content.split(" ");
@@ -74,10 +69,10 @@ client.on("messageCreate", async (message) => {
       }
     }
   }
-});
+};
 
 // Faz o login
-client.on("messageCreate", async (message) => {
+export const loginUser = async (message) => {
   const [command, ...args] = message.content.split(" ");
 
   if (command === "!login") {
@@ -145,4 +140,4 @@ client.on("messageCreate", async (message) => {
       message.channel.send("Usuário não encontrado.");
     }
   }
-});
+};
