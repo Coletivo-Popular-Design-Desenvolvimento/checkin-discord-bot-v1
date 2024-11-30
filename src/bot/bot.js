@@ -1,0 +1,36 @@
+import { Client, GatewayIntentBits } from "discord.js";
+
+import { authUser, loginUser } from "./init.js";
+import { monitorMessages, voiceStateUpdate } from "./monitor.js";
+import { createReport, executeReport } from "./report.js";
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
+  ],
+});
+
+client.on("ready", () => {
+  console.log(`Logged in as ${client.user.tag}`);
+});
+
+client.on("messageCreate", authUser);
+client.on("messageCreate", loginUser);
+
+client.on("messageCreate", monitorMessages);
+client.on("voiceStateUpdate", voiceStateUpdate);
+
+// Comando de Relatório
+client.command = new Map();
+
+client.command.set("report", {
+  execute: executeReport,
+});
+
+client.on("messageCreate", createReport);
+
+export default client;
