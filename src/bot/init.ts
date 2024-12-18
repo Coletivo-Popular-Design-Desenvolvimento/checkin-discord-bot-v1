@@ -1,14 +1,15 @@
 import bcrypt from "bcrypt";
-
-import { ChannelType } from "discord.js";
-
+import { ChannelType, Message } from "discord.js";
 import { readUsers, saveUsers } from "./file.js";
 import { modules } from "./index.js";
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const { AUTH_ROLE_ID, AUTH_CHANNEL_ID, BOT_AUTHOR_ID } = process.env;
 
 // Autentica usuário
-export const authUser = async (message) => {
+export const authUser = async (message: Message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
     if (message.channel.id === AUTH_CHANNEL_ID) {
       const [command, ...args] = message.content.split(" ");
@@ -72,7 +73,7 @@ export const authUser = async (message) => {
 };
 
 // Faz o login
-export const loginUser = async (message) => {
+export const loginUser = async (message: Message) => {
   const [command, ...args] = message.content.split(" ");
 
   if (command === "!login") {

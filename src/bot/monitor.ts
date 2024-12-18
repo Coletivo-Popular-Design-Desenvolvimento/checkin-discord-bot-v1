@@ -1,9 +1,12 @@
+import { Message } from "discord.js";
 import { messageCount, voiceParticipation } from "./index.js";
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 const { BOT_AUTHOR_ID } = process.env;
 
 // Monitoramento de Mensagens
-export const monitorMessages = (message) => {
+export const monitorMessages = (message: Message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
     if (!message.guild) return;
 
@@ -57,8 +60,7 @@ export const voiceStateUpdate = (oldState, newState) => {
       voiceParticipation[userId][currentMonth].totalDuration += duration;
       voiceParticipation[userId][currentMonth].joinTime = null;
       console.log(
-        `${newState.member.user.tag} saiu de ${
-          oldState.channel.name
+        `${newState.member.user.tag} saiu de ${oldState.channel.name
         }. Duração: ${duration.toFixed(2)} segundos`
       );
     }
