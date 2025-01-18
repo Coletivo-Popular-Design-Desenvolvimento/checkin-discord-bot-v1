@@ -22,3 +22,18 @@ export const saveUsers = async (users) => {
     console.error("Erro ao salvar usuários:", error);
   }
 };
+
+// Lê os usuários cadastrados
+export const readEvents = async () => {
+  try {
+    const data = await fs.readFile("evento_teste.json", "utf8");
+    // console.log(JSON.parse(data));
+    return JSON.parse(data);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      // Arquivo não encontrado, retorna um objeto vazio
+      return {};
+    }
+    throw error;
+  }
+};
