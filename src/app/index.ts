@@ -2,7 +2,7 @@ import app from "../server";
 import client from "../bot/bot.js";
 import * as dotenv from 'dotenv';
 
-dotenv.config()
+dotenv.config();
 
 const PORT = process.env.PORT || "3000";
 const { SECRET_KEY } = process.env;

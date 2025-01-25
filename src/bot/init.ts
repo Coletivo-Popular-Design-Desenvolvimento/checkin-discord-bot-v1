@@ -12,9 +12,9 @@ const { AUTH_ROLE_ID, AUTH_CHANNEL_ID, BOT_AUTHOR_ID } = process.env;
 export const authUser = async (message: Message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
     if (message.channel.id === AUTH_CHANNEL_ID) {
-      const [command, ...args] = message.content.split(" ");
+      const [command] = message.content.split(" ");
 
-      let users = await readUsers(); // Ler usuários no início do comando
+      const users = await readUsers(); // Ler usuários no início do comando
 
       if (command === "!register") {
         if (users[message.author.id] === message.author.id) {
@@ -48,7 +48,7 @@ export const authUser = async (message: Message) => {
       const username = args[0];
       const password = args[1];
 
-      let users = await readUsers();
+      const users = await readUsers();
       console.log("usuários cadastrados", users);
 
       if (!users[message.author.id]) {
@@ -84,11 +84,11 @@ export const loginUser = async (message: Message) => {
       return;
     }
 
-    const username = args[0];
+    // const username = args[0]; // Nunca usado.
     const password = args[1];
     const module = args[2];
 
-    let users = await readUsers();
+    const users = await readUsers();
 
     if (users[message.author.id]) {
       try {

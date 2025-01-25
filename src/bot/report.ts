@@ -1,5 +1,5 @@
 import { messageCount, voiceParticipation } from "./index.js";
-// import client from "./bot.js";
+import client from "./bot.js";
 import { Message } from "discord.js";
 import * as dotenv from 'dotenv';
 
@@ -41,7 +41,7 @@ export const executeReport = (message: Message) => {
 
 export const createReport = (message: Message) => {
   if (message.content.startsWith("!report")) {
-    // const command = client.command.get("report"); // <--- novamente, metodo inexistente
-    // if (command) command.execute(message);
+    const command = client['command'].get("report"); // <--- novamente, metodo inexistente
+    if (command) command.execute(message);
   }
 };

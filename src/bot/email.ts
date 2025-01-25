@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 
 export const enviaEmail = async () => {
 
-    var remetente = nodemailer.createTransport({
+    const remetente = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 465,
         secure: true, // use SSL
@@ -12,7 +12,7 @@ export const enviaEmail = async () => {
         }
     });
 
-    var emailASerEnviado = {
+    const emailASerEnviado = {
         from: 'uperalta18@gmail.com',
         to: 'uperalta18@gmail.com',
         subject: 'Enviando Email com Node.js',
