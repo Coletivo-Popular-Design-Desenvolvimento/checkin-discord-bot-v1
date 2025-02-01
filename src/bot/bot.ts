@@ -1,17 +1,23 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { monitorEvents, monitorEventUserAdd, monitorStatusUpdateEvent, monitorCreateEvents, monitorEventUserRemove, monitorStatusEvent } from "./events.js";
 import { authUser, loginUser } from "./init";
 import { monitorMessages, voiceStateUpdate } from "./monitor";
 import { createReport, executeReport } from "./report";
+import { monitorReaction, monitorContentType } from "./message.js";
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.GuildScheduledEvents
+  ],
+  partials: [
+    Partials.Message, // Permite rastrear reações em mensagens não armazenadas em cache
+    Partials.Reaction,
   ],
 });
 
@@ -27,6 +33,8 @@ client.on('guildScheduledEventUserRemove', monitorEventUserRemove);
 client.on('guildScheduledEventUpdate', monitorStatusEvent);
 client.on("GuildScheduledEventCreateOptions", monitorCreateEvents);
 client.on("guildScheduledEventUpdate", monitorStatusUpdateEvent);
+client.on("messageReactionAdd", monitorReaction);
+client.on("messageCreate", monitorContentType)
 
 client.on("messageCreate", monitorMessages);
 client.on("voiceStateUpdate", voiceStateUpdate);
