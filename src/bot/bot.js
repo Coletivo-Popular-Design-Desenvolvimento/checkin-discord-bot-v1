@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
-import { monitorEvents, monitorEventUserAdd, monitorStatusUpdateEvent, monitorCreateEvents, monitorEventUserRemove, monitorStatusEvent, scheduledEventsFetch } from "./events.js"
+import { monitorEvents, monitorEventUserAdd, monitorStatusUpdateEvent, monitorCreateEvents, monitorEventUserRemove, monitorStatusEvent, scheduledEventsFetch, updateStatusEvent } from "./events.js"
 import { authUser, loginUser } from "./init.js";
 import { monitorMessages, voiceStateUpdate } from "./monitor.js";
 import { createReport, executeReport } from "./report.js";
@@ -28,6 +28,8 @@ client.on('guildScheduledEventUserRemove', monitorEventUserRemove);
 client.on('guildScheduledEventUpdate',  monitorStatusEvent)
 client.on("GuildScheduledEventCreateOptions", monitorCreateEvents)
 client.on("guildScheduledEventUpdate", monitorStatusUpdateEvent)
+client.on("guildScheduledEventUpdate", updateStatusEvent)
+
 
 
 client.on("messageCreate", monitorMessages);
