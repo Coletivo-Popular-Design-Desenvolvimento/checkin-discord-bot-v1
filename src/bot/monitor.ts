@@ -1,32 +1,10 @@
-import { Message } from "discord.js";
-import { messageCount, voiceParticipation } from "./index.js";
+import { voiceParticipation } from "./index.js";
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-const { BOT_AUTHOR_ID } = process.env;
 
-// Monitoramento de Mensagens
-export const monitorMessages = (message: Message) => {
-  if (message.author.id !== BOT_AUTHOR_ID) {
-    if (!message.guild) return;
 
-    const userId = message.author.id;
-    const currentMonth = new Date().getMonth() + 1;
 
-    if (!messageCount[userId]) {
-      messageCount[userId] = {};
-    }
-
-    if (messageCount[userId][currentMonth]) {
-      messageCount[userId][currentMonth]++;
-    } else {
-      messageCount[userId][currentMonth] = 1;
-    }
-    console.log(
-      `Messages by ${message.author.tag}: ${messageCount[userId][currentMonth]}`
-    );
-  }
-};
 
 // Monitoramento de Voz
 export const voiceStateUpdate = (oldState, newState) => {

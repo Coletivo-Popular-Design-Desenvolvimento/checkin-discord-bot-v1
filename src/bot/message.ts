@@ -1,3 +1,10 @@
+
+import { Message } from "discord.js";
+import { messageCount } from "./index.js";
+
+const { BOT_AUTHOR_ID } = process.env;
+
+// Monitoramento de reações
 export const monitorReaction = async (reaction, user) => {
     if (reaction.partial) await reaction.fetch();
     if (reaction.message.partial) await reaction.message.fetch();
@@ -9,6 +16,7 @@ export const monitorReaction = async (reaction, user) => {
     console.log(`${username} reagiu com ${emoji.name} na mensagem ${messageId}(canal: ${channel.name})`);
 }
 
+// Monitoramento de Mensagens de tipos diferentes
 export const monitorContentType = async (message) => {
     const attachment = message.attachments.first();
     const embed = message.embeds[0];
@@ -23,3 +31,26 @@ export const monitorContentType = async (message) => {
         console.log('GIF via link detectado:', embed.url);
     }
 }
+
+// Monitoramento de Mensagens
+export const monitorMessages = (message: Message) => {
+    if (message.author.id !== BOT_AUTHOR_ID) {
+      if (!message.guild) return;
+  
+      const userId = message.author.id;
+      const currentMonth = new Date().getMonth() + 1;
+  
+      if (!messageCount[userId]) {
+        messageCount[userId] = {};
+      }
+  
+      if (messageCount[userId][currentMonth]) {
+        messageCount[userId][currentMonth]++;
+      } else {
+        messageCount[userId][currentMonth] = 1;
+      }
+      console.log(
+        `Messages by ${message.author.tag}: ${messageCount[userId][currentMonth]}`
+      );
+    }
+  };

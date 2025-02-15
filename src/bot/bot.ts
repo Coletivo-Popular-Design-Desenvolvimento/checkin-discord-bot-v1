@@ -1,9 +1,9 @@
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { monitorEvents, monitorEventUserAdd, monitorStatusUpdateEvent, monitorCreateEvents, monitorEventUserRemove, monitorStatusEvent } from "./events.js";
 import { authUser, loginUser } from "./init";
-import { monitorMessages, voiceStateUpdate } from "./monitor";
+import { voiceStateUpdate } from "./monitor";
 import { createReport, executeReport } from "./report";
-import { monitorReaction, monitorContentType } from "./message.js";
+import { monitorReaction, monitorContentType, monitorMessages } from "./message.js";
 
 const client = new Client({
   intents: [
