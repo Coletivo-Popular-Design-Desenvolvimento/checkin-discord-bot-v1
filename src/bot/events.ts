@@ -1,4 +1,4 @@
-import { GuildScheduledEvent, GuildScheduledEventCreateOptions, User } from "discord.js";
+import { GuildScheduledEvent, GuildScheduledEventCreateOptions, GuildScheduledEventStatus, User } from "discord.js";
 import client from "./bot";
 const { GUILD_ID } = process.env;
 
@@ -33,18 +33,18 @@ export const monitorEventUserRemove = (events: GuildScheduledEvent, user: User) 
 // validação pegar o inicio do evento
 export const monitorStatusEvent = (oldEvent: GuildScheduledEvent, newEvent: GuildScheduledEvent) => {
     if (oldEvent.status !== newEvent.status) {
-        if (newEvent.status === 1) {
+        if (newEvent.status === GuildScheduledEventStatus.Scheduled ) {
           console.log(`O evento ${newEvent.name} começou!`);
-        } else if (newEvent.status === 3) {
+        } else if (newEvent.status === GuildScheduledEventStatus.Completed) {
           console.log(`O evento ${newEvent.name} foi finalizado!`);
-        } else if (newEvent.status === 4) {
+        } else if (newEvent.status === GuildScheduledEventStatus.Canceled) {
           console.log(`O evento ${newEvent.name} foi cancelado!`);
         }
     }
 };
 
 
-export const monitorStatusUpdateEvent = (oldEvent, newEvent) => {
+export const monitorStatusUpdateEvent = (oldEvent: GuildScheduledEvent, newEvent: GuildScheduledEvent) => {
     if (oldEvent.name !== newEvent.name) {
         console.log(`O evento mudou de nome name: ${oldEvent.name} -> ${newEvent.name}`);
     }
