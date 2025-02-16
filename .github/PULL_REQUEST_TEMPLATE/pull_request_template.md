@@ -18,7 +18,3 @@
 - [ ] Código segue o padrão de estilo do projeto
 - [ ] Testes unitários foram adicionados
 - [ ] A documentação foi atualizada (se aplicável)
-
-## Issues relacionadas
-<!-- Feche issues relacionadas com essa PR, usando a keyword 'Closes' -->
-Closes #<número-do-ticket>
