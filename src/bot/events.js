@@ -1,16 +1,16 @@
-import { GuildScheduledEvent, GuildScheduledEventCreateOptions, User } from "discord.js";
 import client from "./bot";
 const { GUILD_ID } = process.env;
 
-export const monitorEvents = (events: GuildScheduledEvent) => {
+export const monitorEvents = (events) => {
     console.log(
-        `Eventos de ${events.id}`
+        `Eventos de${events.name}: ${events.scheduledStartAt}`
     );
 
     console.log("events", events)
+
 };
 
-export const monitorCreateEvents = (event: GuildScheduledEventCreateOptions) => {
+export const monitorCreateEvents = (event) => {
     console.log('event', event)
     console.log('Novo evento criado:');
     console.log(`Título: ${event.name}`);
@@ -18,31 +18,41 @@ export const monitorCreateEvents = (event: GuildScheduledEventCreateOptions) => 
     console.log(`Fim: ${event.scheduledEndTime}`);
 }
 
-export const monitorEventUserAdd = (events: GuildScheduledEvent, user: User) => {
+export const monitorEventUserAdd = (events, user) => {
     console.log(
         `${user.tag} demonstrou interesse no evento ${events.name}`
     );
 };
 
-export const monitorEventUserRemove = (events: GuildScheduledEvent, user: User) => {
+export const monitorEventUserRemove = (events, user) => {
     console.log(
         `${user.tag} não está mais interessado no evento ${events.name}`
     );
 };
 
 // validação pegar o inicio do evento
-export const monitorStatusEvent = (oldEvent: GuildScheduledEvent, newEvent: GuildScheduledEvent) => {
+export const monitorStatusEvent = (oldEvent, newEvent) => {
     if (oldEvent.status !== newEvent.status) {
         if (newEvent.status === 1) {
           console.log(`O evento ${newEvent.name} começou!`);
-        } else if (newEvent.status === 3) {
+        } else if (newEvent.status === 'COMPLETED') {
           console.log(`O evento ${newEvent.name} foi finalizado!`);
-        } else if (newEvent.status === 4) {
+        } else if (newEvent.status === 'CANCELED') {
           console.log(`O evento ${newEvent.name} foi cancelado!`);
         }
     }
 };
 
+export const updateStatusEvent = (oldEvent, newEvent) => {
+    const teste = typeof oldEvent;
+    console.log("status typeof", teste)
+    if(oldEvent.name === "Testando name event") {
+        if (oldEvent.status === 1) {
+            newEvent.status.set(2)
+            console.log(`O evento ${newEvent.name} começou!`);
+        }
+    }
+};
 
 export const monitorStatusUpdateEvent = (oldEvent, newEvent) => {
     if (oldEvent.name !== newEvent.name) {
