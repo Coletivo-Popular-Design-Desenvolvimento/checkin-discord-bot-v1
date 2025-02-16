@@ -1,23 +1,23 @@
 
-import { Message } from "discord.js";
+import { Message, MessageReaction, User } from "discord.js";
 import { messageCount } from "./index.js";
 
 const { BOT_AUTHOR_ID } = process.env;
 
 // Monitoramento de reações
-export const monitorReaction = async (reaction, user) => {
+export const monitorReaction = async (reaction: MessageReaction, user: User) => {
     if (reaction.partial) await reaction.fetch();
     if (reaction.message.partial) await reaction.message.fetch();
 
     const { emoji, message } = reaction;
     const { id: messageId, channel } = message;
-    const { id: userId, username } = user;
+    const { id: username } = user;
 
-    console.log(`${username} reagiu com ${emoji.name} na mensagem ${messageId}(canal: ${channel.name})`);
+    console.log(`${username} reagiu com ${emoji.name} na mensagem ${messageId}(canal: ${channel.id})`);
 }
 
 // Monitoramento de Mensagens de tipos diferentes
-export const monitorContentType = async (message) => {
+export const monitorContentType = async (message: Message) => {
     const attachment = message.attachments.first();
     const embed = message.embeds[0];
     if (message.stickers.size > 0) {
@@ -27,7 +27,8 @@ export const monitorContentType = async (message) => {
     if (attachment && attachment.contentType && attachment.contentType.includes('image/gif')) {
         console.log("é um gif");
     }
-    if (embed && embed.url && embed.type === 'gifv') { // GIFs do Tenor
+
+    if (embed && embed.url && embed.toJSON().type === 'gifv') {
         console.log('GIF via link detectado:', embed.url);
     }
 }
