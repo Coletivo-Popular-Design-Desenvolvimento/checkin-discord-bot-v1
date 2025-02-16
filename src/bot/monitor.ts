@@ -1,29 +1,10 @@
-import { messageCount, voiceParticipation } from "./index.js";
+import { voiceParticipation } from "./index.js";
+import * as dotenv from 'dotenv';
 
-const { BOT_AUTHOR_ID } = process.env;
+dotenv.config();
 
-// Monitoramento de Mensagens
-export const monitorMessages = (message) => {
-  if (message.author.id !== BOT_AUTHOR_ID) {
-    if (!message.guild) return;
 
-    const userId = message.author.id;
-    const currentMonth = new Date().getMonth() + 1;
 
-    if (!messageCount[userId]) {
-      messageCount[userId] = {};
-    }
-
-    if (messageCount[userId][currentMonth]) {
-      messageCount[userId][currentMonth]++;
-    } else {
-      messageCount[userId][currentMonth] = 1;
-    }
-    console.log(
-      `Messages by ${message.author.tag}: ${messageCount[userId][currentMonth]}`
-    );
-  }
-};
 
 // Monitoramento de Voz
 export const voiceStateUpdate = (oldState, newState) => {
@@ -57,8 +38,7 @@ export const voiceStateUpdate = (oldState, newState) => {
       voiceParticipation[userId][currentMonth].totalDuration += duration;
       voiceParticipation[userId][currentMonth].joinTime = null;
       console.log(
-        `${newState.member.user.tag} saiu de ${
-          oldState.channel.name
+        `${newState.member.user.tag} saiu de ${oldState.channel.name
         }. Duração: ${duration.toFixed(2)} segundos`
       );
     }

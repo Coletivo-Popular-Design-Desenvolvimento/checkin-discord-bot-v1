@@ -1,9 +1,12 @@
 import { messageCount, voiceParticipation } from "./index.js";
 import client from "./bot.js";
+import { Message } from "discord.js";
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 const { ALLOWED_ROLEID } = process.env;
 
-export const executeReport = (message) => {
+export const executeReport = (message: Message) => {
   if (!message.member.roles.cache.has(ALLOWED_ROLEID)) {
     message.reply("Você não tem permissão para usar este comando.");
     return;
@@ -14,11 +17,10 @@ export const executeReport = (message) => {
 
   for (const [userId, data] of Object.entries(voiceParticipation)) {
     if (data[currentMonth]) {
-      report += `<@${userId}>: Entradas: ${
-        data[currentMonth].entries
-      }, Duração Total: ${data[currentMonth].totalDuration.toFixed(
-        2
-      )} segundos\n`;
+      report += `<@${userId}>: Entradas: ${data[currentMonth].entries
+        }, Duração Total: ${data[currentMonth].totalDuration.toFixed(
+          2
+        )} segundos\n`;
     }
   }
 
@@ -37,9 +39,9 @@ export const executeReport = (message) => {
   message.channel.send(report);
 };
 
-export const createReport = (message) => {
+export const createReport = (message: Message) => {
   if (message.content.startsWith("!report")) {
-    const command = client.command.get("report");
+    const command = client['command'].get("report"); // <--- novamente, metodo inexistente
     if (command) command.execute(message);
   }
 };

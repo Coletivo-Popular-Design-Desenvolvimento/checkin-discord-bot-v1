@@ -1,7 +1,7 @@
 import nodeSchedule from 'node-schedule';
 import {enviaEmail} from './bot/email.js';
 import {enviaMensagem} from './bot/telegram.js';
-import {readEvents} from './src/bot/file.js'
+import { readEvents } from './bot/file.js';
 
 //Para a cron rodar a cada 5 min:
 const job = nodeSchedule.scheduleJob('*/5 * * * *', function(){
