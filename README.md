@@ -21,7 +21,7 @@ AuthEngageBot é um bot para Discord que realiza autenticação de usuários e m
 
 ## Dependências
 
-- Bcrypt: 5.1.1 (Criar hashs para salvar senhas)
+- Bcryptjs: ^3.0.2 (Criar hashs para salvar senhas)
 - Discord.js: 14.15.3 (Biblioteca Node.js com integração a api do Discord)
 
 ## Instalação

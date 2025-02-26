@@ -1,7 +1,9 @@
 import app from "../server";
 import client from "../bot/bot.js";
+import path from 'path';
 import * as dotenv from 'dotenv';
 
+// .env agora esta um nível acima na arvore de pastas, por isso uma configuração diferente é necessaria. 
 dotenv.config();
 
 const PORT = process.env.PORT || "3000";

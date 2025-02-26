@@ -1,0 +1,36 @@
+services:
+  app:
+    build: ./checkin-app
+    container_name: node_app
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./checkin-app/.env:/checkin-app/.env  # Monta o .env da root.
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy && npm start"
+
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: "checkindb"
+      MYSQL_ROOT_PASSWORD: "Coletivo!1917"
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the init script
+      - ./my.cnf:/etc/mysql/mariadb.conf.d/99-custom.cnf  # Custom configuration
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  db_data:

@@ -1,10 +1,4 @@
 import { voiceParticipation } from "./index.js";
-import * as dotenv from 'dotenv';
-
-dotenv.config();
-
-
-
 
 // Monitoramento de Voz
 export const voiceStateUpdate = (oldState, newState) => {

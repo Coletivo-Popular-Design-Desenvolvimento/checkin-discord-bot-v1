@@ -1,9 +1,7 @@
 import { messageCount, voiceParticipation } from "./index.js";
 import client from "./bot.js";
 import { Message } from "discord.js";
-import * as dotenv from 'dotenv';
 
-dotenv.config();
 const { ALLOWED_ROLEID } = process.env;
 
 export const executeReport = (message: Message) => {
