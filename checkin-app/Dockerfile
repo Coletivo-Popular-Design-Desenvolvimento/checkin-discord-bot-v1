@@ -14,7 +14,7 @@ RUN npm install
 RUN npm install -g typescript
 
 # Copy the .env file from the root directory
-COPY .env ./
+COPY ./.env ./
 
 # Copy the rest of the application code
 COPY . .
@@ -27,6 +27,3 @@ RUN npm run build
 
 # Expose the port your app runs on
 EXPOSE 3000
-
-# Command to run the app (use the compiled JavaScript file)
-CMD ["npm", "start"]

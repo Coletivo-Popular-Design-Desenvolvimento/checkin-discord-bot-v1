@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+    ports:
+      - '${DB_PORT}'
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8090:80"
+    links:
+      - db
+    environment:
+      - PMA_HOST=db
+      - UPLOAD_LIMIT=300M
+
+  app:
+    build:
+      context: ..
+      dockerfile: .docker/checkin-app/Dockerfile
+    container_name: node_app
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../checkin-app/.env:/checkin-app/.env  # Monta o .env da root.
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "npm run db:deploy && npm start"
+
+volumes:
+  db_data:
