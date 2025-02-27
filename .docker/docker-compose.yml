@@ -40,7 +40,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "npm run db:deploy && npm start"
+      sh -c "npm start"
 
 volumes:
   db_data:
