@@ -28,14 +28,14 @@ services:
 
   app:
     build:
-      context: ..
-      dockerfile: .docker/checkin-app/Dockerfile
+      context: .
+      dockerfile: ./Containerfile
     container_name: node_app
     restart: always
     ports:
       - "3000:3000"
     volumes:
-      - ../checkin-app/.env:/checkin-app/.env  # Monta o .env da root.
+      - ./.env:/opt/checkin-app/.env  # Monta o .env da root.
     depends_on:
       db:
         condition: service_healthy

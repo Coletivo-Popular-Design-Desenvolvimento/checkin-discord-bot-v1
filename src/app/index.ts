@@ -1,4 +1,4 @@
-import app from "../server";
+import app from "../server.js";
 import client from "../bot/bot.js";
 import path from 'path';
 import * as dotenv from 'dotenv';

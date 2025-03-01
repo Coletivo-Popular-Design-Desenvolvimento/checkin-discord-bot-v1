@@ -7,9 +7,9 @@ import {
   monitorEventUserRemove,
   monitorStatusEvent,
 } from "./events.js";
-import { authUser, loginUser } from "./init";
-import { voiceStateUpdate } from "./monitor";
-import { createReport, executeReport } from "./report";
+import { authUser, loginUser } from "./init.js";
+import { voiceStateUpdate } from "./monitor.js";
+import { createReport, executeReport } from "./report.js";
 import {
   monitorReaction,
   monitorContentType,
