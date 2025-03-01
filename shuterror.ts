@@ -1,1 +1,0 @@
-// Arquivo para tirar o erro do tsconfig. Bug chato, mas precisa ter um arquivo TS na pasta raiz para ele não reclamar.

@@ -1,10 +1,7 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { ChannelType, Message } from "discord.js";
 import { readUsers, saveUsers } from "./file.js";
 import { modules } from "./index.js";
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 const { AUTH_ROLE_ID, AUTH_CHANNEL_ID, BOT_AUTHOR_ID } = process.env;
 
