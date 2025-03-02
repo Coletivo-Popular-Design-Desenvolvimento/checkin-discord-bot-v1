@@ -26,6 +26,8 @@ model User {
   bot               Boolean
   userRole          UserRole[]
   userEvent         UserEvent[]
+  message           Message[]
+  messageReaction      MessageReaction[]
 }
 
 model Role {
@@ -47,6 +49,7 @@ model UserRole {
 model AudioEvent {
   id                Int @id
   channelId         Int
+  channel           Channel @relation(fields: [channelId], references: [id])
   creatorId         Int
   name              String
   description       String?
@@ -73,4 +76,34 @@ model UserEvent {
   userId            Int
 
   @@id([userId, eventId])
+}
+
+model Message {
+  id Int @id
+  channel Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+  authorId Int
+  author User @relation(fields: [authorId], references: [id])
+  createdTimestamp Int
+  messageReaction MessageReaction[]
+}
+
+model Channel {
+  id Int @id
+  name String
+  url String
+  message Message[]
+  audioEvent AudioEvent[]
+  messageReaction MessageReaction[]
+}
+
+model MessageReaction {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  message Message @relation(fields: [messageId], references: [id])
+  messageId Int
+  channel Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  @@id([userId, messageId])
 }
