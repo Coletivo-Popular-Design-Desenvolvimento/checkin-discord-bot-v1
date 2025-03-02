@@ -33,6 +33,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-import": "^2.31.0",
     "globals": "^15.14.0",
+    "prisma-dbml-generator": "^0.12.0",
     "typescript": "^5.7",
     "typescript-eslint": "^8.18.1"
   }

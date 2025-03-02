@@ -8,23 +8,69 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+  id                Int       @id
+  username          String
+  globalName        String?
+  joinedAt          Int
+  lastActive        Int
+  bot               Boolean
+  userRole          UserRole[]
+  userEvent         UserEvent[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Role {
+  id                Int     @id
+  name              String
+  createdTimestamp  Int
+  userRole          UserRole[]
+}
+
+model UserRole {
+  user              User @relation(fields: [userId], references: [id])
+  userId            Int
+  role              Role @relation(fields: [roleId], references: [id])
+  roleId            Int
+
+  @@id([userId, roleId])
+}
+
+model AudioEvent {
+  id                Int @id
+  channelId         Int
+  creatorId         Int
+  name              String
+  description       String?
+  status            EventStatus @relation(fields: [statusId], references: [id])
+  statusId          Int
+  startTimestamp    Int
+  endTimestamp      Int
+  userCount         Int
+  userEvent         UserEvent[]
+
+}
+
+model EventStatus {
+  id                Int @id
+  name              String
+  event             AudioEvent[]
+  eventId           Int
+}
+
+model UserEvent {
+  event             AudioEvent @relation(fields: [eventId], references: [id])
+  eventId           Int
+  user              User @relation(fields: [userId], references: [id])
+  userId            Int
+
+  @@id([userId, eventId])
 }
