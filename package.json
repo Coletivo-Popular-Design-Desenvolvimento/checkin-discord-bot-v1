@@ -5,12 +5,12 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node dist/src/app/index.js",
-    "start:dev": "nodemon --exec ts-node /src/app/index.js",
+    "start": "tsc && node dist/app/index.js",
+    "start:dev": "nodemon --exec ts-node /src/app/index.ts",
     "lint": "eslint .",
-    "worker": "tsc && pm2 start dist/src/app/index.js --no-daemon",
+    "worker": "tsc && pm2 start dist/app/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
-    "db:deploy": "npx prisma migrate deploy && npx prisma generate"
+    "db": "npx prisma migrate dev --name init"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
