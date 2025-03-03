@@ -14,6 +14,7 @@ export const monitorReaction = async (reaction: MessageReaction, user: User) => 
     const { id: username } = user;
 
     console.log(`${username} reagiu com ${emoji.name} na mensagem ${messageId}(canal: ${channel.id})`);
+    console.log(reaction)
 }
 
 // Monitoramento de Mensagens de tipos diferentes

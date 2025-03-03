@@ -1,9 +1,11 @@
 import { Router } from "express";
 
-import { health } from "./health.js";
+import { dbHealth, health } from "./health.js";
 
 const rotas = Router();
 
 rotas.get("/health", health);
+
+rotas.get("dbhealth", dbHealth)
 
 export default rotas;
