@@ -1,0 +1,121 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id Int [pk]
+  username String [not null]
+  globalName String
+  joinedAt Int [not null]
+  lastActive Int [not null]
+  bot Boolean [not null]
+  userRole UserRole [not null]
+  userEvent UserEvent [not null]
+  message Message [not null]
+  messageReaction MessageReaction [not null]
+}
+
+Table Role {
+  id Int [pk]
+  name String [not null]
+  createdTimestamp Int [not null]
+  userRole UserRole [not null]
+}
+
+Table UserRole {
+  user User [not null]
+  userId Int [not null]
+  role Role [not null]
+  roleId Int [not null]
+
+  indexes {
+    (userId, roleId) [pk]
+  }
+}
+
+Table AudioEvent {
+  id Int [pk]
+  channelId Int [not null]
+  channel Channel [not null]
+  creatorId Int [not null]
+  name String [not null]
+  description String
+  status EventStatus [not null]
+  statusId Int [not null]
+  startTimestamp Int [not null]
+  endTimestamp Int [not null]
+  userCount Int [not null]
+  userEvent UserEvent [not null]
+}
+
+Table EventStatus {
+  id Int [pk]
+  name String [not null]
+  event AudioEvent [not null]
+  eventId Int [not null]
+}
+
+Table UserEvent {
+  event AudioEvent [not null]
+  eventId Int [not null]
+  user User [not null]
+  userId Int [not null]
+
+  indexes {
+    (userId, eventId) [pk]
+  }
+}
+
+Table Message {
+  id Int [pk]
+  channel Channel [not null]
+  channelId Int [not null]
+  userId Int [not null]
+  user User [not null]
+  createdTimestamp Int [not null]
+  messageReaction MessageReaction [not null]
+}
+
+Table Channel {
+  id Int [pk]
+  name String [not null]
+  url String [not null]
+  message Message [not null]
+  audioEvent AudioEvent [not null]
+  messageReaction MessageReaction [not null]
+}
+
+Table MessageReaction {
+  user User [not null]
+  userId Int [not null]
+  message Message [not null]
+  messageId Int [not null]
+  channel Channel [not null]
+  channelId Int [not null]
+
+  indexes {
+    (userId, messageId) [pk]
+  }
+}
+
+Ref: UserRole.userId > User.id
+
+Ref: UserRole.roleId > Role.id
+
+Ref: AudioEvent.channelId > Channel.id
+
+Ref: AudioEvent.statusId > EventStatus.id
+
+Ref: UserEvent.eventId > AudioEvent.id
+
+Ref: UserEvent.userId > User.id
+
+Ref: Message.channelId > Channel.id
+
+Ref: Message.userId > User.id
+
+Ref: MessageReaction.userId > User.id
+
+Ref: MessageReaction.messageId > Message.id
+
+Ref: MessageReaction.channelId > Channel.id
