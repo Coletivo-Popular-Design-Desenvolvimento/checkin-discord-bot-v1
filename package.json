@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "worker": "tsc && pm2 start dist/app/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
-    "db": "npx prisma migrate dev --name init"
+    "db": "npx prisma migrate deploy --name init"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",

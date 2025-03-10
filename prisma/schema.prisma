@@ -17,93 +17,96 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model user {
   id                Int       @id
   username          String
-  globalName        String?
-  joinedAt          Int
-  lastActive        Int
+  global_name       String?
+  joined_at         Int
+  created_at        Int
+  update_at         Int
+  last_active       Int 
   bot               Boolean
-  userRole          UserRole[]
-  userEvent         UserEvent[]
-  message           Message[]
-  messageReaction      MessageReaction[]
+  user_role         user_role[]
+  user_event        user_event[]
+  message           message[]
+  message_reaction  message_reaction[]
+  audio_event       audio_event[]
 }
 
-model Role {
+model role {
   id                Int     @id
   name              String
-  createdTimestamp  Int
-  userRole          UserRole[]
+  created_timestamp Int
+  user_role         user_role[]
 }
 
-model UserRole {
-  user              User @relation(fields: [userId], references: [id])
-  userId            Int
-  role              Role @relation(fields: [roleId], references: [id])
+model user_role {
+  user              user @relation(fields: [user_id], references: [id])
+  user_id           Int
+  role              role @relation(fields: [roleId], references: [id])
   roleId            Int
 
-  @@id([userId, roleId])
+  @@id([user_id, roleId])
 }
 
-model AudioEvent {
+model audio_event {
   id                Int @id
-  channelId         Int
-  channel           Channel @relation(fields: [channelId], references: [id])
-  creatorId         Int
+  channel_id        Int
+  channel           channel @relation(fields: [channel_id], references: [id])
+  creator_id        Int
+  creator           user @relation(fields: [creator_id], references: [id])
   name              String
   description       String?
-  status            EventStatus @relation(fields: [statusId], references: [id])
-  statusId          Int
-  startTimestamp    Int
-  endTimestamp      Int
-  userCount         Int
-  userEvent         UserEvent[]
-
+  status            event_status @relation(fields: [status_id], references: [id])
+  status_id         Int
+  start_timestamp   Int
+  end_timestamp     Int
+  user_count        Int
+  user_event        user_event[]
 }
 
-model EventStatus {
+model event_status {
   id                Int @id
   name              String
-  event             AudioEvent[]
-  eventId           Int
+  event             audio_event[]
+  event_id          Int
 }
 
-model UserEvent {
-  event             AudioEvent @relation(fields: [eventId], references: [id])
-  eventId           Int
-  user              User @relation(fields: [userId], references: [id])
-  userId            Int
+model user_event {
+  event             audio_event @relation(fields: [event_id], references: [id])
+  event_id          Int
+  user              user @relation(fields: [user_id], references: [id])
+  user_id           Int
 
-  @@id([userId, eventId])
+  @@id([user_id, event_id])
 }
 
-model Message {
+model message {
   id Int @id
-  channel Channel @relation(fields: [channelId], references: [id])
-  channelId Int
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  createdTimestamp Int
-  messageReaction MessageReaction[]
+  channel channel @relation(fields: [channel_id], references: [id])
+  channel_id Int
+  user_id Int
+  user user @relation(fields: [user_id], references: [id])
+  created_timestamp Int
+  message_reaction message_reaction[]
 }
 
-model Channel {
+model channel {
   id Int @id
   name String
   url String
-  message Message[]
-  audioEvent AudioEvent[]
-  messageReaction MessageReaction[]
+  message message[]
+  audio_event audio_event[]
+  message_reaction message_reaction[]
 }
 
-model MessageReaction {
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  message Message @relation(fields: [messageId], references: [id])
+model message_reaction {
+  user user @relation(fields: [user_id], references: [id])
+  user_id Int
+  message message @relation(fields: [messageId], references: [id])
   messageId Int
-  channel Channel @relation(fields: [channelId], references: [id])
-  channelId Int
+  channel channel @relation(fields: [channel_id], references: [id])
+  channel_id Int
 
-  @@id([userId, messageId])
+  @@id([user_id, messageId])
 }
