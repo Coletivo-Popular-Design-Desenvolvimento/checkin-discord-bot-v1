@@ -25,10 +25,14 @@ services:
     environment:
       - PMA_HOST=db
       - UPLOAD_LIMIT=300M
+    depends_on:
+      db:
+        condition: service_healthy
 
   app:
     build:
       context: .
+
       dockerfile: ./Containerfile
     container_name: node_app
     restart: always
@@ -40,7 +44,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "npm start"
+      sh -c "npm run db && npm start"
 
 volumes:
   db_data:

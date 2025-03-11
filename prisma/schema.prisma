@@ -8,23 +8,110 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model user {
+  id                Int       @id
+  discord_id        String
+  username          String
+  global_name       String?
+  joined_at         Int
+  created_at        Int
+  update_at         Int
+  last_active       Int 
+  bot               Boolean
+  email             String?
+  user_role         user_role[]
+  user_event        user_event[]
+  message           message[]
+  message_reaction  message_reaction[]
+  audio_event       audio_event[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model role {
+  id                Int     @id
+  discord_id        String
+  name              String
+  created_timestamp Int
+  user_role         user_role[]
+}
+
+model user_role {
+  user              user @relation(fields: [user_id], references: [id])
+  user_id           Int
+  role              role @relation(fields: [roleId], references: [id])
+  roleId            Int
+
+  @@id([user_id, roleId])
+}
+
+model audio_event {
+  id                Int @id
+  channel_id        Int
+  channel           channel @relation(fields: [channel_id], references: [id])
+  creator_id        Int
+  creator           user @relation(fields: [creator_id], references: [id])
+  name              String
+  description       String?
+  status            event_status @relation(fields: [status_id], references: [id])
+  status_id         Int
+  start_timestamp   Int
+  end_timestamp     Int
+  user_count        Int
+  user_event        user_event[]
+  image             String?
+}
+
+model event_status {
+  id                Int @id
+  name              String
+  event             audio_event[]
+}
+
+model user_event {
+  event             audio_event @relation(fields: [event_id], references: [id])
+  event_id          Int
+  user              user @relation(fields: [user_id], references: [id])
+  user_id           Int
+
+  @@id([user_id, event_id])
+}
+
+model message {
+  id Int @id
+  discord_id String
+  channel channel @relation(fields: [channel_id], references: [id])
+  channel_id Int
+  user_id Int
+  user user @relation(fields: [user_id], references: [id])
+  created_timestamp Int
+  message_reaction message_reaction[]
+}
+
+model channel {
+  id Int @id
+  discord_id String
+  name String
+  url String
+  message message[]
+  audio_event audio_event[]
+  message_reaction message_reaction[]
+}
+
+model message_reaction {
+  user user @relation(fields: [user_id], references: [id])
+  user_id Int
+  message message @relation(fields: [message_id], references: [id])
+  message_id Int
+  channel channel @relation(fields: [channel_id], references: [id])
+  channel_id Int
+
+  @@id([user_id, message_id])
 }

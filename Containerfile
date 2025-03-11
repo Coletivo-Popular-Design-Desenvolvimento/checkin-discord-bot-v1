@@ -27,5 +27,3 @@ RUN npm run build
 
 # Expose the port your app runs on
 EXPOSE 3000
-
-RUN npm run db:deploy
