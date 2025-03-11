@@ -7,14 +7,14 @@ export const enviaEmail = async () => {
         port: 465,
         secure: true, // use SSL
         auth: {
-            user: 'uperalta18@gmail.com',
+            user: 'apagado por questão de segurança',
             pass: 'sjvr baof xpuh iohb'
         }
     });
 
     const emailASerEnviado = {
-        from: 'uperalta18@gmail.com',
-        to: 'uperalta18@gmail.com',
+        from: 'apagado por questão de segurança',
+        to: 'apagado por questão de segurança',
         subject: 'Enviando Email com Node.js',
         text: 'Estou te enviando este email com node.js',
     };
