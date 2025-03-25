@@ -8,7 +8,11 @@ const { AUTH_ROLE_ID, AUTH_CHANNEL_ID, BOT_AUTHOR_ID } = process.env;
 // Autentica usuário
 export const authUser = async (message: Message) => {
   if (message.author.id !== BOT_AUTHOR_ID) {
-    if (message.channel.id === AUTH_CHANNEL_ID) {
+    if (
+      message.channel.id === AUTH_CHANNEL_ID &&
+      // type check, caso não seja DM ou GuildText o "send" não existe.
+      message.channel.type == ChannelType.GuildText
+    ) {
       const [command] = message.content.split(" ");
 
       const users = await readUsers(); // Ler usuários no início do comando
@@ -73,6 +77,13 @@ export const authUser = async (message: Message) => {
 export const loginUser = async (message: Message) => {
   const [command, ...args] = message.content.split(" ");
 
+  //Lembrete: o message.channel pode ser um DMChannel ou um TextChannel, os únicos que tem o metodo "send"
+  if (message.channel.type !== ChannelType.GuildText) {
+    return console.error(
+      `Cannot send message to channel of type ${message.channel.type}`
+    );
+  }
+
   if (command === "!login") {
     if (args.length < 2) {
       message.channel.send(
@@ -81,7 +92,6 @@ export const loginUser = async (message: Message) => {
       return;
     }
 
-    // const username = args[0]; // Nunca usado.
     const password = args[1];
     const module = args[2];
 

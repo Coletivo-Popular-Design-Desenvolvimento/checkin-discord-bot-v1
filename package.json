@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "worker": "tsc && pm2 start dist/app/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
-    "db": "npx prisma migrate deploy --name init"
+    "db": "npx prisma migrate deploy init",
+    "test": "jest"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
@@ -26,15 +27,26 @@
     "nodemon": "^3.1.9",
     "pm2": "^5.4.3",
     "prisma": "^6.4.1",
-    "telegraf": "^4.16.3"
+    "reflect-metadata": "^0.2.2",
+    "telegraf": "^4.16.3",
+    "ts-jest": "^29.2.6",
+    "ts-node": "^10.9.2",
+    "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@types/jest": "^29.5.14",
     "eslint": "^9.17.0",
     "eslint-plugin-import": "^2.31.0",
     "globals": "^15.14.0",
+    "jest": "^29.7.0",
+    "jest-mock-extended": "^4.0.0-beta1",
     "prisma-dbml-generator": "^0.12.0",
+    "ts-jest": "^29.2.6",
     "typescript": "^5.7",
     "typescript-eslint": "^8.18.1"
+  },
+  "prisma": {
+    "schema": "src/infrastructure/database/models/schema.prisma"
   }
 }
