@@ -4,5 +4,5 @@ module.exports = {
   transform: {
     "^.+\.tsx?$": ["ts-jest",{}],
   },
-  setupFilesAfterEnv: ['<rootDir>/src/tests/singleton.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/tests/config/singleton.ts'],
 };

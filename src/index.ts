@@ -1,6 +1,6 @@
-import app from "../server.js";
-import client from "../bot/bot.js";
-import * as dotenv from 'dotenv';
+import app from "./oldApp/server.js";
+import client from "./oldApp/bot/bot.js";
+import * as dotenv from "dotenv";
 
 dotenv.config();
 

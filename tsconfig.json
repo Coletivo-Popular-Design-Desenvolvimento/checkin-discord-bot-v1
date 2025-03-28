@@ -13,5 +13,13 @@
     "lib": [
         "es2015"
     ],
-    "include": ["src/**/**/*"]
+    "include": ["src/**/**/*"],
+    "exclude": [
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "**/tests/**",
+        "**/__tests__/**",
+        "**/__mocks__/**"
+      ]
+
 }

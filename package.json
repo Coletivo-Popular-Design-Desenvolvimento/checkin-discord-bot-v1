@@ -5,10 +5,10 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node dist/app/index.js",
-    "start:dev": "nodemon --exec ts-node /src/app/index.ts",
+    "start": "tsc && node dist/index.js",
+    "start:dev": "nodemon --exec ts-node /src/index.ts",
     "lint": "eslint .",
-    "worker": "tsc && pm2 start dist/app/index.js --no-daemon",
+    "worker": "tsc && pm2 start dist/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
     "db": "npx prisma migrate deploy init",
     "test": "jest"
@@ -30,8 +30,7 @@
     "reflect-metadata": "^0.2.2",
     "telegraf": "^4.16.3",
     "ts-jest": "^29.2.6",
-    "ts-node": "^10.9.2",
-    "typedi": "^0.10.0"
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -47,6 +46,6 @@
     "typescript-eslint": "^8.18.1"
   },
   "prisma": {
-    "schema": "src/infrastructure/database/models/schema.prisma"
+    "schema": "src/infrastructure/persistence/prisma/models/schema.prisma"
   }
 }
