@@ -1,7 +1,7 @@
-import { UserListOutputDto } from "../../dtos/UserListOutputDto";
-import { UserOutputDto } from "../../dtos/UserOutputDto";
+import { OutputDto } from "../../dtos/OutPutDto";
+import { UserEntity } from "../../entities/User";
 
 export interface IFindUser {
-  execute(id: number | string): Promise<UserOutputDto>;
-  executeFindAll(limit?: number): Promise<UserListOutputDto>;
+  execute(id: number | string): Promise<OutputDto<UserEntity>>;
+  executeFindAll(limit?: number): Promise<OutputDto<UserEntity[]>>;
 }

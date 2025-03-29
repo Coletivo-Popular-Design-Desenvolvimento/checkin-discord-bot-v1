@@ -1,14 +1,16 @@
-import { UserOutputDto } from "../../dtos/UserOutputDto";
+import { OutputDto } from "../../dtos/OutPutDto";
+import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import {
   CreateUserInput,
   ICreateUser,
 } from "../../interfaces/useCases/ICreateUser";
+import { UserStatus } from "../../types/UserStatusEnum";
 
 export class CreateUser implements ICreateUser {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(input: CreateUserInput): Promise<UserOutputDto> {
+  async execute(input: CreateUserInput): Promise<OutputDto<UserEntity>> {
     try {
       // Check if user already exists
       const existingUser = await this.userRepository.findByDiscordId(
@@ -16,7 +18,7 @@ export class CreateUser implements ICreateUser {
       );
       if (existingUser) {
         return {
-          user: existingUser,
+          data: existingUser,
           success: false,
           message: "User already exists",
         };
@@ -28,6 +30,7 @@ export class CreateUser implements ICreateUser {
         username: input.username,
         joinedAt: input.joinedAt,
         bot: false,
+        status: UserStatus.ACTIVE,
         globalName: input.globalName,
         createdAt: input.createdAt,
         updateAt: input.updateAt,
@@ -36,13 +39,13 @@ export class CreateUser implements ICreateUser {
       });
 
       return {
-        user: newUser,
+        data: newUser,
         success: true,
       };
     } catch (error) {
       //Logger aqui
       return {
-        user: null,
+        data: null,
         success: false,
         message:
           error instanceof Error ? error.message : "Unknown error occurred",

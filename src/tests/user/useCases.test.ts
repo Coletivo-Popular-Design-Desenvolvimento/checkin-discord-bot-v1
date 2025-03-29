@@ -3,6 +3,7 @@ import { mockDeep, MockProxy } from "jest-mock-extended";
 import { CreateUser } from "../../domain/useCases/user/CreateUser";
 import { FindUser } from "../../domain/useCases/user/FindUser";
 import { UpdateUser } from "../../domain/useCases/user/UpdateUser";
+import { UserStatus } from "../../domain/types/UserStatusEnum";
 
 // Mock da entidade que representa o usuário no banco de dados.
 const mockUserValue = {
@@ -10,6 +11,7 @@ const mockUserValue = {
   discordId: "1234567890",
   username: "John Doe",
   bot: false,
+  status: UserStatus.ACTIVE,
   globalName: undefined,
   joinedAt: undefined,
   createdAt: undefined,
@@ -23,6 +25,7 @@ const mockUserValue2 = {
   discordId: "1234567890",
   username: "Jane Doe",
   bot: false,
+  status: UserStatus.ACTIVE,
   globalName: undefined,
   joinedAt: undefined,
   createdAt: undefined,
@@ -31,7 +34,7 @@ const mockUserValue2 = {
   email: undefined,
 };
 
-describe("UserService", () => {
+describe("User useCases", () => {
   let userRepository: MockProxy<UserRepository>;
   let createUserCase: CreateUser;
   let findUserCase: FindUser;
@@ -57,7 +60,7 @@ describe("UserService", () => {
 
       // Verifica o resultado.
       // -- ASSERT --
-      expect(result).toEqual({ success: true, user: mockUserValue });
+      expect(result).toEqual({ success: true, data: mockUserValue });
       expect(userRepository.create).toHaveBeenCalledTimes(1);
       expect(userRepository.create).toHaveBeenCalledWith({
         ...mockUserValue,
@@ -72,7 +75,7 @@ describe("UserService", () => {
 
       expect(result).toEqual({
         success: false,
-        user: mockUserValue2,
+        data: mockUserValue2,
         message: "User already exists",
       });
       expect(userRepository.findByDiscordId).toHaveBeenCalledTimes(1);
@@ -90,7 +93,7 @@ describe("UserService", () => {
 
       const result = await findUserCase.execute(id);
 
-      expect(result).toEqual({ success: true, user: mockUserValue });
+      expect(result).toEqual({ success: true, data: mockUserValue });
       expect(userRepository.findById).toHaveBeenCalledTimes(1);
       expect(userRepository.findById).toHaveBeenCalledWith(id);
     });
@@ -102,7 +105,7 @@ describe("UserService", () => {
 
       const result = await findUserCase.execute(id);
 
-      expect(result).toEqual({ success: true, user: mockUserValue });
+      expect(result).toEqual({ success: true, data: mockUserValue });
       expect(userRepository.findByDiscordId).toHaveBeenCalledTimes(1);
       expect(userRepository.findByDiscordId).toHaveBeenCalledWith(id);
     });
@@ -115,6 +118,7 @@ describe("UserService", () => {
         discordId: "1234567890",
         username: "Jane Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       userRepository.updateById.mockResolvedValue(mockUserValue2);
@@ -122,7 +126,7 @@ describe("UserService", () => {
 
       const result = await updateUserCase.execute(id, userData);
 
-      expect(result).toEqual({ success: true, user: mockUserValue2 });
+      expect(result).toEqual({ success: true, data: mockUserValue2 });
       expect(userRepository.updateById).toHaveBeenCalledTimes(1);
       expect(userRepository.updateById).toHaveBeenCalledWith(id, userData);
     });
@@ -134,6 +138,7 @@ describe("UserService", () => {
         discordId: "1234567890",
         username: "Jane Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       userRepository.updateById.mockResolvedValue(mockUserValue2);
@@ -141,7 +146,7 @@ describe("UserService", () => {
 
       const result = await updateUserCase.execute(discordId, userData);
 
-      expect(result).toEqual({ success: true, user: mockUserValue2 });
+      expect(result).toEqual({ success: true, data: mockUserValue2 });
       expect(userRepository.updateById).toHaveBeenCalledTimes(1);
       expect(userRepository.updateById).toHaveBeenCalledWith(id, userData);
     });
@@ -152,18 +157,41 @@ describe("UserService", () => {
         discordId: "1234567890",
         username: "Jane Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       const result = await updateUserCase.execute(id, userData);
 
       expect(result).toEqual({
         success: false,
-        user: null,
+        data: null,
         message: `User not found with id ${id}`,
       });
       expect(userRepository.findById).toHaveBeenCalledTimes(1);
       expect(userRepository.findById).toHaveBeenCalledWith(id);
       expect(userRepository.updateById).not.toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("should disable an user", async () => {
+    const id = 2;
+    const userData = {
+      discordId: "1234567890",
+      username: "Jane Doe",
+      bot: false,
+      status: UserStatus.ACTIVE,
+    };
+
+    userRepository.updateById.mockResolvedValue(mockUserValue2);
+    userRepository.findById.mockResolvedValue(mockUserValue2);
+
+    const result = await updateUserCase.executeDisableUser(id);
+
+    expect(result).toEqual({ success: true, data: mockUserValue2 });
+    expect(userRepository.updateById).toHaveBeenCalledTimes(1);
+    expect(userRepository.updateById).toHaveBeenCalledWith(id, {
+      ...mockUserValue2,
+      status: UserStatus.INACTIVE,
     });
   });
 });

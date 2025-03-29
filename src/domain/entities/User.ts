@@ -5,6 +5,7 @@ export class UserEntity {
     public readonly discordId: string,
     public readonly username: string,
     public readonly bot: boolean,
+    public readonly status: number,
     public readonly globalName?: string | null,
     public readonly joinedAt?: number | null,
     public readonly createdAt?: number | null,

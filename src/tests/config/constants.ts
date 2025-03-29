@@ -1,7 +1,10 @@
+import { UserStatus } from "../../domain/types/UserStatusEnum";
+
 export type naturalizeUser = {
   id: number;
   discord_id: string;
   username: string;
+  status: number;
   global_name: string | null;
   joined_at: number | null;
   created_at: number | null;
@@ -16,6 +19,7 @@ export const mockDBUserValue = {
   discord_id: "1234567890",
   username: "John Doe",
   bot: false,
+  status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
   created_at: undefined,
@@ -29,6 +33,7 @@ export const mockUserUpdateValue = {
   discord_id: "1234567890",
   username: "Jane Doe",
   bot: false,
+  status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
   created_at: undefined,
@@ -42,6 +47,7 @@ export const mockUserValue = {
   discordId: "1234567890",
   username: "John Doe",
   bot: false,
+  status: UserStatus.ACTIVE,
   globalName: undefined,
   joinedAt: undefined,
   createdAt: undefined,

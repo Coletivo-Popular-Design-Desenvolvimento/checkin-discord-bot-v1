@@ -28,6 +28,7 @@ model user {
   last_active      Int?
   bot              Boolean
   email            String?
+  status           Int
   user_role        user_role[]
   user_event       user_event[]
   message          message[]

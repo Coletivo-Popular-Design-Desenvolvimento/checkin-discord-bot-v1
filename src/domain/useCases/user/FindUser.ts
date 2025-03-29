@@ -1,5 +1,4 @@
-import { UserListOutputDto } from "../../dtos/UserListOutputDto";
-import { UserOutputDto } from "../../dtos/UserOutputDto";
+import { OutputDto } from "../../dtos/OutPutDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { IFindUser } from "../../interfaces/useCases/IFindUser";
@@ -7,7 +6,7 @@ import { IFindUser } from "../../interfaces/useCases/IFindUser";
 export class FindUser implements IFindUser {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(id: number | string): Promise<UserOutputDto> {
+  async execute(id: number | string): Promise<OutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 
@@ -19,20 +18,20 @@ export class FindUser implements IFindUser {
 
       if (!user) {
         return {
-          user: null,
+          data: null,
           success: false,
           message: `User not found with id ${id}`,
         };
       }
 
       return {
-        user,
+        data: user,
         success: true,
       };
     } catch (error) {
       // Logger
       return {
-        user: null,
+        data: null,
         success: false,
         message:
           error instanceof Error ? error.message : "Unknown error occurred",
@@ -40,17 +39,17 @@ export class FindUser implements IFindUser {
     }
   }
 
-  async executeFindAll(limit?: number): Promise<UserListOutputDto> {
+  async executeFindAll(limit?: number): Promise<OutputDto<UserEntity[]>> {
     try {
       const users = await this.userRepository.listAll(limit);
       return {
-        users,
+        data: users,
         success: true,
       };
     } catch (error) {
       // Logger
       return {
-        users: null,
+        data: null,
         success: false,
         message:
           error instanceof Error ? error.message : "Unknown error occurred",

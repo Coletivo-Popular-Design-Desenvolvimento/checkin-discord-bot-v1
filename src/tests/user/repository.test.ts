@@ -1,4 +1,5 @@
 import { UserEntity } from "../../domain/entities/User";
+import { UserStatus } from "../../domain/types/UserStatusEnum";
 import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
 import UserRepository from "../../infrastructure/persistence/repositories/UserRepository";
 import { mockDBUserValue, mockUserUpdateValue } from "../config/constants";
@@ -21,7 +22,7 @@ describe("UserRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id },
+        where: { id, status: UserStatus.ACTIVE },
       });
 
       expect(user).toHaveProperty("id", 1);
@@ -39,7 +40,7 @@ describe("UserRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id },
+        where: { id, status: UserStatus.ACTIVE },
       });
 
       expect(user).toBeNull();
@@ -56,7 +57,7 @@ describe("UserRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { discord_id: discordId, status: UserStatus.ACTIVE },
       });
 
       expect(user).toHaveProperty("id", 1);
@@ -74,7 +75,7 @@ describe("UserRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { discord_id: discordId, status: UserStatus.ACTIVE },
       });
 
       expect(user).toBeNull();
@@ -87,6 +88,7 @@ describe("UserRepository", () => {
         discordId: "1234567890",
         username: "John Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       prismaMock.user.create.mockResolvedValue(mockDBUserValue);
@@ -112,6 +114,7 @@ describe("UserRepository", () => {
         discordId: "1234567890",
         username: "Jane Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       prismaMock.user.update.mockResolvedValue(mockUserUpdateValue);
@@ -136,6 +139,7 @@ describe("UserRepository", () => {
         discordId: "1234567890",
         username: "Jane Doe",
         bot: false,
+        status: UserStatus.ACTIVE,
       };
 
       prismaMock.user.update.mockRejectedValue(new Error("User not found"));
@@ -180,38 +184,6 @@ describe("UserRepository", () => {
       expect(prismaMock.user.delete).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.delete).toHaveBeenCalledWith({
         where: { id },
-      });
-    });
-  });
-
-  describe("deleteUserByDiscordId", () => {
-    it("should delete a user by discord id", async () => {
-      const discordId = "1234567890";
-
-      prismaMock.user.delete.mockResolvedValue(mockDBUserValue);
-
-      const user = await userRepository.deleteByDiscordId(discordId);
-
-      expect(prismaMock.user.delete).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.delete).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
-      });
-
-      expect(user).toBe(true);
-    });
-
-    it("should throw an error if user not found", async () => {
-      const discordId = "1234567890";
-
-      prismaMock.user.delete.mockRejectedValue(new Error("User not found"));
-
-      await expect(userRepository.deleteByDiscordId(discordId)).rejects.toThrow(
-        "User not found"
-      );
-
-      expect(prismaMock.user.delete).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.delete).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
       });
     });
   });

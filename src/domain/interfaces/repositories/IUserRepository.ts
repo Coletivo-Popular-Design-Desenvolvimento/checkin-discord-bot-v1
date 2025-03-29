@@ -7,5 +7,4 @@ export interface IUserRepository {
   listAll(limit?: number): Promise<UserEntity[]>;
   updateById(id: number, user: Partial<UserEntity>): Promise<UserEntity | null>;
   deleteById(id: number): Promise<boolean>;
-  deleteByDiscordId(id: string): Promise<boolean>;
 }

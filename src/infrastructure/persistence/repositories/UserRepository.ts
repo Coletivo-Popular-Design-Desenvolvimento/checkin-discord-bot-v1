@@ -2,6 +2,7 @@ import { PrismaClient, user } from "@prisma/client";
 import { IUserRepository } from "../../../domain/interfaces/repositories/IUserRepository";
 import { PrismaService } from "../prisma/prismaService";
 import { UserEntity } from "../../../domain/entities/User";
+import { UserStatus } from "../../../domain/types/UserStatusEnum";
 
 class UserRepository implements IUserRepository {
   private client: PrismaClient;
@@ -31,7 +32,7 @@ class UserRepository implements IUserRepository {
    */
   async findById(id: number): Promise<UserEntity | null> {
     const result = await this.client.user.findUnique({
-      where: { id },
+      where: { id, status: UserStatus.ACTIVE },
     });
     return result ? this.toDomain(result) : null;
   }
@@ -44,7 +45,7 @@ class UserRepository implements IUserRepository {
    */
   async findByDiscordId(id: string): Promise<UserEntity | null> {
     const result = await this.client.user.findUnique({
-      where: { discord_id: id },
+      where: { discord_id: id, status: UserStatus.ACTIVE },
     });
     return result ? this.toDomain(result) : null;
   }
@@ -58,6 +59,7 @@ class UserRepository implements IUserRepository {
   async listAll(limit?: number): Promise<UserEntity[]> {
     const results = await this.client.user.findMany({
       take: limit,
+      where: { status: UserStatus.ACTIVE },
     });
     return results.map((result) => this.toDomain(result));
   }
@@ -93,25 +95,13 @@ class UserRepository implements IUserRepository {
     return result ? true : false;
   }
 
-  /**
-   * Deleta um usuario pelo id do Discord.
-   *
-   * @param {string} id O id do Discord do usuario a ser deletado.
-   * @returns {Promise<boolean>} True se o usuario foi deletado, false caso contrario.
-   */
-  async deleteByDiscordId(id: string): Promise<boolean> {
-    const result = await this.client.user.delete({
-      where: { discord_id: id },
-    });
-    return result ? true : false;
-  }
-
   private toDomain(user: user): UserEntity {
     return new UserEntity(
       user.id,
       user.discord_id,
       user.username,
       user.bot,
+      user.status,
       user.global_name,
       user.joined_at,
       user.created_at,
@@ -126,6 +116,7 @@ class UserRepository implements IUserRepository {
       discord_id: user.discordId,
       username: user.username,
       bot: user.bot,
+      status: user.status,
       global_name: user.globalName,
       joined_at: user.joinedAt,
       created_at: user.createdAt,

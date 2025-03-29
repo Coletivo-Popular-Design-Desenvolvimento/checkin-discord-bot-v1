@@ -13,6 +13,7 @@ Table user {
   last_active Int
   bot Boolean [not null]
   email String
+  status Int [not null]
   user_role user_role [not null]
   user_event user_event [not null]
   message message [not null]
