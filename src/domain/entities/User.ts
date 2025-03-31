@@ -1,3 +1,5 @@
+import { UserStatus } from "../types/UserStatusEnum";
+
 export class UserEntity {
   // Deveria ser User, mas o discord ja tem User, é MUITO chato ficar importando a coisa errada toda hora.
   constructor(
@@ -5,7 +7,7 @@ export class UserEntity {
     public readonly discordId: string,
     public readonly username: string,
     public readonly bot: boolean,
-    public readonly status: number,
+    public readonly status: UserStatus,
     public readonly globalName?: string | null,
     public readonly joinedAt?: number | null,
     public readonly createdAt?: number | null,
