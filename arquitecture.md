@@ -21,8 +21,8 @@ src/
 │   └── cron/                  # Antigo rotas/cron.ts
 ├── presentation/
 │   ├── discord/               # Formatação de mensagens (ex.: relatórios)
-│   ├── web/                   # Rotas HTTP (rotas/health.ts, rotas/index.ts)
 │   └── telegram/              # Formatadores para mensagens do Telegram
+├── services/                  # Camada de serviços (ex.: UserService)
 ├── config/                    # Centraliza .env, .env.example
 │   └── env.ts                 # Carregador de variáveis de ambiente
 ├── shared/                    # Utilitários globais

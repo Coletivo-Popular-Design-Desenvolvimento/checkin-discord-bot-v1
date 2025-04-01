@@ -1,3 +1,4 @@
+import "reflect-metadata"; // Biblioteca que organiza as dependências, necessario importar antes de qualquer outra biblioteca.
 import "dotenv/config";
 
 import express from "express";

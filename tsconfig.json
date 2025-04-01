@@ -6,9 +6,20 @@
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
     },
     "lib": [
         "es2015"
-    ]
+    ],
+    "include": ["src/**/**/*"],
+    "exclude": [
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "**/tests/**",
+        "**/__tests__/**",
+        "**/__mocks__/**"
+      ]
+
 }

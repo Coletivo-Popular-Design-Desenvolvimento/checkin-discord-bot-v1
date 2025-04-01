@@ -1,0 +1,1 @@
+// Implementa o logger.
