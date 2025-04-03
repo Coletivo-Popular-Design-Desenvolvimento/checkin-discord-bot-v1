@@ -1,10 +1,20 @@
-import { OutputDto } from "../../dtos/OutPutDto";
+import { OutputDto } from "../../dtos/OutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { IFindUser } from "../../interfaces/useCases/IFindUser";
+import { ILoggerService } from "../../interfaces/services/ILogger";
+import { IFindUser } from "../../interfaces/useCases/user/IFindUser";
+import { ErrorMessages } from "../../types/ErrorMessages";
+import {
+  LoggerContext,
+  LoggerContextEntity,
+  LoggerContextStatus,
+} from "../../types/LoggerContextEnum";
 
 export class FindUser implements IFindUser {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly logger: ILoggerService
+  ) {}
 
   async execute(id: number | string): Promise<OutputDto<UserEntity>> {
     try {
@@ -20,7 +30,7 @@ export class FindUser implements IFindUser {
         return {
           data: null,
           success: false,
-          message: `User not found with id ${id}`,
+          message: `${ErrorMessages.USER_NOT_FOUND} ${id}`,
         };
       }
 
@@ -29,12 +39,17 @@ export class FindUser implements IFindUser {
         success: true,
       };
     } catch (error) {
-      // Logger
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.USECASE,
+        LoggerContextEntity.USER,
+        `FindUser.execute | ${error.message}`
+      );
       return {
         data: null,
         success: false,
         message:
-          error instanceof Error ? error.message : "Unknown error occurred",
+          error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR,
       };
     }
   }
@@ -47,12 +62,17 @@ export class FindUser implements IFindUser {
         success: true,
       };
     } catch (error) {
-      // Logger
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.USECASE,
+        LoggerContextEntity.USER,
+        `executeFindAll.execute | ${error.message}`
+      );
       return {
         data: null,
         success: false,
         message:
-          error instanceof Error ? error.message : "Unknown error occurred",
+          error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR,
       };
     }
   }

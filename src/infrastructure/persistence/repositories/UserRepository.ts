@@ -1,14 +1,22 @@
-import { PrismaClient, user } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { IUserRepository } from "../../../domain/interfaces/repositories/IUserRepository";
 import { PrismaService } from "../prisma/prismaService";
 import { UserEntity } from "../../../domain/entities/User";
 import { UserStatus } from "../../../domain/types/UserStatusEnum";
+import {
+  LoggerContext,
+  LoggerContextEntity,
+  LoggerContextStatus,
+} from "../../../domain/types/LoggerContextEnum";
+import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
 
-class UserRepository implements IUserRepository {
+export class UserRepository implements IUserRepository {
   private client: PrismaClient;
+  private logger: ILoggerService;
 
-  constructor(private prisma: PrismaService) {
+  constructor(private prisma: PrismaService, logger: ILoggerService) {
     this.client = this.prisma.getClient();
+    this.logger = logger;
   }
 
   /**
@@ -18,10 +26,36 @@ class UserRepository implements IUserRepository {
    * @returns {Promise<UserEntity>} O usuario criado.
    */
   async create(user: Omit<UserEntity, "id">): Promise<UserEntity> {
-    const result = await this.client.user.create({
-      data: this.toPersistence(user),
-    });
-    return this.toDomain(result);
+    try {
+      const result = await this.client.user.create({
+        data: this.toPersistence(user),
+      });
+      return this.toDomain(result);
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `create | ${error.message}`
+      );
+    }
+  }
+
+  async createMany(users: Omit<UserEntity, "id">[]): Promise<number> {
+    try {
+      const result = await this.client.user.createMany({
+        data: users.map((user) => this.toPersistence(user)),
+        skipDuplicates: true,
+      });
+      return result.count;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `createMany | ${error.message}`
+      );
+    }
   }
 
   /**
@@ -30,11 +64,30 @@ class UserRepository implements IUserRepository {
    * @param {number} id O id do usuario a ser buscado.
    * @returns {Promise<UserEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
    */
-  async findById(id: number): Promise<UserEntity | null> {
-    const result = await this.client.user.findUnique({
-      where: { id, status: UserStatus.ACTIVE },
-    });
-    return result ? this.toDomain(result) : null;
+  async findById(
+    id: number,
+    includeInactive?: boolean
+  ): Promise<UserEntity | null> {
+    try {
+      const result = await this.client.user.findUnique({
+        where: {
+          id,
+          status: {
+            in: includeInactive
+              ? [UserStatus.ACTIVE, UserStatus.INACTIVE]
+              : [UserStatus.ACTIVE],
+          },
+        },
+      });
+      return result ? this.toDomain(result) : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `findById | ${error.message}`
+      );
+    }
   }
 
   /**
@@ -43,11 +96,30 @@ class UserRepository implements IUserRepository {
    * @param {string} id O id do Discord do usuario a ser buscado.
    * @returns {Promise<UserEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
    */
-  async findByDiscordId(id: string): Promise<UserEntity | null> {
-    const result = await this.client.user.findUnique({
-      where: { discord_id: id, status: UserStatus.ACTIVE },
-    });
-    return result ? this.toDomain(result) : null;
+  async findByDiscordId(
+    id: string,
+    includeInactive?: boolean
+  ): Promise<UserEntity | null> {
+    try {
+      const result = await this.client.user.findUnique({
+        where: {
+          discord_id: id,
+          status: {
+            in: includeInactive
+              ? [UserStatus.ACTIVE, UserStatus.INACTIVE]
+              : [UserStatus.ACTIVE],
+          },
+        },
+      });
+      return result ? this.toDomain(result) : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `findByDiscordId | ${error.message}`
+      );
+    }
   }
 
   /**
@@ -56,12 +128,30 @@ class UserRepository implements IUserRepository {
    * @param {number} [limit] O limite de usuarios a serem retornados.
    * @returns {Promise<UserEntity[]>} A lista de usuarios.
    */
-  async listAll(limit?: number): Promise<UserEntity[]> {
-    const results = await this.client.user.findMany({
-      take: limit,
-      where: { status: UserStatus.ACTIVE },
-    });
-    return results.map((result) => this.toDomain(result));
+  async listAll(
+    limit?: number,
+    includeInactive?: boolean
+  ): Promise<UserEntity[]> {
+    try {
+      const results = await this.client.user.findMany({
+        take: limit,
+        where: {
+          status: {
+            in: includeInactive
+              ? [UserStatus.ACTIVE, UserStatus.INACTIVE]
+              : [UserStatus.ACTIVE],
+          },
+        },
+      });
+      return results.map((result) => this.toDomain(result));
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `create | ${error.message}`
+      );
+    }
   }
 
   /**
@@ -75,11 +165,20 @@ class UserRepository implements IUserRepository {
     id: number,
     user: Partial<UserEntity>
   ): Promise<UserEntity | null> {
-    const result = await this.client.user.update({
-      where: { id },
-      data: this.toPersistence(user),
-    });
-    return result ? this.toDomain(result) : null;
+    try {
+      const result = await this.client.user.update({
+        where: { id },
+        data: this.toPersistence(user),
+      });
+      return result ? this.toDomain(result) : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `updateById | ${error.message}`
+      );
+    }
   }
 
   /**
@@ -89,13 +188,21 @@ class UserRepository implements IUserRepository {
    * @returns {Promise<boolean>} True se o usuario foi deletado, false caso contrario.
    */
   async deleteById(id: number): Promise<boolean> {
-    const result = await this.client.user.delete({
-      where: { id },
-    });
-    return result ? true : false;
+    try {
+      const result = await this.client.user.delete({
+        where: { id },
+      });
+      return result ? true : false;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.USER,
+        `deleteById | ${error.message}`
+      );
+    }
   }
-
-  private toDomain(user: user): UserEntity {
+  private toDomain(user: User): UserEntity {
     return new UserEntity(
       user.id,
       user.discord_id,
@@ -126,5 +233,3 @@ class UserRepository implements IUserRepository {
     };
   }
 }
-
-export default UserRepository;

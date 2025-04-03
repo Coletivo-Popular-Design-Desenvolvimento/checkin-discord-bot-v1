@@ -1,5 +1,5 @@
-import { OutputDto } from "../../dtos/OutPutDto";
-import { UserEntity } from "../../entities/User";
+import { OutputDto } from "../../../dtos/OutputDto";
+import { UserEntity } from "../../../entities/User";
 
 export interface IFindUser {
   execute(id: number | string): Promise<OutputDto<UserEntity>>;

@@ -9,15 +9,19 @@ jest.mock("@prisma/client", () => {
 });
 
 import { initializeDatabase } from "../../contexts/database.context";
+import { ILoggerService } from "../../domain/interfaces/services/ILogger";
 import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
-import UserRepository from "../../infrastructure/persistence/repositories/UserRepository";
+import { UserRepository } from "../../infrastructure/persistence/repositories/UserRepository";
 import { PrismaClient } from "@prisma/client";
 
 describe("initializeDatabase", () => {
+  const mockLogger: ILoggerService = {
+    logToConsole: jest.fn(),
+    logToDatabase: jest.fn(),
+  };
+
   it("should work with default client", () => {
-    const mockClient = new PrismaClient();
-    const prismaService = new PrismaService(mockClient);
-    const { userRepository } = initializeDatabase(prismaService);
+    const { userRepository } = initializeDatabase(mockLogger);
     expect(PrismaClient).toHaveBeenCalledTimes(1);
     expect(userRepository).toBeInstanceOf(UserRepository);
   });
@@ -25,7 +29,7 @@ describe("initializeDatabase", () => {
   it("should work with injected client", () => {
     const mockClient = new PrismaClient();
     const prismaService = new PrismaService(mockClient);
-    const { userRepository } = initializeDatabase(prismaService);
+    const { userRepository } = initializeDatabase(mockLogger, prismaService);
     expect(userRepository).toBeInstanceOf(UserRepository);
   });
 });

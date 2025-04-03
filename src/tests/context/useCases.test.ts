@@ -12,24 +12,29 @@ jest.mock("../../contexts/database.context", () => ({
 
 import { PrismaClient } from "@prisma/client";
 import { initializeDatabase } from "../../contexts/database.context";
-import { initializeUseCases } from "../../contexts/useCases.context";
 import { CreateUser } from "../../domain/useCases/user/CreateUser";
 import { FindUser } from "../../domain/useCases/user/FindUser";
 import { UpdateUser } from "../../domain/useCases/user/UpdateUser";
 import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
 import { mockUserValue } from "../config/constants";
+import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+import { initializeUserUseCases } from "../../contexts/useUserCases.context";
 
 describe("initializeUserCases", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+  const mockLogger: ILoggerService = {
+    logToConsole: jest.fn(),
+    logToDatabase: jest.fn(),
+  };
 
   it("should initialize all use cases with the repository", () => {
     const prismaClient = new PrismaClient();
     const prismaService = new PrismaService(prismaClient);
-    const { userRepository } = initializeDatabase(prismaService);
+    const { userRepository } = initializeDatabase(mockLogger, prismaService);
     const { createUserCase, findUserCase, updateUserCase } =
-      initializeUseCases(userRepository);
+      initializeUserUseCases(userRepository, mockLogger);
 
     // Verify instances
     expect(createUserCase).toBeInstanceOf(CreateUser);
@@ -44,7 +49,7 @@ describe("initializeUserCases", () => {
     // O teste e para garantir que apenas uma instancia do repositorio seja criada
     const prismaClient = new PrismaClient();
     const prismaService = new PrismaService(prismaClient);
-    const { userRepository } = initializeDatabase(prismaService);
+    const { userRepository } = initializeDatabase(mockLogger, prismaService);
 
     const createRepo = (userRepository.create = jest.fn());
     const findRepo = (userRepository.findById = jest.fn());
@@ -54,8 +59,8 @@ describe("initializeUserCases", () => {
     findRepo.mockResolvedValue(mockUserValue);
     updateRepo.mockResolvedValue(mockUserValue);
 
-    const firstCall = initializeUseCases(userRepository);
-    const secondCall = initializeUseCases(userRepository);
+    const firstCall = initializeUserUseCases(userRepository, mockLogger);
+    const secondCall = initializeUserUseCases(userRepository, mockLogger);
 
     const createResult = await secondCall.createUserCase.execute(mockUserValue);
     const findResult = await secondCall.findUserCase.execute(mockUserValue.id);

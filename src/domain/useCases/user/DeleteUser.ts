@@ -1,9 +1,10 @@
 // TODO: Delete fisico em cascata
 
-import { OutputDto } from "../../dtos/OutPutDto";
+import { OutputDto } from "../../dtos/OutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { IDeleteUser } from "../../interfaces/useCases/IDeleteUser";
+import { IDeleteUser } from "../../interfaces/useCases/user/IDeleteUser";
+import { ErrorMessages } from "../../types/ErrorMessages";
 
 export class DeleteUser implements IDeleteUser {
   constructor(private readonly userRepository: IUserRepository) {}
@@ -22,7 +23,7 @@ export class DeleteUser implements IDeleteUser {
         return {
           data: null,
           success: false,
-          message: `User not found with id ${id}`,
+          message: `${ErrorMessages.USER_NOT_FOUND} ${id}`,
         };
       }
 
