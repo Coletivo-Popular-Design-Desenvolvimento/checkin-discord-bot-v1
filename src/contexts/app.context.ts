@@ -16,6 +16,7 @@ export function initializeApp() {
   const { userRepository } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { SECRET_KEY } = process.env;
+
   if (!SECRET_KEY) {
     logger.logToConsole(
       LoggerContextStatus.ERROR,
@@ -24,6 +25,7 @@ export function initializeApp() {
       ErrorMessages.MISSING_SECRET
     );
   }
+
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
 
