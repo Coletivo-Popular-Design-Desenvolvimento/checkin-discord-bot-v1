@@ -1,4 +1,4 @@
-export interface OutputDto<T> extends Dto {
+export interface GenericOutputDto<T> extends Dto {
   data: T;
 }
 

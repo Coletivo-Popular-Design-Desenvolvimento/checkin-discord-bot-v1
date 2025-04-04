@@ -1,5 +1,4 @@
 import { UserEntity } from "../../entities/User";
-import { UserStatus } from "../../types/UserStatusEnum";
 
 export interface IUserRepository {
   create(user: Omit<UserEntity, "id">): Promise<UserEntity>;

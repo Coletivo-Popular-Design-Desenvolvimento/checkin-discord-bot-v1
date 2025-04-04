@@ -1,4 +1,4 @@
-import { OutputDto } from "../../dtos/OutputDto";
+import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { ILoggerService } from "../../interfaces/services/ILogger";
@@ -16,7 +16,7 @@ export class FindUser implements IFindUser {
     private readonly logger: ILoggerService
   ) {}
 
-  async execute(id: number | string): Promise<OutputDto<UserEntity>> {
+  async execute(id: number | string): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 
@@ -54,7 +54,9 @@ export class FindUser implements IFindUser {
     }
   }
 
-  async executeFindAll(limit?: number): Promise<OutputDto<UserEntity[]>> {
+  async executeFindAll(
+    limit?: number
+  ): Promise<GenericOutputDto<UserEntity[]>> {
     try {
       const users = await this.userRepository.listAll(limit);
       return {

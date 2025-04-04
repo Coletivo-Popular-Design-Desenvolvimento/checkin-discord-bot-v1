@@ -1,4 +1,4 @@
-import { OutputDto } from "../../dtos/OutputDto";
+import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { ILoggerService } from "../../interfaces/services/ILogger";
@@ -19,7 +19,7 @@ export class UpdateUser implements IUpdateUser {
   async execute(
     id: number | string,
     data: Partial<UserEntity>
-  ): Promise<OutputDto<UserEntity>> {
+  ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 
@@ -62,7 +62,7 @@ export class UpdateUser implements IUpdateUser {
 
   async executeInvertUserStatus(
     id: number | string
-  ): Promise<OutputDto<UserEntity>> {
+  ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 

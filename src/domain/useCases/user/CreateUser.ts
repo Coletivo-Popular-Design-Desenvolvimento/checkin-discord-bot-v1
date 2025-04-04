@@ -1,5 +1,5 @@
 import { CreateManyUserOutputDto } from "../../dtos/CreateManyUserOutputDto";
-import { OutputDto } from "../../dtos/OutputDto";
+import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { ILoggerService } from "../../interfaces/services/ILogger";
@@ -22,7 +22,7 @@ export class CreateUser implements ICreateUser {
     private readonly logger: ILoggerService
   ) {}
 
-  async execute(input: CreateUserInput): Promise<OutputDto<UserEntity>> {
+  async execute(input: CreateUserInput): Promise<GenericOutputDto<UserEntity>> {
     try {
       if (input.bot) {
         return {
@@ -86,7 +86,7 @@ export class CreateUser implements ICreateUser {
 
   async executeMany(
     users: CreateUserInput[]
-  ): Promise<OutputDto<CreateManyUserOutputDto>> {
+  ): Promise<GenericOutputDto<CreateManyUserOutputDto>> {
     try {
       const created = await this.userRepository.createMany(
         users.filter((user) => !user.bot)

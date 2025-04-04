@@ -1,5 +1,5 @@
-import { OutputDto } from "../../../dtos/OutputDto";
+import { GenericOutputDto } from "../../../dtos/GenericOutputDto";
 
 export interface IDeleteUser {
-  execute(id: number | string): Promise<OutputDto<Boolean>>;
+  execute(id: number | string): Promise<GenericOutputDto<Boolean>>;
 }
