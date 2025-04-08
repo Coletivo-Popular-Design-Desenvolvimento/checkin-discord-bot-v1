@@ -37,10 +37,7 @@ export class UpdateUser implements IUpdateUser {
         };
       }
 
-      const updatedUser = await this.userRepository.updateById(user.id, {
-        ...data,
-        updateAt: Date.now(),
-      });
+      const updatedUser = await this.userRepository.updateById(user.id, data);
       return {
         data: updatedUser,
         success: true,
@@ -86,8 +83,8 @@ export class UpdateUser implements IUpdateUser {
           user.status === UserStatus.ACTIVE
             ? UserStatus.INACTIVE
             : UserStatus.ACTIVE,
-        updateAt: Date.now(),
       });
+
       return {
         data: updatedUser,
         success: true,

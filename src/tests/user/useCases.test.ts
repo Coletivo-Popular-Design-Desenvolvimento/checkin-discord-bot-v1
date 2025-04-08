@@ -197,7 +197,6 @@ describe("User useCases", () => {
         expect.objectContaining({
           username: mockUserValue2.username,
           status: UserStatus.ACTIVE,
-          updateAt: expect.any(Number),
           bot: false,
           discordId: mockUserValue2.discordId,
         })
@@ -226,7 +225,6 @@ describe("User useCases", () => {
         expect.objectContaining({
           username: mockUserValue2.username,
           status: UserStatus.ACTIVE,
-          updateAt: expect.any(Number),
           bot: false,
           discordId: mockUserValue2.discordId,
         })
@@ -275,7 +273,6 @@ describe("User useCases", () => {
         expect.objectContaining({
           username: mockUserValue2.username,
           status: UserStatus.INACTIVE,
-          updateAt: expect.any(Number),
           bot: false,
           discordId: mockUserValue2.discordId,
         })

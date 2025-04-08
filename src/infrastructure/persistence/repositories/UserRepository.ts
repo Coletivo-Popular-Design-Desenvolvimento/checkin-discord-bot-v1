@@ -211,7 +211,8 @@ export class UserRepository implements IUserRepository {
       user.status,
       user.global_name,
       user.joined_at,
-      user.created_at,
+      user.discord_created_at,
+      user.create_at,
       user.update_at,
       user.last_active,
       user.email
@@ -226,7 +227,7 @@ export class UserRepository implements IUserRepository {
       status: user.status,
       global_name: user.globalName,
       joined_at: user.joinedAt,
-      created_at: user.createdAt,
+      discord_created_at: user.discordCreatedAt,
       update_at: user.updateAt,
       last_active: user.lastActive,
       email: user.email,

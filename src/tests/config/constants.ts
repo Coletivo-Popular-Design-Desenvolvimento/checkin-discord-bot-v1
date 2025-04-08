@@ -6,10 +6,11 @@ export type naturalizeUser = {
   username: string;
   status: number;
   global_name: string | null;
-  joined_at: number | null;
-  created_at: number | null;
-  update_at: number | null;
-  last_active: number | null;
+  joined_at: Date | null;
+  discord_created_at: Date | null;
+  create_at: Date | null;
+  update_at: Date | null;
+  last_active: Date | null;
   bot: boolean;
   email: string | null;
 };
@@ -22,7 +23,8 @@ export const mockDBUserValue = {
   status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
-  created_at: undefined,
+  discord_created_at: undefined,
+  create_at: undefined,
   update_at: undefined,
   last_active: undefined,
   email: undefined,
@@ -36,6 +38,7 @@ export const mockUserUpdateValue = {
   status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
+  discord_created_at: undefined,
   created_at: undefined,
   update_at: undefined,
   last_active: undefined,

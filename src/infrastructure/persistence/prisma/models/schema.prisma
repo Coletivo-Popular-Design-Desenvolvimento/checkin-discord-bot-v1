@@ -18,32 +18,34 @@ datasource db {
 }
 
 model User {
-  id               Int               @id @default(autoincrement())
-  discord_id       String            @unique
-  username         String
-  global_name      String?
-  joined_at        Int?
-  created_at       Int?
-  update_at        Int?
-  last_active      Int?
-  bot              Boolean
-  email            String?
-  status           Int
-  user_role        UserRole[]
-  user_event       userEvent[]
-  message          Message[]
-  message_reaction MessageReaction[]
-  audio_event      AudioEvent[]
+  id                 Int               @id @default(autoincrement())
+  discord_id         String            @unique
+  username           String
+  global_name        String?
+  joined_at          DateTime?
+  discord_created_at DateTime?
+  update_at          DateTime?         @updatedAt
+  last_active        DateTime?
+  create_at          DateTime?         @default(now())
+  bot                Boolean
+  email              String?
+  status             Int
+  user_role          UserRole[]
+  user_event         userEvent[]
+  message            Message[]
+  message_reaction   MessageReaction[]
+  audio_event        AudioEvent[]
 
   @@map("user")
 }
 
 model Role {
-  id                Int        @id @default(autoincrement())
-  discord_id        String
-  name              String
-  created_timestamp Int
-  user_role         UserRole[]
+  id                 Int        @id @default(autoincrement())
+  discord_id         String
+  name               String
+  discord_created_at DateTime
+  created_at         DateTime   @default(now())
+  user_role          UserRole[]
 
   @@map("role")
 }
@@ -59,28 +61,30 @@ model UserRole {
 }
 
 model AudioEvent {
-  id              Int         @id @default(autoincrement())
-  channel_id      Int
-  channel         Channel     @relation(fields: [channel_id], references: [id])
-  creator_id      Int
-  creator         User        @relation(fields: [creator_id], references: [id])
-  name            String
-  description     String?
-  status          EventStatus @relation(fields: [status_id], references: [id])
-  status_id       Int
-  start_timestamp Int
-  end_timestamp   Int
-  user_count      Int
-  user_event      userEvent[]
-  image           String?
+  id          Int         @id @default(autoincrement())
+  channel_id  Int
+  channel     Channel     @relation(fields: [channel_id], references: [id])
+  creator_id  Int
+  creator     User        @relation(fields: [creator_id], references: [id])
+  name        String
+  description String?
+  status      EventStatus @relation(fields: [status_id], references: [id])
+  status_id   Int
+  start_at    DateTime
+  end_at      DateTime
+  user_count  Int
+  user_event  userEvent[]
+  image       String?
+  created_at  DateTime    @default(now())
 
   @@map("audio_event")
 }
 
 model EventStatus {
-  id    Int          @id @default(autoincrement())
-  name  String
-  event AudioEvent[]
+  id         Int          @id @default(autoincrement())
+  name       String
+  event      AudioEvent[]
+  created_at DateTime     @default(now())
 
   @@map("event_status")
 }
@@ -96,14 +100,15 @@ model userEvent {
 }
 
 model Message {
-  id                Int               @id @default(autoincrement())
-  discord_id        String
-  channel           Channel           @relation(fields: [channel_id], references: [id])
-  channel_id        Int
-  user_id           Int
-  user              User              @relation(fields: [user_id], references: [id])
-  created_timestamp Int
-  message_reaction  MessageReaction[]
+  id                 Int               @id @default(autoincrement())
+  discord_id         String
+  channel_id         Int
+  channel            Channel           @relation(fields: [channel_id], references: [id])
+  user_id            Int
+  user               User              @relation(fields: [user_id], references: [id])
+  discord_created_at DateTime
+  created_at         DateTime          @default(now())
+  message_reaction   MessageReaction[]
 
   @@map("message")
 }
@@ -116,6 +121,7 @@ model Channel {
   message          Message[]
   audio_event      AudioEvent[]
   message_reaction MessageReaction[]
+  created_at       DateTime          @default(now())
 
   @@map("channel")
 }

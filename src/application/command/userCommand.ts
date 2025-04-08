@@ -89,8 +89,12 @@ export class UserCommand implements IUserCommand {
       globalName: discordUser.user.globalName,
       bot: discordUser.user.bot,
       status: UserStatus.ACTIVE,
-      createdAt: discordUser.user.createdAt.getTime(),
-      joinedAt: discordUser.joinedAt.getTime(),
+      discordCreatedAt: discordUser.user.createdTimestamp
+        ? new Date(discordUser.user.createdTimestamp)
+        : undefined,
+      joinedAt: discordUser.joinedTimestamp
+        ? new Date(discordUser.joinedTimestamp)
+        : undefined,
       lastActive: undefined,
     };
   }
