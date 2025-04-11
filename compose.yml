@@ -5,6 +5,7 @@ services:
     environment:
       MYSQL_DATABASE: '${DB_DATABASE}'
       MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      TZ: 'UTC'
     ports:
       - '${DB_PORT}'
     volumes:

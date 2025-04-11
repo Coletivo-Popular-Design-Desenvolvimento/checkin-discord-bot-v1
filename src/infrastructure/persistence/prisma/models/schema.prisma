@@ -17,102 +17,123 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
-  id               Int                @id @default(autoincrement())
-  discord_id       String             @unique
-  username         String
-  global_name      String?
-  joined_at        Int?
-  created_at       Int?
-  update_at        Int?
-  last_active      Int?
-  bot              Boolean
-  email            String?
-  status           Int
-  user_role        user_role[]
-  user_event       user_event[]
-  message          message[]
-  message_reaction message_reaction[]
-  audio_event      audio_event[]
+model User {
+  id                 Int               @id @default(autoincrement())
+  discord_id         String            @unique
+  username           String
+  global_name        String?
+  joined_at          DateTime?
+  discord_created_at DateTime?
+  update_at          DateTime?         @updatedAt
+  last_active        DateTime?
+  create_at          DateTime?         @default(now())
+  bot                Boolean
+  email              String?
+  status             Int
+  user_role          UserRole[]
+  user_event         userEvent[]
+  message            Message[]
+  message_reaction   MessageReaction[]
+  audio_event        AudioEvent[]
+
+  @@map("user")
 }
 
-model role {
-  id                Int         @id @default(autoincrement())
-  discord_id        String
-  name              String
-  created_timestamp Int
-  user_role         user_role[]
+model Role {
+  id                 Int        @id @default(autoincrement())
+  discord_id         String
+  name               String
+  discord_created_at DateTime
+  created_at         DateTime   @default(now())
+  user_role          UserRole[]
+
+  @@map("role")
 }
 
-model user_role {
-  user    user @relation(fields: [user_id], references: [id])
+model UserRole {
+  user    User @relation(fields: [user_id], references: [id])
   user_id Int
-  role    role @relation(fields: [roleId], references: [id])
+  role    Role @relation(fields: [roleId], references: [id])
   roleId  Int
 
   @@id([user_id, roleId])
+  @@map("user_role")
 }
 
-model audio_event {
-  id              Int          @id @default(autoincrement())
-  channel_id      Int
-  channel         channel      @relation(fields: [channel_id], references: [id])
-  creator_id      Int
-  creator         user         @relation(fields: [creator_id], references: [id])
-  name            String
-  description     String?
-  status          event_status @relation(fields: [status_id], references: [id])
-  status_id       Int
-  start_timestamp Int
-  end_timestamp   Int
-  user_count      Int
-  user_event      user_event[]
-  image           String?
+model AudioEvent {
+  id          Int         @id @default(autoincrement())
+  channel_id  Int
+  channel     Channel     @relation(fields: [channel_id], references: [id])
+  creator_id  Int
+  creator     User        @relation(fields: [creator_id], references: [id])
+  name        String
+  description String?
+  status      EventStatus @relation(fields: [status_id], references: [id])
+  status_id   Int
+  start_at    DateTime
+  end_at      DateTime
+  user_count  Int
+  user_event  userEvent[]
+  image       String?
+  created_at  DateTime    @default(now())
+
+  @@map("audio_event")
 }
 
-model event_status {
-  id    Int           @id @default(autoincrement())
-  name  String
-  event audio_event[]
+model EventStatus {
+  id         Int          @id @default(autoincrement())
+  name       String
+  event      AudioEvent[]
+  created_at DateTime     @default(now())
+
+  @@map("event_status")
 }
 
-model user_event {
-  event    audio_event @relation(fields: [event_id], references: [id])
+model userEvent {
+  event    AudioEvent @relation(fields: [event_id], references: [id])
   event_id Int
-  user     user        @relation(fields: [user_id], references: [id])
+  user     User       @relation(fields: [user_id], references: [id])
   user_id  Int
 
   @@id([user_id, event_id])
+  @@map("user_event")
 }
 
-model message {
-  id                Int                @id @default(autoincrement())
-  discord_id        String
-  channel           channel            @relation(fields: [channel_id], references: [id])
-  channel_id        Int
-  user_id           Int
-  user              user               @relation(fields: [user_id], references: [id])
-  created_timestamp Int
-  message_reaction  message_reaction[]
+model Message {
+  id                 Int               @id @default(autoincrement())
+  discord_id         String
+  channel_id         Int
+  channel            Channel           @relation(fields: [channel_id], references: [id])
+  user_id            Int
+  user               User              @relation(fields: [user_id], references: [id])
+  discord_created_at DateTime
+  created_at         DateTime          @default(now())
+  message_reaction   MessageReaction[]
+
+  @@map("message")
 }
 
-model channel {
-  id               Int                @id @default(autoincrement())
+model Channel {
+  id               Int               @id @default(autoincrement())
   discord_id       String
   name             String
   url              String
-  message          message[]
-  audio_event      audio_event[]
-  message_reaction message_reaction[]
+  message          Message[]
+  audio_event      AudioEvent[]
+  message_reaction MessageReaction[]
+  created_at       DateTime          @default(now())
+
+  @@map("channel")
 }
 
-model message_reaction {
-  user       user    @relation(fields: [user_id], references: [id])
+model MessageReaction {
+  user       User    @relation(fields: [user_id], references: [id])
   user_id    Int
-  message    message @relation(fields: [message_id], references: [id])
+  message    Message @relation(fields: [message_id], references: [id])
   message_id Int
-  channel    channel @relation(fields: [channel_id], references: [id])
+  channel    Channel @relation(fields: [channel_id], references: [id])
   channel_id Int
 
   @@id([user_id, message_id])
+  @@map("message_reaction")
 }

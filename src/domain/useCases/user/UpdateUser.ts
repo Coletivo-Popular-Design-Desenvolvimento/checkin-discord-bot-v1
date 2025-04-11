@@ -1,15 +1,25 @@
-import { OutputDto } from "../../dtos/OutPutDto";
+import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import { UserEntity } from "../../entities/User";
 import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { IUpdateUser } from "../../interfaces/useCases/IUpdateUser";
+import { ILoggerService } from "../../interfaces/services/ILogger";
+import { IUpdateUser } from "../../interfaces/useCases/user/IUpdateUser";
+import { ErrorMessages } from "../../types/ErrorMessages";
+import {
+  LoggerContextStatus,
+  LoggerContext,
+  LoggerContextEntity,
+} from "../../types/LoggerContextEnum";
 import { UserStatus } from "../../types/UserStatusEnum";
 
 export class UpdateUser implements IUpdateUser {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly logger: ILoggerService
+  ) {}
   async execute(
     id: number | string,
     data: Partial<UserEntity>
-  ): Promise<OutputDto<UserEntity>> {
+  ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 
@@ -23,7 +33,7 @@ export class UpdateUser implements IUpdateUser {
         return {
           data: null,
           success: false,
-          message: `User not found with id ${id}`,
+          message: `${ErrorMessages.USER_NOT_FOUND} ${id}`,
         };
       }
 
@@ -33,6 +43,12 @@ export class UpdateUser implements IUpdateUser {
         success: true,
       };
     } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.USECASE,
+        LoggerContextEntity.USER,
+        `UpdateUser.execute | ${error.message}`
+      );
       return {
         data: null,
         success: false,
@@ -41,37 +57,46 @@ export class UpdateUser implements IUpdateUser {
     }
   }
 
-  async executeDisableUser(
+  async executeInvertUserStatus(
     id: number | string
-  ): Promise<OutputDto<UserEntity>> {
+  ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
 
       if (typeof id === "string") {
-        user = await this.userRepository.findByDiscordId(id);
+        user = await this.userRepository.findByDiscordId(id, true);
       } else if (typeof id === "number") {
-        user = await this.userRepository.findById(id);
+        user = await this.userRepository.findById(id, true);
       }
 
       if (!user) {
         return {
           data: null,
           success: false,
-          message: `User not found with id ${id}`,
+          message: `${ErrorMessages.USER_NOT_FOUND} ${id}`,
         };
       }
 
       const updatedUser = await this.userRepository.updateById(user.id, {
         ...user,
-        status: UserStatus.INACTIVE,
+        status:
+          user.status === UserStatus.ACTIVE
+            ? UserStatus.INACTIVE
+            : UserStatus.ACTIVE,
       });
+
       return {
         data: updatedUser,
         success: true,
       };
     } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.USECASE,
+        LoggerContextEntity.USER,
+        `UpdateUser.executeDisableUser | ${error.message}`
+      );
       return {
-        // Logger
         data: null,
         success: false,
         message: error.message,

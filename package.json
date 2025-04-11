@@ -6,11 +6,11 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node dist/index.js",
-    "start:dev": "nodemon --exec ts-node /src/index.ts",
+    "start:dev": "nodemon --exec ts-node ./src/index.ts",
     "lint": "eslint .",
     "worker": "tsc && pm2 start dist/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
-    "db": "npx prisma migrate deploy init",
+    "db": "npx prisma generate && npx prisma migrate deploy && npx prisma db push",
     "test": "jest"
   },
   "dependencies": {
@@ -27,7 +27,6 @@
     "nodemon": "^3.1.9",
     "pm2": "^5.4.3",
     "prisma": "^6.4.1",
-    "reflect-metadata": "^0.2.2",
     "telegraf": "^4.16.3",
     "ts-jest": "^29.2.6",
     "ts-node": "^10.9.2"

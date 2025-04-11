@@ -9,10 +9,11 @@ export class UserEntity {
     public readonly bot: boolean,
     public readonly status: UserStatus,
     public readonly globalName?: string | null,
-    public readonly joinedAt?: number | null,
-    public readonly createdAt?: number | null,
-    public readonly updateAt?: number | null,
-    public readonly lastActive?: number | null,
+    public readonly joinedAt?: Date | null,
+    public readonly discordCreatedAt?: Date | null,
+    public readonly createAt?: Date | null,
+    public readonly updateAt?: Date | null,
+    public readonly lastActive?: Date | null,
     public readonly email?: string | null
   ) {}
 }
