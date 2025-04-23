@@ -3,6 +3,8 @@ import { UserRepository } from "../infrastructure/persistence/repositories/UserR
 import { IUserRepository } from "../domain/interfaces/repositories/IUserRepository";
 import { PrismaClient } from "@prisma/client";
 import { ILoggerService } from "../domain/interfaces/services/ILogger";
+import { IChannelRepository } from "../domain/interfaces/repositories/IChannelRepository";
+import ChannelRepository from "../infrastructure/persistence/repositories/ChannelRepository";
 
 /**
  * Inicializa e configura o banco de dados.
@@ -19,6 +21,7 @@ export function initializeDatabase(
   prismaService?: PrismaService
 ): {
   userRepository: IUserRepository;
+  channelRepository: IChannelRepository
 } {
   const prismaClient = new PrismaClient();
   const newPrismaService = new PrismaService(prismaClient);
@@ -27,5 +30,8 @@ export function initializeDatabase(
     prismaService ?? newPrismaService,
     logger
   );
-  return { userRepository };
+  const channelRepository = new ChannelRepository(
+    prismaService ?? newPrismaService,
+    logger)
+  return { userRepository, channelRepository };
 }

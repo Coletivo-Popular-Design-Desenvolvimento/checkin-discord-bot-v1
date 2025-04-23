@@ -9,11 +9,15 @@ import {
   LoggerContextEntity,
 } from "../domain/types/LoggerContextEnum";
 import { ErrorMessages } from "../domain/types/ErrorMessages";
+import { initializeChannelUseCases } from "./channelUseCases.context";
+import { ChannelCommand } from "../application/command/ChannelCommand";
+import { ChannelManager } from "discord.js";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
   const { userRepository } = initializeDatabase(logger);
+  const { channelRepository } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { SECRET_KEY } = process.env;
 
@@ -28,6 +32,7 @@ export function initializeApp() {
 
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
+  const channelUseCases = initializeChannelUseCases(channelRepository, logger);
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -36,6 +41,11 @@ export function initializeApp() {
     userUseCases.createUserCase,
     userUseCases.updateUserCase
   );
+  new ChannelCommand(
+    discordService,
+    logger,
+    channelUseCases.createChannelUseCase
+  )
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
   discordService.client.login(SECRET_KEY);
