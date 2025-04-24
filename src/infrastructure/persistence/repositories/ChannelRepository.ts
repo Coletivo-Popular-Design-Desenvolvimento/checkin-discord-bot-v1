@@ -1,5 +1,5 @@
 import { PrismaClient, Channel } from "@prisma/client";
-import { IChannelRepository } from "../../../domain/interfaces/repositories/IChannelRepository";
+import IChannelRepository from "../../../domain/interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
 import { PrismaService } from "../prisma/prismaService";
 import { LoggerContext, LoggerContextEntity, LoggerContextStatus } from "../../../domain/types/LoggerContextEnum";
@@ -48,11 +48,11 @@ export default class ChannelRepository implements IChannelRepository {
         }
     }
 
-    async findByNameAsync(name: string): Promise<ChannelEntity> {
+    async findByDiscordIdAsync(discordId: string): Promise<ChannelEntity> {
         try {
             const result = await this.client.channel.findFirst({
                 where: {
-                    name: name
+                    discord_id: discordId
                 }
             });
             return this.mapToEntity(result);

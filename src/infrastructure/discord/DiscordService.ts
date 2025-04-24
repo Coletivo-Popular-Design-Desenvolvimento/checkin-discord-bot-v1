@@ -4,11 +4,14 @@ import {
   Message,
   GuildMember,
   PartialGuildMember,
+  GuildChannel,
+  DMChannel,
 } from "discord.js";
 import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
 
+
 export class DiscordService
-  implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
+  implements IDiscordService<Message, GuildMember | GuildChannel | DMChannel, PartialGuildMember, Client>
 {
   public readonly client: Client;
   // Use estas funções para registar um handler que você queira executar quando o evento ocorrer
@@ -18,6 +21,8 @@ export class DiscordService
   private onUserLeaveHandlers: ((
     member: GuildMember | PartialGuildMember
   ) => void)[] = [];
+  private onNewChannelHandlers: ((channel: GuildChannel) => void)[] = [];
+  private onUpdateChannelHandlers: ((oldChannel: DMChannel | GuildChannel, newChannel: DMChannel | GuildChannel) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
@@ -43,6 +48,14 @@ export class DiscordService
     this.client.on(Events.GuildMemberRemove, (member) => {
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
+    
+    this.client.on(Events.ChannelCreate, (channel) => {
+      this.onNewChannelHandlers.forEach((fn) => fn(channel));
+    });
+
+    this.client.on(Events.ChannelUpdate, (oldChannel, newChannel) => {
+      this.onUpdateChannelHandlers.forEach((fn) => fn(oldChannel, newChannel))
+    })
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -59,5 +72,13 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onChannelCreate(handler: (channel: GuildChannel) => void): void {
+    this.onNewChannelHandlers.push(handler);
+  }
+
+  public onChannelUpdate(handler: (oldChannel: DMChannel | GuildChannel, newChannel: DMChannel | GuildChannel) => void): void {
+    this.onUpdateChannelHandlers.push(handler);
   }
 }
