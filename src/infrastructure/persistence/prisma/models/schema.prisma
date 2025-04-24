@@ -103,7 +103,7 @@ model Message {
   id                 Int               @id @default(autoincrement())
   discord_id         String
   channel_id         Int
-  channel            Channel           @relation(fields: [channel_id], references: [id])
+  channel            Channel           @relation(fields: [channel_id], references: [id], onDelete: Cascade)
   user_id            Int
   user               User              @relation(fields: [user_id], references: [id])
   discord_created_at DateTime

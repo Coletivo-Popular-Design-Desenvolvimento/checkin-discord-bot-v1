@@ -92,6 +92,46 @@ export default class ChannelRepository implements IChannelRepository {
             );
         }
     }
+    
+    async updateAsync(id: number, channel: Partial<ChannelEntity>): Promise<void> {
+        try {
+            await this.client.channel.update({
+                where: {
+                    id: id
+                },
+                data: {
+                    discord_id: channel.discordId,
+                    name: channel.name,
+                    url: channel.url,
+                    created_at: channel.createAt
+                }
+            });
+        } catch (error) {
+            this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.REPOSITORY,
+                LoggerContextEntity.CHANNEL,
+                `update | ${error.Message}`
+            );
+        }
+    }
+
+    async deleteAsync(id: number): Promise<void> {
+        try {
+            await this.client.channel.delete({
+                where: {
+                    id: id
+                }
+            });
+        } catch (error) {
+            this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.REPOSITORY,
+                LoggerContextEntity.CHANNEL,
+                `update | ${error.Message}`
+            );
+        }
+    }
 
     private mapToEntity(channel: Channel): ChannelEntity {
         return new ChannelEntity(

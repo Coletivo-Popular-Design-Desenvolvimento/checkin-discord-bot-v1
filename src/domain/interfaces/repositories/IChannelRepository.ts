@@ -5,4 +5,6 @@ export interface IChannelRepository {
     findByIdAsync(id: number): Promise<ChannelEntity>;
     findByNameAsync(name: string): Promise<ChannelEntity>;
     createAsync(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity>;
+    updateAsync(id: number, channel: Partial<ChannelEntity>): Promise<void>;
+    deleteAsync(id: number): Promise<void>
 }
