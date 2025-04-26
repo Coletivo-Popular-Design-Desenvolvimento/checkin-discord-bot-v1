@@ -5,6 +5,7 @@ export default interface IChannelRepository {
     findByIdAsync(id: number): Promise<ChannelEntity>;
     findByDiscordIdAsync(name: string): Promise<ChannelEntity>;
     createAsync(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity>;
+    createManyAsync(channels: Omit<ChannelEntity, "id">[]): Promise<void>;
     updateAsync(id: number, channel: Partial<ChannelEntity>): Promise<void>;
     deleteAsync(id: number): Promise<void>
 }

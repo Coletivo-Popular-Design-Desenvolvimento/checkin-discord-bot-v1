@@ -66,12 +66,6 @@ export default class ChannelRepository implements IChannelRepository {
         }
     }
 
-    /**
-    * Cria um novo canal no banco de dados.
-    *
-    * @param {Omit<ChannelEntity, "id">} channel Os dados do canal a ser criado.
-    * @returns {Promise<ChannelEntity>} O canal criado.
-    */
     async createAsync(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity> {
         try {
             const result = await this.client.channel.create({
@@ -93,7 +87,7 @@ export default class ChannelRepository implements IChannelRepository {
         }
     }
 
-    async createMany(channels: Omit<ChannelEntity, "id">[]): Promise<void> {
+    async createManyAsync(channels: Omit<ChannelEntity, "id">[]): Promise<void> {
         try {
             await this.client.$transaction(async (tx) => {
                 const dataToCreate = channels.map((c) => ({
