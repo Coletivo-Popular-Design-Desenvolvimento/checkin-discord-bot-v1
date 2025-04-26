@@ -1,6 +1,7 @@
-import { IChannelRepository } from "../domain/interfaces/repositories/IChannelRepository";
+
+import IChannelRepository from "../domain/interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "../domain/interfaces/services/ILogger";
-import { CreateChannel } from "../domain/useCases/channel/CreateChannel";
+import CreateChannel from "../domain/useCases/channel/CreateChannel";
 import { FindChannel } from "../domain/useCases/channel/FindChannel";
 
 export function initializeChannelUseCases(channelRepository: IChannelRepository, logger: ILoggerService) {

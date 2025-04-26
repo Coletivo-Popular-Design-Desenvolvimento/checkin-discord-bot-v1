@@ -92,6 +92,29 @@ export default class ChannelRepository implements IChannelRepository {
             );
         }
     }
+
+    async createMany(channels: Omit<ChannelEntity, "id">[]): Promise<void> {
+        try {
+            await this.client.$transaction(async (tx) => {
+                const dataToCreate = channels.map((c) => ({
+                    discord_id: c.discordId,
+                    name: c.name,
+                    url: c.url,
+                    created_at: c.createAt
+                }));
+                await tx.channel.createMany({
+                    data: dataToCreate
+                });
+            });
+        } catch (error) {
+            this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.REPOSITORY,
+                LoggerContextEntity.CHANNEL,
+                `createMany | ${error.Message}`
+            );
+        }
+    }
     
     async updateAsync(id: number, channel: Partial<ChannelEntity>): Promise<void> {
         try {
