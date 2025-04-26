@@ -1,8 +1,9 @@
+import { CreateChannelInput } from "../../dtos/channels/channelDto";
 import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import ChannelEntity from "../../entities/Channel";
 import IChannelRepository from "../../interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "../../interfaces/services/ILogger";
-import ICreateChannelUseCase, { CreateChannelInput } from "../../interfaces/useCases/channel/ICreateChannelUseCase";
+import ICreateChannelUseCase from "../../interfaces/useCases/channel/ICreateChannelUseCase";
 
 
 export default class CreateChannel implements ICreateChannelUseCase {

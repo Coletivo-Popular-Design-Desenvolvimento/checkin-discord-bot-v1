@@ -3,4 +3,5 @@ export default interface IChannelEvents<Channel, Client> {
     registerEvents(): void
     onChannelCreate(handler: (channel: Channel) => void): void
     onChannelUpdate(handler: (oldChannel: Channel, newChannel: Channel) => void): void
+    onCopyAllChannels(handler: (channel: Client) => void): void
 }

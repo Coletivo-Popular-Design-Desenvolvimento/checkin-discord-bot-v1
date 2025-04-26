@@ -6,6 +6,7 @@ export default class ChannelEvents implements IChannelEvents<GuildChannel, Clien
     public readonly client: Client
     private onNewChannelHandlers: ((channel: GuildChannel) => void)[] = [];
     private onUpdateChannelHandlers: ((oldChannel: GuildChannel, newChannel: GuildChannel) => void)[] = [];
+    private onCopyAllChannelsForServer: ((client: Client) => void)[] = [];
 
     constructor(client: Client){
         this.client = client
@@ -20,6 +21,9 @@ export default class ChannelEvents implements IChannelEvents<GuildChannel, Clien
             if (oldChannel instanceof GuildChannel && newChannel instanceof GuildChannel) {
               this.onUpdateChannelHandlers.forEach((fn) => fn(oldChannel, newChannel))
             }
+            else {
+                throw new Error("Generic error: Erro não tratado | [ChannelEvents]")
+            }
         });
     }
 
@@ -29,5 +33,9 @@ export default class ChannelEvents implements IChannelEvents<GuildChannel, Clien
     
     public onChannelUpdate(handler: (oldChannel: GuildChannel, newChannel: GuildChannel) => void): void {
         this.onUpdateChannelHandlers.push(handler);
+    }
+
+    public onCopyAllChannels(handler: (channel: Client) => void): void {
+        this.onCopyAllChannelsForServer.push(handler);
     }
 } 

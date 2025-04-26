@@ -1,10 +1,11 @@
-import { Client, GuildChannel, Message, PartialGuildMember } from "discord.js";
+import { Channel, Client, Collection, GuildChannel } from "discord.js";
 import IChannelCommand from "../../domain/interfaces/commands/IChannelCommand";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import ICreateChannelUseCase, { CreateChannelInput } from "../../domain/interfaces/useCases/channel/ICreateChannelUseCase";
+import ICreateChannelUseCase from "../../domain/interfaces/useCases/channel/ICreateChannelUseCase";
 import { LoggerContext, LoggerContextEntity, LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
-import IUpdateChannelUseCase from "../../domain/interfaces/useCases/channel/IUpdateChannelUseCase";
+import IUpdateChannelUseCase, { CreateChannelInput } from "../../domain/interfaces/useCases/channel/IUpdateChannelUseCase";
 import IChannelEvents from "../../domain/interfaces/events/IChannelEvents";
+import ICreateManyChannelUseCase from "../../domain/interfaces/useCases/channel/ICreateManyChannelUseCase";
 
 
 export class ChannelCommand implements IChannelCommand {
@@ -14,10 +15,12 @@ export class ChannelCommand implements IChannelCommand {
         private readonly channelEvents: IChannelEvents<GuildChannel,Client>,
         private readonly logger: ILoggerService,
         private readonly createChannel: ICreateChannelUseCase,
-        private readonly updateChannel: IUpdateChannelUseCase
+        private readonly updateChannel: IUpdateChannelUseCase,
+        private readonly createManyChannels: ICreateManyChannelUseCase
     ) {
         this.executeNewChannel();
         this.executeUpdateChannelExisting();
+        this.executeCopyAllChannelsExisting();
     }
 
     async executeNewChannel(): Promise<void> {
@@ -48,6 +51,39 @@ export class ChannelCommand implements IChannelCommand {
         })
     }
 
+    async executeCopyAllChannelsExisting(): Promise<void> {
+        this.channelEvents.onCopyAllChannels(async (client) => {
+            const channels: CreateChannelInput[] = this.mapToManyChannelEntity(client.channels.cache)
+            const result = await this.createManyChannels.executeAsync(channels);
+            if (!result) {
+                this.logger.logToConsole(
+                    LoggerContextStatus.ERROR,
+                    LoggerContext.COMMAND,
+                    LoggerContextEntity.CHANNEL,
+                    `executeUpdateChannel | ERRO AO ADICIONAR MUITOS CANAIS`
+                );
+            }
+        })
+        throw new Error();
+    }
+
+    private mapToManyChannelEntity(channels: Collection<string, Channel>): CreateChannelInput[] {
+        const channelInputs: CreateChannelInput[] = []
+        channels.forEach((channel, id) => {
+            let channelName: string | undefined;
+            if(channel instanceof GuildChannel){
+                channelName = channel.name
+            }
+            channelInputs.push({
+                discordId: id,
+                name: channelName,
+                url: channel.url,
+                createAt: channel.createdAt ? new Date(channel.createdTimestamp) : undefined
+            });
+        });
+        return channelInputs;
+    }
+    
     private mapToChannelEntity(discordChannel: GuildChannel): CreateChannelInput {
         return {
             discordId: discordChannel.id,
