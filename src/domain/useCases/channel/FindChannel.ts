@@ -1,6 +1,6 @@
 import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import ChannelEntity from "../../entities/Channel";
-import { IChannelRepository } from "../../interfaces/repositories/IChannelRepository";
+import IChannelRepository from "../../interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "../../interfaces/services/ILogger";
 import IFindChannel from "../../interfaces/useCases/channel/IFindChannel";
 
