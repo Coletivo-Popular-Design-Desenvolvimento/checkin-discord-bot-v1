@@ -3,8 +3,8 @@ import { UserRepository } from "../infrastructure/persistence/repositories/UserR
 import { IUserRepository } from "../domain/interfaces/repositories/IUserRepository";
 import { PrismaClient } from "@prisma/client";
 import { ILoggerService } from "../domain/interfaces/services/ILogger";
-import { IChannelRepository } from "../domain/interfaces/repositories/IChannelRepository";
 import ChannelRepository from "../infrastructure/persistence/repositories/ChannelRepository";
+import IChannelRepository from "../domain/interfaces/repositories/IChannelRepository";
 
 /**
  * Inicializa e configura o banco de dados.

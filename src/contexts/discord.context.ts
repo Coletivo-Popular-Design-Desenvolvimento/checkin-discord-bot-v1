@@ -8,6 +8,7 @@ import {
 } from "discord.js";
 import { DiscordService } from "../infrastructure/discord/DiscordService";
 import { IDiscordService } from "../domain/interfaces/services/IDiscordService";
+import ChannelEvents from "../application/events/ChannelEvents";
 
 // Mapea os eventos do discord para as intents que precisam ser registradas no client.
 const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {
@@ -40,6 +41,7 @@ export function initializeDiscord(): {
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
   const client = new Client({ intents: intents });
-  const discordService = new DiscordService(client);
+  const channel = new ChannelEvents(client);
+  const discordService = new DiscordService(client, channel);
   return { discordService };
 }
