@@ -8,10 +8,14 @@ import IChannelEvents from "../../domain/interfaces/events/IChannelEvents";
 import ICreateManyChannelUseCase from "../../domain/interfaces/useCases/channel/ICreateManyChannelUseCase";
 
 export class ChannelCommand implements IChannelCommand {
+    private readonly channelEvents: IChannelEvents<GuildChannel,Client>
     constructor(
-        //ToDo: Verificar discordService é necessario ou implementar ChannelManager para manipulação de canais.
-        // Adicionando dependencia para utilizar base e implementar o IOC.
-        private readonly channelEvents: IChannelEvents<GuildChannel,Client>,
+        /*
+        ToDo:
+        - Verificar discordService é necessario ou implementar ChannelManager para manipulação de canais.
+        - Adicionando dependencia para utilizar base e implementar o IOC.
+        - Injeta channelEvents se necessario. 
+        */
         private readonly logger: ILoggerService,
         private readonly createChannel: ICreateChannelUseCase,
         private readonly updateChannel: IUpdateChannelUseCase,

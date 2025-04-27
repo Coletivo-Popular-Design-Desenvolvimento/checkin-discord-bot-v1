@@ -28,7 +28,7 @@ export class DiscordService
     this.channelEvents = channelEvents;
   }
 
-  public registerEvents() {
+  public registerChannelEvents() {
     // Inicializa o event handler. Caso tenha outros contextos que precisem de eventos, eles devem ser adicionados aqui
     // Não esqueça de adicionar estes novos eventos na interface IDiscordService e no EVENT_INTENTS_MAP do contexto do discord. (/contexts/discord.context.ts)
     // Existem excessoes, caso o evento precise de um intent ja registrado no EVENT_INTENTS_MAP, nao precisa ser adicionado la

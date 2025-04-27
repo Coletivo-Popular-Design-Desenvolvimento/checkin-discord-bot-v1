@@ -10,7 +10,6 @@ import {
 } from "../domain/types/LoggerContextEnum";
 import { ErrorMessages } from "../domain/types/ErrorMessages";
 import { initializeChannelUseCases } from "./channelUseCases.context";
-import { ChannelManager } from "discord.js";
 import { ChannelCommand } from "../application/command/channelCommand";
 
 export function initializeApp() {
@@ -41,7 +40,12 @@ export function initializeApp() {
     userUseCases.createUserCase,
     userUseCases.updateUserCase
   );
+  new ChannelCommand(
+    logger,
+    channelUseCases.createChannelUseCase,
+    channelUseCases.updateChannelUseCase,
+    channelUseCases.createManyChannelUseCase,
+  )
   // Isso deve ser executado depois que o user command for iniciado
-  discordService.registerEvents();
   discordService.client.login(SECRET_KEY);
 }
