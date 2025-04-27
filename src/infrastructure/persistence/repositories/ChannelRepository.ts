@@ -133,6 +133,37 @@ export default class ChannelRepository implements IChannelRepository {
         }
     }
 
+    /**
+    * Desabilita o canal do banco de dados
+    *
+    * @param {number} id O canal a ser desabilitado.
+    */
+    // async disableChannel(id: number): Promise<void> {
+    //     try {
+    //         await this.client.$transaction(async (tx) => {
+    //             const channel = await tx.channel.findFirst({
+    //                 where: {
+    //                     id: id
+    //                 }
+    //             });
+    //             if(!channel.active) {
+    //                 throw new Error("Canal já desativado");
+    //             }
+    //             await tx.channel.update({
+    //                 where: { id: channel.id },
+    //                 data: { active: false }
+    //             });
+    //         });
+    //     } catch (error) {
+    //         this.logger.logToConsole(
+    //             LoggerContextStatus.ERROR,
+    //             LoggerContext.REPOSITORY,
+    //             LoggerContextEntity.CHANNEL,
+    //             `createMany | ${error.Message}`
+    //         );
+    //     }
+    // }
+
     async deleteAsync(id: number): Promise<void> {
         try {
             await this.client.channel.delete({
@@ -156,6 +187,7 @@ export default class ChannelRepository implements IChannelRepository {
             channel.discord_id,
             channel.name,
             channel.url,
-            channel.created_at);
+            channel.created_at
+        );
     }
 }
