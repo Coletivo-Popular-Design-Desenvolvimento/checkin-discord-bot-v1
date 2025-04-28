@@ -189,7 +189,7 @@ checkin-discord-bot-v1
 ```
 
 ## 📜 Licença
-Este projeto está licenciado sob a [Licença MIT](LICENSE).
+Este projeto está licenciado sob a [Licença AGPL](LICENSE).
 
 ## 🧠 Observação Final
 - Nunca compartilhe seu **Token do Discord** publicamente.  
