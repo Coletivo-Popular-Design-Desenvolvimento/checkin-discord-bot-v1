@@ -1,70 +1,49 @@
-import {
-  Client,
-  Events,
-  Message,
-  GuildMember,
-  PartialGuildMember,
-  GuildChannel,
-} from "discord.js";
-import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
+import { Client, GuildChannel, GuildMember, Message, PartialGuildMember } from "discord.js";
+import IDiscordEvents from "../../domain/interfaces/events/IDiscordEvents";
+import IMessageEvents from "../../domain/interfaces/events/IMessageEvents";
+import IUserEvents from "../../domain/interfaces/events/IUserEvents";
 import IChannelEvents from "../../domain/interfaces/events/IChannelEvents";
+import { Logger } from "../../application/services/Logger";
+import { LoggerContext, LoggerContextEntity, LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
 
+export class DiscordService {
+    constructor(
+        private readonly client: Client,
+        private readonly discordEvents: IDiscordEvents<Client>,
+        private readonly messageEvents: IMessageEvents<Message,Client>,
+        private readonly userEvents: IUserEvents<GuildMember, PartialGuildMember, Client>,
+        private readonly channelEvents: IChannelEvents<GuildChannel, Client>,
+        private readonly logger: Logger
+    ) {}
 
-export class DiscordService
-  implements IDiscordService<Message, GuildMember | GuildChannel, PartialGuildMember, Client>
-{
-  public readonly client: Client;
-  // Use estas funções para registar um handler que você queira executar quando o evento ocorrer
-  private onDiscordStartHandlers: (() => void)[] = [];
-  private onMessageHandlers: ((message: Message) => void)[] = [];
-  private onNewUserHandlers: ((member: GuildMember) => void)[] = [];
-  private onUserLeaveHandlers: ((
-    member: GuildMember | PartialGuildMember
-  ) => void)[] = [];
-  private channelEvents: IChannelEvents<GuildChannel, Client>;
+    registerAllEvents() {
+        try {
+            this.discordEvents.registerEvents();
+            this.messageEvents.registerEvents();
+            this.userEvents.registerEvents();
+            this.channelEvents.registerEvents();
+            this.logger.logToConsole(
+                LoggerContextStatus.SUCCESS,
+                LoggerContext.SERVICE,
+                LoggerContextEntity.SYSTEM,
+                "EVENTOS REGISTRADO COM SUCESSO"
+            );
+        } catch (error) {
+            this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.SERVICE,
+                LoggerContextEntity.SYSTEM,
+                "ERRO AO REGISTRAR EVENTOS"
+            );
+        }
+    }
 
-  constructor(client: Client, channelEvents: IChannelEvents<GuildChannel, Client>) {
-    this.client = client;
-    this.channelEvents = channelEvents;
-  }
-
-  public registerChannelEvents() {
-    // Inicializa o event handler. Caso tenha outros contextos que precisem de eventos, eles devem ser adicionados aqui
-    // Não esqueça de adicionar estes novos eventos na interface IDiscordService e no EVENT_INTENTS_MAP do contexto do discord. (/contexts/discord.context.ts)
-    // Existem excessoes, caso o evento precise de um intent ja registrado no EVENT_INTENTS_MAP, nao precisa ser adicionado la
-    this.client.once(Events.ClientReady, () => {
-      this.onDiscordStartHandlers.forEach((fn) => fn());
-    });
-
-    this.client.on(Events.MessageCreate, (message) => {
-      this.onMessageHandlers.forEach((fn) => fn(message));
-    });
-
-    this.client.on(Events.GuildMemberAdd, (member) => {
-      this.onNewUserHandlers.forEach((fn) => fn(member));
-    });
-
-    //caso de excessao, pois esse evento compartilha o intent com GuildMemberAdd
-    this.client.on(Events.GuildMemberRemove, (member) => {
-      this.onUserLeaveHandlers.forEach((fn) => fn(member));
-    });
-
-    this.channelEvents.registerEvents();
-  }
-
-  public onDiscordStart(handler: () => void): void {
-    this.onDiscordStartHandlers.push(handler);
-  }
-
-  public onMessage(handler: (message: Message) => void): void {
-    this.onMessageHandlers.push(handler);
-  }
-
-  public onNewUser(handler: (member: GuildMember) => void): void {
-    this.onNewUserHandlers.push(handler);
-  }
-
-  public onUserLeave(handler: (member: GuildMember) => void): void {
-    this.onUserLeaveHandlers.push(handler);
-  }
+    async login(token: string) : Promise<void> {
+        try {
+            await this.client.login(token);
+            //ADICIONAR LOG DE INICIALIZAÇÃO OK
+        } catch (error) {
+            throw new Error("ERRO AO REGISTRAR EVENTOS")   
+        }
+    }
 }

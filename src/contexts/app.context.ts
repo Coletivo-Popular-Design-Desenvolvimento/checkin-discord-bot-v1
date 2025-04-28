@@ -1,41 +1,42 @@
 import { initializeDatabase } from "./database.context";
 import { initializeUserUseCases } from "./useUserCases.context";
-import { initializeDiscord } from "./discord.context";
 import { UserCommand } from "../application/command/userCommand";
 import { Logger } from "../application/services/Logger";
-import {
-  LoggerContextStatus,
-  LoggerContext,
-  LoggerContextEntity,
-} from "../domain/types/LoggerContextEnum";
+import { LoggerContextStatus, LoggerContext, LoggerContextEntity } from "../domain/types/LoggerContextEnum";
 import { ErrorMessages } from "../domain/types/ErrorMessages";
 import { initializeChannelUseCases } from "./channelUseCases.context";
 import { ChannelCommand } from "../application/command/channelCommand";
+import { DiscordModule } from "./DiscordModule";
 
-export function initializeApp() {
-  // Aqui vao as dependencias externas
+export async function initializeApp() {
+// DI -> LOG
   const logger = new Logger();
-  const { userRepository } = initializeDatabase(logger);
-  const { channelRepository } = initializeDatabase(logger);
-  const { discordService } = initializeDiscord();
-  const { SECRET_KEY } = process.env;
+  
+// DI -> BANCO DE DADOS
+  const { userRepository, channelRepository } = initializeDatabase(logger);
 
-  if (!SECRET_KEY) {
+// DI -> DISCORD
+  const discordService = DiscordModule.intiialize(logger);
+  discordService.registerAllEvents();
+
+// AMBIENTE
+  const { TOKEN: TOKEN } = process.env;
+  if (!TOKEN) {
     logger.logToConsole(
       LoggerContextStatus.ERROR,
       LoggerContext.APP_CONTEXT,
       LoggerContextEntity.USER,
       ErrorMessages.MISSING_SECRET
     );
+    process.exit(1);
   }
 
-  // Daqui para baixo, vao as dependencias internas
+// DI - USE CASE
   const userUseCases = initializeUserUseCases(userRepository, logger);
   const channelUseCases = initializeChannelUseCases(channelRepository, logger);
 
-  // E finalmente as inicializacoes da aplicacao
+// DI -> COMMAND
   new UserCommand(
-    discordService,
     logger,
     userUseCases.createUserCase,
     userUseCases.updateUserCase
@@ -46,6 +47,25 @@ export function initializeApp() {
     channelUseCases.updateChannelUseCase,
     channelUseCases.createManyChannelUseCase,
   )
+
   // Isso deve ser executado depois que o user command for iniciado
-  discordService.client.login(SECRET_KEY);
+  discordService.login(TOKEN);
+
+  try {
+    await discordService.login(TOKEN);
+  } catch (error) {
+    logger.logToConsole(
+      LoggerContextStatus.CRITICAL,
+      LoggerContext.APP_CONTEXT,
+      LoggerContextEntity.SYSTEM,
+      `Failed to initialize Discord: ${error}`
+    );
+  }
+
+  return {
+    logger,
+    discordServiceNew: discordService,
+    userUseCases,
+    channelUseCases
+  };
 }

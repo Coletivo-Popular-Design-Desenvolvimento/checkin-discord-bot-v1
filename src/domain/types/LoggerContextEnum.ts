@@ -10,10 +10,12 @@ export enum LoggerContext {
 
 export enum LoggerContextEntity {
   USER = "USER",
-  CHANNEL = "CHANNEL"
+  CHANNEL = "CHANNEL",
+  SYSTEM = "SYSTEM"
 }
 
 export enum LoggerContextStatus {
   SUCCESS = "SUCCESS",
   ERROR = "ERROR",
+  CRITICAL = "CRITICAL"
 }
