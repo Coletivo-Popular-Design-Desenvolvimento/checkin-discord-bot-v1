@@ -1,104 +1,206 @@
-# AuthEngageBot
+# 🚀 Checkin Discord Bot
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-AuthEngageBot é um bot para Discord que realiza autenticação de usuários e monitoramento de engajamento, como contagem de mensagens e participação em reuniões de voz. Este projeto é uma Proof of Concept (PoC).
+Checkin Discord Bot é um bot de autenticação e monitoramento de usuários para Discord, construído com **Node.js**, **MariaDB**, **Prisma ORM** e **Docker**.
 
-## Funcionalidades
+## 📈 Funcionalidades
+- Registro automático de usuários no Discord  
+- Atribuição de cargos após autenticação  
+- Monitoramento de mensagens e chamadas de voz  
+- Geração de relatórios de engajamento  
 
-- Registro de usuários com nome de usuário e senha.
-- Autenticação de usuários.
-- Atribuição de cargo após autenticação.
-- Monitoramento de mensagens enviadas por mês.
-- Monitoramento de participação em reuniões de voz (entradas e duração).
-- Geração de relatórios de engajamento.
+## 📚 Tecnologias Utilizadas
+- Node.js v20+
+- TypeScript
+- Discord.js v14
+- Prisma ORM
+- MariaDB
+- Docker & Docker Compose
+- PM2 (opcional)
 
-## Pré-requisitos
+## ⚙️ Pré‑requisitos
+- Node.js v20 ou superior
+- Docker Desktop + WSL2 (caso use Windows)
+- Git instalado
+- Um bot criado no **Discord Developer Portal**
 
-- Node.js v14 ou superior
-- npm (gerenciador de pacotes do Node.js)
-- PM2 (gerenciador de processos para Node.js)
-- Um servidor Discord
-- Um bot do Discord configurado com permissões adequadas
+## 🔢 Instalação
 
-## Dependências
+### 1. Clone o projeto
+```bash
+git clone https://github.com/seu-usuario/checkin-discord-bot-v1.git
+cd checkin-discord-bot-v1
+```
+### 2. Instale as dependências do Node.js
+```bash
+npm install
+```
+### 3. Configure o `.env`
+Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores conforme seu ambiente:
 
-- Bcryptjs: ^3.0.2 (Criar hashs para salvar senhas)
-- Discord.js: 14.15.3 (Biblioteca Node.js com integração a api do Discord)
+```env
+TOKEN_BOT=seu-token-do-bot
 
-## Instalação
+DB_HOST=db
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=Coletivo1917
+DB_DATABASE=checkindb
 
-1. Clone este repositório:
-    ```bash
-    git clone https://github.com/seu-usuario/AuthEngageBot.git
-    cd AuthEngageBot
-    ```
+DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+```
 
-2. Instale as dependências:
-    ```bash
-    npm install
-    ```
+> **Nunca** compartilhe seu token publicamente.
 
-3. Instale o PM2 globalmente (se ainda não estiver instalado):
-    ```bash
-    npm install -g pm2
-    ```
+## 🐳 Como configurar Docker & WSL2 (Windows)
 
-4. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-    ```env
-    SECRET_KEY=seu-bot-token
-    ALLOWED_ROLEID=id-do-cargo-permitido
-    AUTH_ROLE_ID=id-do-cargo-autenticado
-    AUTH_CHANNEL_ID=id-do-canal-de-autenticacao
-    PROTECTED_CHANNEL_ID=id-do-canal-protegido
-    ```
+1. Instalar **Docker Desktop**  
+   - Acesse: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+   - Baixe e instale normalmente.
 
-5. Crie um arquivo `users.json` na raiz do projeto:
-    ```json
-    {}
-    ```
+2. Instalar **WSL2 (Windows Subsystem for Linux)**  
+   - No Windows Terminal, rode:
+     ```bash
+     wsl --install
+     ```
+   - Caso já tenha WSL1, atualize para WSL2 com:
+     ```bash
+     wsl --set-default-version 2
+     ```
+   - Siga o tutorial oficial: [Documentação WSL2](https://learn.microsoft.com/pt-br/windows/wsl/install)
 
-## Como usar
+3. Configurar o Docker para usar o WSL2  
+   - Abra o **Docker Desktop**.
+   - Vá em **Settings** > **General** > Marque a opção **Use the WSL 2 based engine**.
+   - Em **Settings** > **Resources** > **WSL Integration**: habilite a distribuição Linux que está usando (ex: Ubuntu).
 
-1. Inicie o bot com PM2:
-    ```bash
-    pm2 start index.js --name auth-engage-bot
-    ```
+4. Certificar-se de que o Docker está rodando  
+   - Rode:
+     ```bash
+     docker run hello-world
+     ```
+   - Se funcionar e mostrar a versão, está tudo pronto!
 
-2. Para visualizar o status do bot:
-    ```bash
-    pm2 status
-    ```
+## 🐳 Solicitando acesso ao servidor de teste
+Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
+- Nome do servidor: TPDD - Teste Popular de Desenvolvimento
+- Solicite ao administrador a permissão para adicionar o bot
 
-3. Para visualizar os logs do bot:
-    ```bash
-    pm2 logs auth-engage-bot
-    ```
+> **Somente após ter acesso autorizado** prossiga para as etapas seguintes.
 
-4. No Discord, vá ao canal de autenticação configurado e use o comando `!register`:
-    ```text
-    !register
-    ```
+## 🚀 Subindo o projeto
 
-5. O bot enviará uma mensagem direta (DM) para o usuário solicitando o nome de usuário e a senha. O usuário deve responder na DM no formato:
-    ```text
-    <username> <password>
-    ```
+Subir os containers:
 
-6. Para fazer login e acessar um módulo específico, use o comando `!login` no canal de autenticação:
-    ```text
-    !login <username> <password> <module>
-    ```
+```bash
+docker compose up -d --build
+```
 
-7. Para gerar um relatório de engajamento, use o comando `!report` no canal de relatórios:
-    ```text
-    !report
-    ```
+Acessar o terminal do container:
 
-## Estrutura do Projeto
+```bash
+docker exec -it node_app sh
+```
 
-- `index.js`: Código principal do bot.
-- `package.json`: Arquivo de configuração do npm.
-- `users.json`: Arquivo de armazenamento de usuários.
+Rodar as migrations do Prisma **dentro** do container:
 
-## Licença
+```bash
+npx prisma migrate dev --name init
+exit
+```
 
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Pronto! O banco de dados estará preparado.
+
+## 🔧 Comandos úteis
+
+| Ação                | Comando                              |
+|---------------------|--------------------------------------|
+| Subir containers    | `docker compose up -d --build`       |
+| Derrubar containers | `docker compose down`                |
+| Logs do bot         | `docker logs -f node_app`            |
+| Acessar terminal    | `docker exec -it node_app sh`        |
+
+## 🔖 Como criar o Bot no Discord
+
+1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)  
+2. Clique em **New Application**  
+3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome** 
+4. Copie o **Token** e adicione no `.env`  
+5. Em **OAuth2** → **Client information**:  
+   - **Client ID**: `Copie o id`
+
+6. Gere uma URL de permissão
+
+```
+https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=1759218604441591&scope=bot applications.commands
+```
+
+7. Autorizar o Bot no seu servidor 
+   - Acesse o link gerado trocando o clint_id pelo do seu bot criado.
+   - Escolha o servidor **TPDD - Teste Popular de Desenvolvimento**
+   - Aceite as permissões.
+   - Clique em **Authorize**.
+
+## 📂 Estrutura do Projeto
+```
+checkin-discord-bot-v1
+
+├── src/
+|   │   ├── entities/              # Entidades (User.ts, Event.ts)
+|   │   └── aggregates/            # Agregados (ex.: Engagement.ts)
+|   ├── application/               # Casos de uso
+|   ├── core/                      # Domínio puro (regras de negócio)
+|   │   ├── commands/              # Command handlers (ex.: UpdateEngagementCommand.ts)
+|   │   ├── queries/               # Query handlers (ex.: GenerateReportQuery.ts)
+|   │   └── events/                # Eventos de domínio (ex.: EngagementUpdated.ts)
+|   ├── infrastructure/
+|   │   ├── discord/               # Tudo do Discord
+|   │   │   ├── listeners/         # Antigo bot/events.ts, bot/message.ts
+|   │   │   ├── actions/           # Trechos de bot/report.ts que enviam mensagens
+|   │   │   ├── fetchers/          # Busca de dados do Discord (ex.: cargos de usuário)
+|   │   │   └── client/            # Antigo bot/bot.ts, bot/init.ts
+|   │   ├── telegram/              # Antigo bot/telegram.ts
+|   │   ├── email/                 # Antigo bot/email.ts
+|   │   ├── database/              # Substituirá users.json e evento_teste.json
+|   │   │   ├── repositories/      # Classes para acesso a dados (ex.: UserRepository.ts)
+|   │   │   └── models/            # Schemas (se usar ORM/ODM)
+|   │   ├── server/                # Antigo rotas/server.ts, rotas/health.ts
+|   │   └── cron/                  # Antigo rotas/cron.ts
+|   ├── presentation/
+|   │   ├── discord/               # Formatação de mensagens (ex.: relatórios)
+|   │   └── telegram/              # Formatadores para mensagens do Telegram
+|   ├── services/                  # Camada de serviços (ex.: UserService)
+|   ├── config/                    # Centraliza .env, .env.example
+|   │   └── env.ts                 # Carregador de variáveis de ambiente
+|   ├── shared/                    # Utilitários globais
+|   │   ├── errors/                # Antigo shuterror.ts
+|   │   ├── logger/                # Sistema de logs
+|   │   └── utils/                 # Funções genéricas (ex.: bot/file.ts)
+|   └── tests/                     # Testes
+├── .env
+├── .gitignore
+├── compose.yml
+├── Containerfile (Dockerfile)
+├── eslint.config.js
+├── jest.config.js
+├── package.json
+├── README.md
+└── tsconfig.json
+```
+
+## 📜 Licença
+Este projeto está licenciado sob a [Licença MIT](LICENSE).
+
+## 🧠 Observação Final
+- Nunca compartilhe seu **Token do Discord** publicamente.  
+- Adicione o `.env` ao seu `.gitignore`:
+
+```gitignore
+.env
+node_modules/
+dist/
+```
+
+---
+
+✅ Projeto pronto para desenvolvimento e deploy, venceremos ☭!
