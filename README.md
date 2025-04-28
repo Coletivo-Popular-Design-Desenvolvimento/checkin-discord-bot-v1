@@ -77,7 +77,7 @@ DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATAB
 4. Certificar-se de que o Docker está rodando  
    - Rode:
      ```bash
-     docker --version
+     docker run hello-world
      ```
    - Se funcionar e mostrar a versão, está tudo pronto!
 
@@ -93,13 +93,7 @@ Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
 Subir os containers:
 
 ```bash
-docker-compose up -d --build
-```
-
-Verificar logs:
-
-```bash
-docker logs -f node_app
+docker compose up -d --build
 ```
 
 Acessar o terminal do container:
@@ -121,8 +115,8 @@ Pronto! O banco de dados estará preparado.
 
 | Ação                | Comando                              |
 |---------------------|--------------------------------------|
-| Subir containers    | `docker-compose up -d --build`       |
-| Derrubar containers | `docker-compose down`                |
+| Subir containers    | `docker compose up -d --build`       |
+| Derrubar containers | `docker compose down`                |
 | Logs do bot         | `docker logs -f node_app`            |
 | Acessar terminal    | `docker exec -it node_app sh`        |
 
