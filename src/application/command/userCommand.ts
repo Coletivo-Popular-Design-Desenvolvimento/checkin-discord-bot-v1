@@ -1,40 +1,28 @@
 // orquestra os useCases command de user.
 
-import { Client, GuildMember, Message, PartialGuildMember } from "discord.js";
-import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
-import {
-  CreateUserInput,
-  ICreateUser,
-} from "../../domain/interfaces/useCases/user/ICreateUser";
+import { GuildMember } from "discord.js";
+import { CreateUserInput, ICreateUser } from "../../domain/interfaces/useCases/user/ICreateUser";
 import { IUpdateUser } from "../../domain/interfaces/useCases/user/IUpdateUser";
 import { UserStatus } from "../../domain/types/UserStatusEnum";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import {
-  LoggerContext,
-  LoggerContextEntity,
-  LoggerContextStatus,
-} from "../../domain/types/LoggerContextEnum";
+import { LoggerContext, LoggerContextEntity, LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
 import { IUserCommand } from "../../domain/interfaces/commands/IUserCommand";
+import { DiscordModule } from "../../contexts/DiscordModule";
+import UserEvents from "../events/UserEvents";
+import DiscordEvents from "../events/DiscordEvents";
 
 export class UserCommand implements IUserCommand {
   constructor(
-    private readonly discordService: IDiscordService<
-      Message,
-      GuildMember,
-      PartialGuildMember,
-      Client
-    >,
     private readonly logger: ILoggerService,
     private readonly createUser: ICreateUser,
     private readonly updateUser: IUpdateUser
   ) {
-    this.executeNewUser();
-    this.executeAllUsers();
-    this.executeUserLeave();
+    this.setupEventHandlers();
   }
-  async executeNewUser(): Promise<void> {
+
+  async executeNewUser(userEvents: UserEvents): Promise<void> {
     try {
-      this.discordService.onNewUser(async (member) => {
+      userEvents.onNewUser(async (member) => {
         await this.createUser.execute(UserCommand.toUserEntity(member));
       });
     } catch (error) {
@@ -47,12 +35,12 @@ export class UserCommand implements IUserCommand {
     }
   }
 
-  async executeAllUsers(): Promise<void> {
+  async executeAllUsers(discordEvents: DiscordEvents, userEvents: UserEvents): Promise<void> {
     try {
-      this.discordService.onDiscordStart(async () => {
-        const guildId = [...this.discordService.client.guilds.cache.values()][0]
+      discordEvents.onDiscordStart(async () => {
+        const guildId = [...userEvents.client.guilds.cache.values()][0]
           ?.id;
-        const guild = await this.discordService.client.guilds.fetch(guildId);
+        const guild = await userEvents.client.guilds.fetch(guildId);
         const members = await guild.members.fetch();
         this.createUser.executeMany(
           members.map((member) => UserCommand.toUserEntity(member))
@@ -67,9 +55,9 @@ export class UserCommand implements IUserCommand {
       );
     }
   }
-  async executeUserLeave(): Promise<void> {
+  async executeUserLeave(userEvents: UserEvents): Promise<void> {
     try {
-      this.discordService.onUserLeave(async (member) => {
+      userEvents.onUserLeave(async (member) => {
         await this.updateUser.executeInvertUserStatus(member.id);
       });
     } catch (error) {
@@ -97,5 +85,13 @@ export class UserCommand implements IUserCommand {
         : undefined,
       lastActive: undefined,
     };
+  }
+
+  private setupEventHandlers() {
+    const userEvents = DiscordModule.getUserEvents();
+    const discordEvents = DiscordModule.getDiscordEvents();
+    this.executeNewUser(userEvents);
+    this.executeAllUsers(discordEvents, userEvents);
+    this.executeUserLeave(userEvents);
   }
 }

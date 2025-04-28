@@ -1,33 +1,26 @@
-import { Client, GuildChannel } from "discord.js";
+import { GuildChannel } from "discord.js";
 import IChannelCommand from "../../domain/interfaces/commands/IChannelCommand";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
 import ICreateChannelUseCase from "../../domain/interfaces/useCases/channel/ICreateChannelUseCase";
 import { LoggerContext, LoggerContextEntity, LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
 import IUpdateChannelUseCase, { CreateChannelInput } from "../../domain/interfaces/useCases/channel/IUpdateChannelUseCase";
-import IChannelEvents from "../../domain/interfaces/events/IChannelEvents";
 import ICreateManyChannelUseCase from "../../domain/interfaces/useCases/channel/ICreateManyChannelUseCase";
+import {DiscordModule} from "../../contexts/DiscordModule";
+import ChannelEvents from "../events/ChannelEvents";
+import DiscordEvents from "../events/DiscordEvents";
 
 export class ChannelCommand implements IChannelCommand {
-    private readonly channelEvents: IChannelEvents<GuildChannel,Client>
     constructor(
-        /*
-        ToDo:
-        - Verificar discordService é necessario ou implementar ChannelManager para manipulação de canais.
-        - Adicionando dependencia para utilizar base e implementar o IOC.
-        - Injeta channelEvents se necessario. 
-        */
         private readonly logger: ILoggerService,
         private readonly createChannel: ICreateChannelUseCase,
         private readonly updateChannel: IUpdateChannelUseCase,
         private readonly createManyChannels: ICreateManyChannelUseCase
     ) {
-        this.executeNewChannel();
-        this.executeUpdateChannelExisting();
-        this.executeCopyAllChannelsExisting();
+        this.setupEventHandlers();
     }
 
-    async executeNewChannel(): Promise<void> {
-        this.channelEvents.onChannelCreate(async (c) => {
+    async executeNewChannel(channelEvents: ChannelEvents): Promise<void> {
+        channelEvents.onChannelCreate(async (c) => {
             const result = await this.createChannel.executeAsync(this.mapToChannelEntity(c));
             if (!result.success) {
                 this.logger.logToConsole(
@@ -40,8 +33,8 @@ export class ChannelCommand implements IChannelCommand {
         });
     }
 
-    async executeUpdateChannelExisting(): Promise<void> {
-        this.channelEvents.onChannelUpdate(async (oldChannel, newCHannel) => {
+    async executeUpdateChannelExisting(channelEvents: ChannelEvents): Promise<void> {
+        channelEvents.onChannelUpdate(async (oldChannel, newCHannel) => {
             const result = await this.updateChannel.executeAsync(oldChannel, this.mapToChannelEntity(newCHannel));
             if(!result.success) {
                 this.logger.logToConsole(
@@ -54,12 +47,15 @@ export class ChannelCommand implements IChannelCommand {
         });
     }
 
-    async executeCopyAllChannelsExisting(): Promise<void> {
-        this.channelEvents.onCopyAllChannels(async (client) => {
-            await this.createManyChannels.executeAsync(client.channels.cache);
+    async executeCopyAllChannelsExisting(channelEvents: ChannelEvents, discordEvents: DiscordEvents): Promise<void> {
+        discordEvents.onDiscordStart(async () => {
+            const guildId = [...channelEvents.client.guilds.cache.values()][0]?.id;
+            const guild = await channelEvents.client.guilds.fetch(guildId);
+            const channels = await guild.channels.fetch();
+            this.createManyChannels.executeAsync(channels);
         });
     }
-    
+
     private mapToChannelEntity(discordChannel: GuildChannel): CreateChannelInput {
         return {
             discordId: discordChannel.id,
@@ -67,5 +63,13 @@ export class ChannelCommand implements IChannelCommand {
             url: discordChannel.url,
             createAt: discordChannel.createdAt ? new Date(discordChannel.createdTimestamp) : undefined
         }
+    }
+
+    private setupEventHandlers(): void {
+        const channelEvents = DiscordModule.getChannelEvents();
+        const discordEvents = DiscordModule.getDiscordEvents();
+        this.executeNewChannel(channelEvents);
+        this.executeUpdateChannelExisting(channelEvents);
+        this.executeCopyAllChannelsExisting(channelEvents, discordEvents);
     }
 }
