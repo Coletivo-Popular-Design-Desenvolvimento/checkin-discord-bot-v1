@@ -97,7 +97,8 @@ export default class ChannelRepository implements IChannelRepository {
                     created_at: c.createAt
                 }));
                 await tx.channel.createMany({
-                    data: dataToCreate
+                    data: dataToCreate,
+                    skipDuplicates: true
                 });
             });
         } catch (error) {

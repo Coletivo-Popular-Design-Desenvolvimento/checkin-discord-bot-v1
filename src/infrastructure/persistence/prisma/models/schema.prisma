@@ -115,7 +115,7 @@ model Message {
 
 model Channel {
   id               Int               @id @default(autoincrement())
-  discord_id       String
+  discord_id       String            @unique
   name             String
   url              String
   message          Message[]

@@ -92,7 +92,7 @@ Table message {
 
 Table channel {
   id Int [pk, increment]
-  discord_id String [not null]
+  discord_id String [unique, not null]
   name String [not null]
   url String [not null]
   message message [not null]
@@ -128,7 +128,7 @@ Ref: user_event.event_id > audio_event.id
 
 Ref: user_event.user_id > user.id
 
-Ref: message.channel_id > channel.id
+Ref: message.channel_id > channel.id [delete: Cascade]
 
 Ref: message.user_id > user.id
 
