@@ -1,107 +1,139 @@
-import {
-  Client,
-  Events,
-  Message,
-  GuildMember,
-  PartialGuildMember,
-} from "discord.js";
+jest.mock("discord.js", () => {
+  const actual = jest.requireActual("discord.js");
+  return {
+    ...actual,
+    Client: jest.fn().mockImplementation(() => ({
+      on: jest.fn(),
+      once: jest.fn(),
+      login: jest.fn(),
+    })),
+  };
+});
+
+import { Client, GatewayIntentBits } from "discord.js";
+import { DiscordModule } from "../../contexts/DiscordModule"
 import { DiscordService } from "../../infrastructure/discord/DiscordService";
+import { Logger } from "../../application/services/Logger";
+import DiscordEvents from "../../application/events/DiscordEvents";
+import UserEvents from "../../application/events/UserEvents";
+import ChannelEvents from "../../application/events/ChannelEvents";
+import MessageEvents from "../../application/events/MessageEvents";
 
-describe("DiscordService", () => {
-  let client: Client;
-  let discordService: DiscordService;
+jest.mock("../../application/events/DiscordEvents");
+jest.mock("../../application/events/UserEvents");
+jest.mock("../../application/events/ChannelEvents");
+jest.mock("../../application/events/MessageEvents");
 
-  beforeEach(() => {
-    client = new Client({ intents: [] }); // Mock client
-    jest.spyOn(client, "on"); // Spy on event registration
-    jest.spyOn(client, "once");
-    discordService = new DiscordService(client);
-  });
+const mockLogger: jest.Mocked<Logger> = {
+  logToConsole: jest.fn(),
+  logToDatabase: jest.fn(),
+  // Adicione aqui todos os métodos que existem na sua classe Logger real
+  // Por exemplo, se você tiver:
+  error: jest.fn(),
+  warn: jest.fn(),
+  info: jest.fn(),
+  // ... outros métodos que seu Logger possui
+} as any;
 
+jest.mock("../../application/events/DiscordEvents");
+jest.mock("../../application/events/UserEvents");
+jest.mock("../../application/events/ChannelEvents");
+jest.mock("../../application/events/MessageEvents");
+
+describe("DiscordModule", () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    // Reset the singleton instance
+    (DiscordModule as any).instance = undefined;
+    (DiscordModule as any).client = undefined;
+    (DiscordModule as any).channelEvents = undefined;
+    (DiscordModule as any).discordEvents = undefined;
+    (DiscordModule as any).messageEvents = undefined;
+    (DiscordModule as any).userEvents = undefined;
   });
 
-  it("should register event listeners when registerEvents is called", () => {
-    discordService.registerEvents();
+  describe("initialize", () => {
+    it("should create a new instance when first initialized", () => {
+      const instance = DiscordModule.intiialize(mockLogger);
+      
+      expect(instance).toBeInstanceOf(DiscordService);
+      expect(Client).toHaveBeenCalledTimes(1);
+      expect(Client).toHaveBeenCalledWith({
+        intents: expect.arrayContaining([
+          GatewayIntentBits.GuildMessages,
+          GatewayIntentBits.GuildMembers,
+          GatewayIntentBits.Guilds,
+        ]),
+      });
+    });
 
-    expect(client.once).toHaveBeenCalledWith(
-      Events.ClientReady,
-      expect.any(Function)
-    );
-    expect(client.on).toHaveBeenCalledWith(
-      Events.MessageCreate,
-      expect.any(Function)
-    );
-    expect(client.on).toHaveBeenCalledWith(
-      Events.GuildMemberAdd,
-      expect.any(Function)
-    );
-    expect(client.on).toHaveBeenCalledWith(
-      Events.GuildMemberRemove,
-      expect.any(Function)
-    );
+    it("should return the same instance on subsequent calls", () => {
+      const firstInstance = DiscordModule.intiialize(mockLogger);
+      const secondInstance = DiscordModule.intiialize(mockLogger);
+      
+      expect(firstInstance).toBe(secondInstance);
+      expect(Client).toHaveBeenCalledTimes(1); // Client should only be created once
+    });
+
+    it("should initialize all event handlers", () => {
+      DiscordModule.intiialize(mockLogger);
+      
+      expect(DiscordEvents).toHaveBeenCalled();
+      expect(UserEvents).toHaveBeenCalled();
+      expect(ChannelEvents).toHaveBeenCalled();
+      expect(MessageEvents).toHaveBeenCalled();
+    });
   });
 
-  it("should call all onDiscordStart handlers when the client is ready", () => {
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
-    discordService.onDiscordStart(handler1);
-    discordService.onDiscordStart(handler2);
+  describe("getInstance", () => {
+    it("should return the initialized instance", () => {
+      const initializedInstance = DiscordModule.intiialize(mockLogger);
+      const retrievedInstance = DiscordModule.getInstance();
+      
+      expect(retrievedInstance).toBe(initializedInstance);
+    });
 
-    discordService.registerEvents();
-    const readyCallback = (client.once as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.ClientReady
-    )?.[1];
-
-    readyCallback?.(); // Simulate client ready event
-
-    expect(handler1).toHaveBeenCalled();
-    expect(handler2).toHaveBeenCalled();
+    it("should throw error if not initialized", () => {
+      expect(() => DiscordModule.getInstance()).toThrowError(
+        "DiscordModule not initialized"
+      );
+    });
   });
 
-  it("should call all onMessage handlers when a message is created", () => {
-    const handler = jest.fn();
-    discordService.onMessage(handler);
+  describe("getter methods", () => {
+    beforeEach(() => {
+      DiscordModule.intiialize(mockLogger);
+    });
 
-    discordService.registerEvents();
-    const messageCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.MessageCreate
-    )?.[1];
+    it("should return ChannelEvents instance", () => {
+      const channelEvents = DiscordModule.getChannelEvents();
+      expect(channelEvents).toBeInstanceOf(ChannelEvents);
+    });
 
-    const mockMessage = { content: "Hello" } as Message;
-    messageCallback?.(mockMessage);
+    it("should return UserEvents instance", () => {
+      const userEvents = DiscordModule.getUserEvents();
+      expect(userEvents).toBeInstanceOf(UserEvents);
+    });
 
-    expect(handler).toHaveBeenCalledWith(mockMessage);
-  });
+    it("should return DiscordEvents instance", () => {
+      const discordEvents = DiscordModule.getDiscordEvents();
+      expect(discordEvents).toBeInstanceOf(DiscordEvents);
+    });
 
-  it("should call all onNewUser handlers when a user joins", () => {
-    const handler = jest.fn();
-    discordService.onNewUser(handler);
+    it("should throw error if events are accessed before initialization", () => {
+      (DiscordModule as any).channelEvents = undefined;
+      (DiscordModule as any).userEvents = undefined;
+      (DiscordModule as any).discordEvents = undefined;
 
-    discordService.registerEvents();
-    const joinCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.GuildMemberAdd
-    )?.[1];
-
-    const mockMember = { id: "1234" } as GuildMember;
-    joinCallback?.(mockMember);
-
-    expect(handler).toHaveBeenCalledWith(mockMember);
-  });
-
-  it("should call all onUserLeave handlers when a user leaves", () => {
-    const handler = jest.fn();
-    discordService.onUserLeave(handler);
-
-    discordService.registerEvents();
-    const leaveCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.GuildMemberRemove
-    )?.[1];
-
-    const mockMember = { id: "5678" } as PartialGuildMember;
-    leaveCallback?.(mockMember);
-
-    expect(handler).toHaveBeenCalledWith(mockMember);
+      expect(() => DiscordModule.getChannelEvents()).toThrowError(
+        "ChannelEvents not initialized"
+      );
+      expect(() => DiscordModule.getUserEvents()).toThrowError(
+        "UserEvents not initialized"
+      );
+      expect(() => DiscordModule.getDiscordEvents()).toThrowError(
+        "DiscordEvents not initialized"
+      );
+    });
   });
 });
