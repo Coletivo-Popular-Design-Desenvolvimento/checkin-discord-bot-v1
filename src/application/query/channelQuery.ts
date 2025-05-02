@@ -3,16 +3,20 @@ import { GenericOutputDto } from "../../domain/dtos/GenericOutputDto";
 import ChannelEntity from "../../domain/entities/Channel";
 import IChannelQuery from "../../domain/interfaces/queries/IChannelQuery";
 import IChannelRepository from "../../domain/interfaces/repositories/IChannelRepository";
+import FindChannel from "../../domain/useCases/channel/FindChannel";
 
 export class ChannelQuery implements IChannelQuery {
-    constructor(private readonly repository: IChannelRepository) 
+    constructor(
+        private readonly repository: IChannelRepository,
+        private readonly findChannelUseCase: FindChannel
+    )
     {}
 
     async executeFindAllAsync(limit?: number): Promise<ManyChannelsDto> {
-        const result = await this.repository.listAllAsync(limit);
+        const result = await this.findChannelUseCase.findAllAsync(limit);
         return {
             isSuccess: true,
-            channels: result,
+            channels: result.data,
         }
     }
 

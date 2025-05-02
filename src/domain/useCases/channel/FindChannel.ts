@@ -5,10 +5,14 @@ import { ILoggerService } from "../../interfaces/services/ILogger";
 import IFindChannel from "../../interfaces/useCases/channel/IFindChannel";
 
 
-export class FindChannel implements IFindChannel {
+export default class FindChannel implements IFindChannel {
     constructor(private readonly channelRepository: IChannelRepository, private readonly logger: ILoggerService
     ) {}
     
+    findAllAsync(limit?: number): Promise<GenericOutputDto<ChannelEntity[]>> {
+        throw new Error("Method not implemented.")
+    }
+
     findByIdAsync(id: number): Promise<GenericOutputDto<ChannelEntity>> {
         throw new Error("Method not implemented.");
     }
