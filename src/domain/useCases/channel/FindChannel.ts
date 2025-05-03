@@ -4,7 +4,6 @@ import IChannelRepository from "../../interfaces/repositories/IChannelRepository
 import { ILoggerService } from "../../interfaces/services/ILogger";
 import IFindChannel from "../../interfaces/useCases/channel/IFindChannel";
 
-
 export default class FindChannel implements IFindChannel {
     constructor(private readonly channelRepository: IChannelRepository, private readonly logger: ILoggerService
     ) {}

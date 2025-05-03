@@ -58,3 +58,31 @@ export const mockUserValue = {
   lastActive: undefined,
   email: undefined,
 };
+
+//#region CHANNEL
+
+export type naturalizeChannel = {
+  id: number, 
+  discordId: string, 
+  name: string,
+  url: string,
+  createAt: Date | null
+}
+export const mockChannelValue = {
+  id: 1,
+  discordId: "QWIUEHQIUWEQUIW",
+  name: "QWEQEQWEQ",
+  url: "http://discord/teste/123/456",
+  createAt: undefined
+}
+
+export const mockDBChannelValue = {
+  id: 1,
+  discordId: "QWIUEHQIUWEQUIW",
+  name: "QWEQEQWEQ",
+  url: "http://discord/teste/123/456",
+  createAt: undefined
+}
+
+
+//#endregion CHANNEL
