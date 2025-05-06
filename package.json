@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node dist/index.js",
-    "dev": "dotenv -e .env -c -- sh -c 'docker compose -f compose.yml -f compose.local.yml up -d db && npx prisma generate && npx prisma migrate dev --name init && nodemon --exec ts-node ./src/index.ts'",
+    "dev": "dotenv -e .env -c -- sh -c 'docker compose -f compose.yml -f compose.local.yml up -d db && npx prisma generate && npx prisma migrate dev && nodemon --exec ts-node ./src/index.ts'",
     "worker": "tsc && pm2 start dist/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
     "db:migrate": "dotenv -e .env -c npx prisma migrate dev",
