@@ -45,7 +45,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
+      sh -c "npx prisma migrate deploy && npm start"
 
 volumes:
   db_data:

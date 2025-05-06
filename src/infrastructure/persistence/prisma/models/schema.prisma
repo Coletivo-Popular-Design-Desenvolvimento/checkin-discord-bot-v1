@@ -137,3 +137,4 @@ model MessageReaction {
   @@id([user_id, message_id])
   @@map("message_reaction")
 }
+
