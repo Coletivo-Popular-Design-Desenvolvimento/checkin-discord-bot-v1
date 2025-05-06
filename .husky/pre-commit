@@ -15,21 +15,17 @@ MIGRATIONS_DIR="src/infrastructure/persistence/prisma/models/migrations"
 
 echo "2. Verificando integridade dos arquivos de migração"
 
-# --- Checa se ALGUMA migration *EXISTENTE* foi MODIFICADA e preparada ---
-# Desativar temporariamente set -e para capturar o código de saída do grep
-set +e
-MODIFIED_EXISTING_MIGRATIONS=$(git diff --cached --name-status HEAD -- "$MIGRATIONS_DIR" | grep '^M')
-GREP_EXIT_CODE=$? # Código 0 se encontrou, 1 se não encontrou, >1 se erro
-# Reativar set -e
-set -e
+# --- Checa se ALGUMA migration *EXISTENTE* sofreu algum tipo de alteração e foi preparada ---
+# Desativar temporariamente set -e para capturar o código de saída do awk
+PROBLEMATIC_CHANGES_TO_EXISTING_MIGRATIONS=$(git diff --cached --name-status HEAD -- "$MIGRATIONS_DIR" | awk '$1 != "A"')
 
-if [ $GREP_EXIT_CODE -eq 0 ]; then # Encontrou linhas começando com M
+if [ -n "$PROBLEMATIC_CHANGES_TO_EXISTING_MIGRATIONS" ]; then
   echo "[FALHA] $SCHEMA_PATH foi preparado, mas o(s) seguinte(s) arquivo(s) de migração EXISTENTE(S)"
-  echo "   em $MIGRATIONS_DIR foi(ram) MODIFICADO(S) e preparado(s):"
+  echo "   em $MIGRATIONS_DIR foi(ram) alterado(s) e preparado(s):"
   echo "+------------------------------------+"
-  echo "$MODIFIED_EXISTING_MIGRATIONS" | awk '{print $2}'
+  echo "$PROBLEMATIC_CHANGES_TO_EXISTING_MIGRATIONS" | awk '{print $2}'
   echo "+------------------------------------+"
-  echo "   Migrações que já foram commitadas (parte do HEAD) NÃO devem ser modificadas."
+  echo "   Migrações que já foram commitadas (parte do HEAD) NÃO devem ser alteradas."
   echo "   Se precisar fazer alterações no schema, gere uma NOVA migração."
   echo "--------------------------------------------------------------------"
   echo "--- Falha no Pre-Commit (Migração Existente Modificada) ---"
