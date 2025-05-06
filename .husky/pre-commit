@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Garante que o script saia imediatamente se um comando sair com status diferente de zero
+set -e
+
+echo "--- Pre-Commit Iniciado ---"
+
+# Passo 1: Executar o lint-staged
+echo "1. Executando lint-staged..."
+npx lint-staged --allow-empty
+
+# Passo 2: Verificar se as migrations estão prontas para commit
+SCHEMA_PATH="src/infrastructure/persistence/prisma/models/schema.prisma"
+MIGRATIONS_DIR="src/infrastructure/persistence/prisma/models/migrations"
+
+echo "2. Verificando integridade dos arquivos de migração"
+
+# --- Checa se ALGUMA migration *EXISTENTE* foi MODIFICADA e preparada ---
+# Desativar temporariamente set -e para capturar o código de saída do grep
+set +e
+MODIFIED_EXISTING_MIGRATIONS=$(git diff --cached --name-status HEAD -- "$MIGRATIONS_DIR" | grep '^M')
+GREP_EXIT_CODE=$? # Código 0 se encontrou, 1 se não encontrou, >1 se erro
+# Reativar set -e
+set -e
+
+if [ $GREP_EXIT_CODE -eq 0 ]; then # Encontrou linhas começando com M
+  echo "[FALHA] $SCHEMA_PATH foi preparado, mas o(s) seguinte(s) arquivo(s) de migração EXISTENTE(S)"
+  echo "   em $MIGRATIONS_DIR foi(ram) MODIFICADO(S) e preparado(s):"
+  echo "+------------------------------------+"
+  echo "$MODIFIED_EXISTING_MIGRATIONS" | awk '{print $2}'
+  echo "+------------------------------------+"
+  echo "   Migrações que já foram commitadas (parte do HEAD) NÃO devem ser modificadas."
+  echo "   Se precisar fazer alterações no schema, gere uma NOVA migração."
+  echo "--------------------------------------------------------------------"
+  echo "--- Falha no Pre-Commit (Migração Existente Modificada) ---"
+  exit 1
+fi
+echo "✔ Verificação Passou: Nenhum arquivo de migração existente foi modificado e preparado."
+echo "--------------------------------------------------------------------"
+
+# --- Verifica se schema.prisma foi preparado (staged) para commit ---
+if git diff --cached --quiet "$SCHEMA_PATH"; then
+  echo "$SCHEMA_PATH não está preparado. Pulando verificações de migração."
+  echo "--- Pre-Commit Concluído com Sucesso (Sem Mudança de Schema) ---"
+  exit 0
+fi
+
+echo "Detectadas mudanças preparadas em $SCHEMA_PATH."
+echo "   Verificando arquivos de migração correspondentes..."
+echo "--------------------------------------------------------------------"
+
+# --- Checa se alguma migration não está preparada (untracked ou modified mas não staged) ---
+# Executa o comando e captura stdout. stderr vai para o console se houver erro.
+GIT_STATUS_OUTPUT=$(git status --porcelain "$MIGRATIONS_DIR" 2>/dev/null) || true # Ignora erro do git status aqui, pois o grep fará a verificação
+UNSTAGED_OR_UNTRACKED_MIGRATIONS=$(echo "$GIT_STATUS_OUTPUT" | grep -E '^\?\?|^ [^ ]') || true # Ignora erro do grep se não encontrar nada
+
+if [ -n "$UNSTAGED_OR_UNTRACKED_MIGRATIONS" ]; then
+  echo "[FALHA] $SCHEMA_PATH foi preparado, mas os seguintes arquivos/diretórios de migração"
+  echo "   em $MIGRATIONS_DIR não estão rastreados ou foram modificados mas não preparados:"
+  echo "+------------------------------------+"
+  echo "$UNSTAGED_OR_UNTRACKED_MIGRATIONS"
+  echo "+------------------------------------+"
+  echo "   Todos os arquivos/diretórios de migração relevantes devem ser adicionados ('git add')"
+  echo "   junto com o schema. Execute 'git add $MIGRATIONS_DIR/*' ou adicione os itens"
+  echo "   específicos e tente commitar novamente."
+  echo "--------------------------------------------------------------------"
+  echo "--- Falha no Pre-Commit (Migrações Não Preparadas/Não Rastreadas) ---"
+  exit 1
+fi
+echo "✔ Verificação Passou: Nenhum arquivo de migração não rastreado ou modificado não preparado encontrado."
+echo "--------------------------------------------------------------------"
+
+# --- Checa se *alguma* migration está preparada (staged) ---
+set +e
+git diff --cached --quiet HEAD -- "$MIGRATIONS_DIR"
+GIT_DIFF_STAGED_EXIT_CODE=$?
+set -e
+
+# 0 significa SEM diferenças preparadas (NÃO OK neste caso)
+# 1 significa HÁ diferenças preparadas (OK neste caso)
+# Outro valor significa erro no comando git diff
+if [ $GIT_DIFF_STAGED_EXIT_CODE -eq 0 ]; then
+     echo "[FALHA] $SCHEMA_PATH foi preparado, mas NENHUM arquivo de migração foi preparado"
+     echo "   em $MIGRATIONS_DIR (comparado ao último commit)."
+     echo "   Você esqueceu de gerar migrações após alterar o schema (ex: 'npm run db:migrate')?"
+     echo "   Por favor, gere a migração,"
+     echo "   então prepare o schema E o(s) novo(s) arquivo(s) de migração ('git add $SCHEMA_PATH $MIGRATIONS_DIR/*')"
+     echo "   e tente commitar novamente."
+     echo "--------------------------------------------------------------------"
+     echo "--- Falha no Pre-Commit (Nenhuma Migração Preparada) ---"
+     exit 1
+fi
+echo "✔ Verificação Passou: Pelo menos um arquivo de migração está preparado."
+echo "--------------------------------------------------------------------"
+
+# Se todos os checks passaram:
+echo "✔ Todas as verificações de migração passaram para o $SCHEMA_PATH preparado."
+echo "   O commit pode prosseguir."
+echo "--- de Pre-Commit Concluído com Sucesso ---"

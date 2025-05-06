@@ -1,0 +1,4 @@
+services:
+  db:
+    ports:
+      - '${DB_PORT_LOCAL}:${DB_PORT}'
