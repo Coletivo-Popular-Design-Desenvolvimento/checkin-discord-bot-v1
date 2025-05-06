@@ -16,7 +16,6 @@ MIGRATIONS_DIR="src/infrastructure/persistence/prisma/models/migrations"
 echo "2. Verificando integridade dos arquivos de migração"
 
 # --- Checa se ALGUMA migration *EXISTENTE* sofreu algum tipo de alteração e foi preparada ---
-# Desativar temporariamente set -e para capturar o código de saída do awk
 PROBLEMATIC_CHANGES_TO_EXISTING_MIGRATIONS=$(git diff --cached --name-status HEAD -- "$MIGRATIONS_DIR" | awk '$1 != "A"')
 
 if [ -n "$PROBLEMATIC_CHANGES_TO_EXISTING_MIGRATIONS" ]; then
