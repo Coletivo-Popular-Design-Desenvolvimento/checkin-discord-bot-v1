@@ -48,7 +48,7 @@ npm install
 Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores conforme seu ambiente:
 
 ```env
-SECRET_KEY=seu-token-do-bot
+TOKEN_BOT=seu-token-do-bot
 
 DB_HOST=db
 DB_PORT=3306
