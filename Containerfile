@@ -13,10 +13,7 @@ RUN npm install
 # Install TypeScript globally
 RUN npm install -g typescript
 
-# Copy the .env file from the root directory
-COPY ./.env ./
-
-# Copy the rest of the application code
+# Copy the application code
 COPY . .
 
 # Generate Prisma client
