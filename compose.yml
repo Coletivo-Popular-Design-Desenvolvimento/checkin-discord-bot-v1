@@ -6,12 +6,11 @@ services:
       MYSQL_DATABASE: '${DB_DATABASE}'
       MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
       TZ: 'UTC'
-    ports:
-      - '${DB_PORT}'
+
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -29,6 +28,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    profiles:
+      - dev
 
   app:
     build:
@@ -46,6 +47,9 @@ services:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm start"
+    profiles:
+      - prod
+      - homol
 
 volumes:
   db_data:

@@ -50,20 +50,13 @@ Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores 
 ```env
 TOKEN_BOT=seu-token-do-bot
 
-DB_HOST=db
-DB_PORT=3306
+DB_HOST=localhost (dev) / db (prod)
+DB_PORT=3306 (dev *ou qualquer outra porta não utilizada na sua máquina, ex: use 3307 caso 3306 já esteja sendo usada por outro cointainer) / 3306 (prod)
 DB_USER=root
 DB_PASSWORD=Coletivo1917
 DB_DATABASE=checkindb
 
 DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
-```
-
-Crie um arquivo `.env.local` na raiz com o seguinte conteúdo - ajuste os valores conforme seu ambiente:
-
-```DB_HOST=localhost
-DB_PORT_LOCAL=3398
-DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT_LOCAL}/${DB_DATABASE}"
 ```
 
 > **Nunca** compartilhe seu token publicamente.
@@ -109,16 +102,6 @@ Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
 
 > **Somente após ter acesso autorizado** prossiga para as etapas seguintes.
 
-## 🚀 Subindo o projeto
-
-Subir os containers:
-
-```bash
-docker compose up -d --build
-```
-
-Pronto! O banco de dados estará preparado.
-
 ## 🚀 Subindo o projeto para desenvolvimento local
 
 Basta executar o comando
@@ -132,7 +115,7 @@ Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docke
 Em caso de problemas com versões incompatíveis de migrations, caso esteja disposto(a) a resetar o banco de dados completamente, execute os comandos:
 
 ```bash
-dotenv -e .env -c docker compose up db -d
+docker compose --profile dev up -d
 npm run db:migrate-reset
 ```
 
@@ -140,6 +123,14 @@ Isso alinhará as suas migrations com as migrations do projeto. Tome cuidado par
 
 ```bash
 npm run db:migrate
+```
+
+## 🚀 Subindo o projeto em produção
+
+Subir os containers:
+
+```bash
+docker compose -f compose.yml --profile prod up -d --build
 ```
 
 ## 🔧 Comandos úteis

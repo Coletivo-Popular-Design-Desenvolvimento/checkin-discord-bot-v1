@@ -6,13 +6,13 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node dist/index.js",
-    "dev": "dotenv -e .env -c -- sh -c 'docker compose -f compose.yml -f compose.local.yml up -d db && npx prisma generate && npx prisma migrate dev && nodemon --exec ts-node ./src/index.ts'",
+    "dev": "docker compose --profile dev up -d && npx prisma generate && npx prisma migrate dev && nodemon --exec ts-node ./src/index.ts",
     "worker": "tsc && pm2 start dist/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
-    "db:migrate": "dotenv -e .env -c npx prisma migrate dev",
-    "db:generate": "dotenv -e .env -c npx prisma generate",
-    "db:studio": "dotenv -e .env -c npx prisma studio",
-    "db:migrate-reset": "dotenv -e .env -c npx prisma migrate reset",
+    "db:migrate": "npx prisma migrate dev",
+    "db:generate": "npx prisma generate",
+    "db:studio": "npx prisma studio",
+    "db:migrate-reset": "npx prisma migrate reset",
     "test": "jest",
     "prepare": "husky"
   },
