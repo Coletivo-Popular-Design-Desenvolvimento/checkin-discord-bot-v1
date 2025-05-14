@@ -6,7 +6,7 @@ export interface IMessageRepository {
   
   findById(id: number): Promise<MessageEntity | null>;
   findByChannelId(
-    channelId: string
+    channelId: number
   ): Promise<MessageEntity[] | null>;
   findByDiscordId(
     discordId: string
