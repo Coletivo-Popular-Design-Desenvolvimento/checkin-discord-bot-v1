@@ -6,16 +6,19 @@ export interface IMessageRepository {
   
   findById(id: number): Promise<MessageEntity | null>;
   findByChannelId(
-    channelId: number
+    channelId: number,
+    includeDeleted?: boolean
   ): Promise<MessageEntity[] | null>;
   findByDiscordId(
-    discordId: string
+    discordId: string,
+    includeDeleted?: boolean
   ): Promise<MessageEntity[] | null>;
   findByUserId(
-    userId: number
+    userId: number,
+    includeDeleted?: boolean
   ): Promise<MessageEntity[] | null>;
   
-  listAll(limit?: number): Promise<MessageEntity[]>;
+  listAll(limit?: number, includeDeleted?: boolean): Promise<MessageEntity[]>;
   
   updateById(id: number, message: Partial<MessageEntity>): Promise<MessageEntity | null>;
   

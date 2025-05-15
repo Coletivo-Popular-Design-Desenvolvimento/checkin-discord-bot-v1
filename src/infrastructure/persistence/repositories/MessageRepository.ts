@@ -79,6 +79,11 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
+  /**
+   * @description Método para buscar uma mensagem a partir do seu Id
+   * @param {Number} id Id da mensagem na nossa base de dados
+   * @returns {MessageEntity} Caso exista na base, uma mensagem. Senão, retorna nulo
+  */
   async findById(id: number): Promise<MessageEntity | null> {
     try {
       const result = await this.client.message.findUnique({
@@ -98,11 +103,18 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  async findByChannelId(channelId: number): Promise<MessageEntity[] | null> {
+  /**
+   * @description Método para buscar mensagens de um canal
+   * @param {Boolean} includeDeleted Caso queira listar inclusive as mensagens apagadas. Por padrão, elas não serão listadas
+   * @param {Number} channelId Id do canal
+   * @returns {MessageEntity[]} Lista de mensagens 
+  */
+  async findByChannelId(channelId: number, includeDeleted?: boolean): Promise<MessageEntity[] | null> {
     try {
       const messages = await this.client.message.findMany({
         where: {
-          channel_id: channelId
+          channel_id: channelId,
+          is_deleted: includeDeleted ? undefined : false
         }
       });
 
@@ -117,11 +129,18 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  async findByDiscordId(discordId: string): Promise<MessageEntity[] | null> {
+  /**
+   * @description Método para buscar mensagens pelo seu identificador do Discord
+   * @param {Boolean} includeDeleted Caso queira buscar inclusive as mensagens apagadas. Por padrão, elas não serão listadas
+   * @param {String} discordId Id que o Discord usa para identificar a(s) mensagem(ns)
+   * @returns {MessageEntity[]} Lista de mensagens 
+  */
+  async findByDiscordId(discordId: string, includeDeleted?: boolean): Promise<MessageEntity[] | null> {
     try {
       const results = await this.client.message.findMany({
         where: {
-          discord_id: discordId
+          discord_id: discordId,
+          is_deleted: includeDeleted ? undefined : false
         }
       });
 
@@ -136,11 +155,18 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-   async findByUserId(userId: number): Promise<MessageEntity[] | null> {
+  /**
+   * @description Método para buscar mensagens de um usuário
+   * @param {Boolean} includeDeleted Caso queira incluir as mensagens apagadas. Por padrão, elas não serão listadas
+   * @param {Number} userId Id do usuário
+   * @returns {MessageEntity[]} Lista de mensagens 
+  */
+  async findByUserId(userId: number, includeDeleted?: boolean): Promise<MessageEntity[] | null> {
     try {
       const results = await this.client.message.findMany({
         where: {
-          user_id: userId
+          user_id: userId,
+          is_deleted: includeDeleted ? undefined : false
         },
       });
       return results.map((result) => this.toDomain(result));
@@ -154,10 +180,19 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  async listAll(limit?: number): Promise<MessageEntity[]> {
+  /**
+   * @description Método para listar múltiplas mensagens
+   * @param {Boolean} includeDeleted Caso queira listar inclusive as mensagens apagadas. Por padrão, elas não serão listadas
+   * @param {Number} limit Quantidade de registros a serem retornados pela base de dados
+   * @returns {MessageEntity[]} Lista de mensagens 
+   */
+  async listAll(limit?: number, includeDeleted?: boolean): Promise<MessageEntity[]> {
     try {
       const results = await this.client.message.findMany({
         take: limit,
+        where: {
+          is_deleted: includeDeleted ? undefined : false
+        }
       });
       return results.map((result) => this.toDomain(result));
     } catch (error) {
@@ -195,6 +230,7 @@ export class MessageRepository implements IMessageRepository {
       message.channel_id,
       message.discord_id,
       message.discord_created_at,
+      message.is_deleted,
       message.user_id,
       message.id,
       message.created_at
@@ -206,6 +242,7 @@ export class MessageRepository implements IMessageRepository {
       return {
         discord_id: message.discordId,
         channel_id: message.channelId,
+        is_deleted: message.isDeleted,
         user_id: message.userId,
         discord_created_at: message.discordCreatedAt,
         created_at: message.createAt,
