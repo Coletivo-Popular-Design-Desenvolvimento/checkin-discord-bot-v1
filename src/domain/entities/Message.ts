@@ -6,7 +6,7 @@ export class MessageEntity {
       public readonly isDeleted: boolean,
       public readonly userId: number,
       public readonly id?: number | null,
-      public readonly createAt?: Date | null,
+      public readonly createdAt?: Date | null,
     ) {}
   }
   

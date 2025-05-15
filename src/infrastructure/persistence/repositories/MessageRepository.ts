@@ -245,7 +245,7 @@ export class MessageRepository implements IMessageRepository {
         is_deleted: message.isDeleted,
         user_id: message.userId,
         discord_created_at: message.discordCreatedAt,
-        created_at: message.createAt,
+        created_at: message.createdAt,
       };
     }
 }
