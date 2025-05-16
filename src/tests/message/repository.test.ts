@@ -1,3 +1,4 @@
+import { MessageEntity } from '../../domain/entities/Message';
 import { ILoggerService } from '../../domain/interfaces/services/ILogger';
 import { PrismaService } from '../../infrastructure/persistence/prisma/prismaService';
 import { MessageRepository } from '../../infrastructure/persistence/repositories/MessageRepository';
@@ -206,5 +207,31 @@ describe('MessageRepository', () => {
         });
     });
 
+    describe('create', () => {
+        const today = new Date();
+        const messageToCreate: Omit<MessageEntity,'id'> = {
+            ...mockMessageValue,
+            discordCreatedAt: today,
+            createdAt: today,
+        }
 
+        it('should insert into db a new message', async () => {
+            prismaMock.message.create.mockResolvedValue(mockDbMessageValue);
+            
+            const newMessage = await messageRepository.create(messageToCreate);
+
+            expect(newMessage).toHaveProperty('id', 1);
+        });
+
+        it('should NOT new message insert into db if an error occurs', async () => {
+            const error = new Error('could not create');
+            prismaMock.message.create.mockRejectedValue(error);
+
+            const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+            await messageRepository.create(messageToCreate);
+            
+            expect(spy).toHaveBeenCalledWith("ERROR");
+        })
+    })
 })
