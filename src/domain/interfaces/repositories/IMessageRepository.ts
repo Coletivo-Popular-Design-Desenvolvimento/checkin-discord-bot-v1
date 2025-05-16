@@ -8,15 +8,15 @@ export interface IMessageRepository {
   findByChannelId(
     channelId: number,
     includeDeleted?: boolean
-  ): Promise<MessageEntity[] | null>;
+  ): Promise<MessageEntity[]>;
   findByDiscordId(
     discordId: string,
     includeDeleted?: boolean
-  ): Promise<MessageEntity[] | null>;
+  ): Promise<MessageEntity[]>;
   findByUserId(
     userId: number,
     includeDeleted?: boolean
-  ): Promise<MessageEntity[] | null>;
+  ): Promise<MessageEntity[]>;
   
   listAll(limit?: number, includeDeleted?: boolean): Promise<MessageEntity[]>;
   
