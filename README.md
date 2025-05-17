@@ -52,11 +52,10 @@ TOKEN_BOT=seu-token-do-bot
 
 DB_HOST=localhost (dev) / db (prod)
 DB_PORT=3306 (dev *ou qualquer outra porta não utilizada na sua máquina, ex: use 3307 caso 3306 já esteja sendo usada por outro cointainer) / 3306 (prod)
-DB_USER=root
 DB_PASSWORD=Coletivo1917
 DB_DATABASE=checkindb
 
-DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+DATABASE_URL="mysql://root:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 ```
 
 > **Nunca** compartilhe seu token publicamente.

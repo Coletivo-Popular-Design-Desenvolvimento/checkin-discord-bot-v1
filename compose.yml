@@ -39,7 +39,7 @@ services:
     container_name: node_app
     restart: always
     ports:
-      - "3000:3000"
+      - "${PORT}:3000"
     volumes:
       - ./.env:/opt/checkin-app/.env  # Monta o .env da root.
     depends_on:
