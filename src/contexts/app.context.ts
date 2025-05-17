@@ -15,14 +15,14 @@ export function initializeApp() {
   const logger = new Logger();
   const { userRepository } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
-  const { SECRET_KEY } = process.env;
+  const { TOKEN_BOT } = process.env;
 
-  if (!SECRET_KEY) {
+  if (!TOKEN_BOT) {
     logger.logToConsole(
       LoggerContextStatus.ERROR,
       LoggerContext.APP_CONTEXT,
       LoggerContextEntity.USER,
-      ErrorMessages.MISSING_SECRET
+      ErrorMessages.MISSING_SECRET,
     );
   }
 
@@ -34,9 +34,9 @@ export function initializeApp() {
     discordService,
     logger,
     userUseCases.createUserCase,
-    userUseCases.updateUserCase
+    userUseCases.updateUserCase,
   );
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
-  discordService.client.login(SECRET_KEY);
+  discordService.client.login(TOKEN_BOT);
 }
