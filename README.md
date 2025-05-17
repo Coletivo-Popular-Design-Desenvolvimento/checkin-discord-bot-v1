@@ -112,6 +112,13 @@ npm run dev
 
 Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
 
+> ⚠️ **Atenção Usuários Windows:** Se você possui uma instalação local do MariaDB ou MySQL no seu Windows, você poderá encontrar um erro relacionado ao plugin `auth_gssapi_client` ao tentar rodar `npm run dev` (especificamente durante as etapas do Prisma). Isso ocorre porque o Prisma pode tentar usar o cliente de banco de dados instalado globalmente em vez do esperado.
+>
+> **Soluções possíveis:**
+>
+> 1.  Configure sua instalação local do MariaDB/MySQL para utilizar `mysql_native_password` como plugin de autenticação padrão.
+> 2.  Considere desinstalar a versão local do MariaDB/MySQL do seu Windows se ela não for estritamente necessária para outros projetos, permitindo que o ambiente Docker funcione sem interferências.
+
 Em caso de problemas com versões incompatíveis de migrations, caso esteja disposto(a) a resetar o banco de dados completamente, execute os comandos:
 
 ```bash
