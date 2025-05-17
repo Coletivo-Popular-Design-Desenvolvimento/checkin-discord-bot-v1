@@ -130,21 +130,19 @@ export class MessageRepository implements IMessageRepository {
   }
 
   /**
-   * @description Método para buscar mensagens pelo seu identificador do Discord
-   * @param {Boolean} includeDeleted Caso queira buscar inclusive as mensagens apagadas. Por padrão, elas não serão listadas
-   * @param {String} discordId Id que o Discord usa para identificar a(s) mensagem(ns)
-   * @returns {MessageEntity[]} Lista de mensagens 
+   * @description Método para buscar uma mensagem pelo seu identificador do Discord
+   * @param {String} discordId Id que o Discord usa para identificar a mensagem
+   * @returns {MessageEntity} Lista de mensagens 
   */
-  async findByDiscordId(discordId: string, includeDeleted?: boolean): Promise<MessageEntity[] | null> {
+  async findByDiscordId(discordId: string): Promise<MessageEntity | null> {
     try {
-      const results = await this.client.message.findMany({
+      const message = await this.client.message.findFirst({
         where: {
-          discord_id: discordId,
-          is_deleted: includeDeleted ? undefined : false
+          discord_id: discordId
         }
       });
 
-      return results.map((result) => this.toDomain(result));
+      return message ? this.toDomain(message) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,

@@ -9,10 +9,7 @@ export interface IMessageRepository {
     channelId: number,
     includeDeleted?: boolean
   ): Promise<MessageEntity[]>;
-  findByDiscordId(
-    discordId: string,
-    includeDeleted?: boolean
-  ): Promise<MessageEntity[]>;
+  findByDiscordId(discordId: string): Promise<MessageEntity>;
   findByUserId(
     userId: number,
     includeDeleted?: boolean
