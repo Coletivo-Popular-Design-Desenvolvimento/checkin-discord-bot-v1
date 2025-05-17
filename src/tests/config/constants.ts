@@ -58,3 +58,45 @@ export const mockUserValue = {
   lastActive: undefined,
   email: undefined,
 };
+
+//MessageRepository tests consts
+
+export type messageDbModel = {
+  id: number;
+  channel_id: number;
+  discord_id: string;
+  user_id: number;
+  is_deleted: boolean;
+  discord_created_at: Date;
+  created_at: Date;
+}
+
+export const mockDbMessageValue = {
+  id: 1,
+  discord_id: "1234567890",
+  channel_id: 654341,
+  user_id: 1,
+  is_deleted: false,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
+
+export const mockMessageValue = {
+  id: 1,
+  discordId: "1234567890",
+  channelId: 654341,
+  userId: 1,
+  isDeleted: false,
+  discordCreatedAt: undefined,
+  createdAt: undefined,
+}
+
+export const mockMessageUpdateValue = {
+  id: 1,
+  discord_id: "1234567890",
+  channel_id: 654341,
+  user_id: 1,
+  is_deleted: true,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
