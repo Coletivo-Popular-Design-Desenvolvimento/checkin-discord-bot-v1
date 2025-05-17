@@ -107,53 +107,37 @@ describe('MessageRepository', () => {
     });
 
     describe('findByDiscordId', () => {
-        it('should return a list of active messages by discord id', async () => {
+        it('should return a message by discord id', async () => {
             const discordId = mockMessageValue.discordId;
 
-            prismaMock.message.findMany.mockResolvedValue([mockDbMessageValue]);
-
-            const messages = await messageRepository.findByDiscordId(discordId);
-
-            expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-            expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-                where: { discord_id: discordId, is_deleted: false }
-            });
-
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toHaveProperty('id', 1);
-            expect(messages[0]).toHaveProperty('discordId', mockMessageValue.discordId);
-        });
-
-        it('should return a list of all messages by discord id', async () => {
-            const discordId = mockMessageValue.discordId;
-
-            prismaMock.message.findMany.mockResolvedValue([mockDbMessageValue]);
-
-            const messages = await messageRepository.findByDiscordId(discordId, true);
-
-            expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-            expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-                where: { discord_id: discordId }
-            });
-
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toHaveProperty('id', 1);
-            expect(messages[0]).toHaveProperty('discordId', mockMessageValue.discordId);
-        });
-
-        it('should return empty array when no message is found', async () => {
-            const discordId = '23232687576';
-
-            prismaMock.message.findMany.mockResolvedValue([]);
+            prismaMock.message.findFirst.mockResolvedValue(mockDbMessageValue);
 
             const message = await messageRepository.findByDiscordId(discordId);
 
-            expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-            expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-                where: { discord_id: discordId, is_deleted: false }
+            expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
+            expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
+                where: { discord_id: discordId }
             });
 
-            expect(message).toHaveLength(0);
+            expect(message).toHaveProperty('id', 1);
+            expect(message).toHaveProperty('discordId', mockMessageValue.discordId);
+        });
+
+        it('should not return message if error occurs', async () => {
+            const discordId = '23232687576';
+
+            prismaMock.message.findFirst.mockRejectedValue(new Error());
+
+            const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+            await messageRepository.findByDiscordId(discordId);
+
+            expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
+            expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
+                where: { discord_id: discordId }
+            });
+
+            expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
         });
     });
     
