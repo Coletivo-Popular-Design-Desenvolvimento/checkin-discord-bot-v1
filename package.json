@@ -21,7 +21,7 @@
     "@types/express": "^5.0.0",
     "bcryptjs": "^3.0.2",
     "discord-api-types": "^0.37.111",
-    "discord.js": "^14.15.3",
+    "discord.js": "^14.19.3",
     "dotenv": "^16.4.7",
     "express": "^5.0.0",
     "node-cron": "^3.0.3",
