@@ -1,8 +1,9 @@
 import { MessageEntity } from '../../domain/entities/Message';
 import { ILoggerService } from '../../domain/interfaces/services/ILogger';
+import { LoggerContextStatus } from '../../domain/types/LoggerContextEnum';
 import { PrismaService } from '../../infrastructure/persistence/prisma/prismaService';
 import { MessageRepository } from '../../infrastructure/persistence/repositories/MessageRepository';
-import { mockDbMessageValue, mockMessageValue } from '../config/constants';
+import { mockDbMessageValue, mockMessageUpdateValue, mockMessageValue } from '../config/constants';
 
 import { prismaMock } from "../config/singleton";
 
@@ -207,7 +208,7 @@ describe('MessageRepository', () => {
         });
     });
 
-    describe('create', () => {
+    describe('create methods suite', () => {
         const today = new Date();
         const messageToCreate: Omit<MessageEntity,'id'> = {
             ...mockMessageValue,
@@ -215,23 +216,145 @@ describe('MessageRepository', () => {
             createdAt: today,
         }
 
-        it('should insert into db a new message', async () => {
-            prismaMock.message.create.mockResolvedValue(mockDbMessageValue);
-            
-            const newMessage = await messageRepository.create(messageToCreate);
+        describe('create', () => {
+            it('should insert into db a new message', async () => {
+                prismaMock.message.create.mockResolvedValue(mockDbMessageValue);
+                
+                const newMessage = await messageRepository.create(messageToCreate);
 
-            expect(newMessage).toHaveProperty('id', 1);
+                expect(prismaMock.message.create).toHaveBeenCalledTimes(1);
+                expect(prismaMock.message.create).toHaveBeenCalledWith({
+                    data: expect.objectContaining({
+                        channel_id: messageToCreate.channelId,
+                        discord_id: messageToCreate.discordId,
+                        user_id: messageToCreate.userId,
+                    })
+                });
+
+                expect(newMessage).toHaveProperty('id', 1);
+            });
+
+            it('should NOT insert into db if an error occurs', async () => {
+                const error = new Error('could not create');
+                prismaMock.message.create.mockRejectedValue(error);
+
+                const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+                await messageRepository.create(messageToCreate);
+                
+                expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+            });
         });
 
-        it('should NOT new message insert into db if an error occurs', async () => {
-            const error = new Error('could not create');
-            prismaMock.message.create.mockRejectedValue(error);
+        describe('createMany', () => {
+            const otherMessageToCreate: Omit<MessageEntity,'id'> = {
+                ...messageToCreate,
+                channelId: 3,
+                userId: 2,
+            }
+            const messagesToCreate = [messageToCreate, otherMessageToCreate];
+
+            it('should insert into db new messages', async () => {
+                prismaMock.message.createMany.mockResolvedValue({count: messagesToCreate.length});
+                
+                const totalCreated = await messageRepository.createMany(messagesToCreate);
+
+                expect(prismaMock.message.createMany).toHaveBeenCalledTimes(1);
+                expect(prismaMock.message.createMany).toHaveBeenCalledWith({
+                    data: expect.arrayContaining(
+                        messagesToCreate.map((msg) => {
+                            return {
+                                channel_id: msg.channelId,
+                                discord_id: msg.discordId,
+                                user_id: msg.userId,
+                                created_at: expect.anything(),
+                                discord_created_at: expect.anything(),
+                                is_deleted: false,
+                                id: undefined,
+                            }
+                        })
+                    ),
+                    skipDuplicates: true,
+                });
+
+                expect(totalCreated).toEqual(messagesToCreate.length);
+            });
+
+            it('should NOT insert into db if an error occurs', async () => {
+                const error = new Error('could not create');
+                prismaMock.message.createMany.mockRejectedValue(error);
+
+                const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+                await messageRepository.createMany(messagesToCreate);
+                
+                expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+            });
+        });
+    });
+
+    describe('deleteById', () => {
+        it('if db returns entity, should delete message succesfully', async () => {
+            prismaMock.message.delete.mockResolvedValue(mockDbMessageValue);
+
+            const deleted = await messageRepository.deleteById(mockMessageValue.id);
+
+            expect(prismaMock.message.delete).toHaveBeenCalledTimes(1);
+            expect(prismaMock.message.delete).toHaveBeenCalledWith({
+                where: {id: mockMessageValue.id}
+            });
+
+            expect(deleted).toBeTruthy();
+        });
+
+        it('if error occurs, should log it', async () => {
+            const error = new Error();
+            prismaMock.message.delete.mockRejectedValue(error);
 
             const spy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-            await messageRepository.create(messageToCreate);
-            
-            expect(spy).toHaveBeenCalledWith("ERROR");
-        })
-    })
-})
+            await messageRepository.deleteById(mockMessageValue.id);
+
+            expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+        });
+    });
+    
+    describe('updateById', () => {
+        it('should update message successfully', async () => {
+            prismaMock.message.update.mockResolvedValue(mockMessageUpdateValue);
+
+            const updatedMessage = await messageRepository.updateById(mockMessageValue.id, {
+                ...mockMessageValue,
+                isDeleted: true
+            });
+
+            expect(prismaMock.message.update).toHaveBeenCalledTimes(1);
+            expect(prismaMock.message.update).toHaveBeenCalledWith({
+                data: {
+                    ...mockMessageUpdateValue,
+                    created_at: undefined, 
+                    discord_created_at: undefined,
+                    id: undefined 
+                },
+                where: {id: mockMessageValue.id }
+            });
+
+            expect(updatedMessage).not.toBeNull();
+            expect(updatedMessage).toHaveProperty('isDeleted', true);
+        });
+
+        it('should NOT update message if error occurs', async () => {
+            const error = new Error();
+            prismaMock.message.update.mockRejectedValue(error);
+
+            const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+            await messageRepository.updateById(mockMessageValue.id, {
+                ...mockMessageValue,
+                isDeleted: true
+            });
+
+            expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+        });
+    });
+});
