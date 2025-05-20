@@ -5,7 +5,7 @@ import {
   GuildMember,
   PartialGuildMember,
 } from "discord.js";
-import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
+import { IDiscordService } from "@services/IDiscordService";
 
 export class DiscordService
   implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
@@ -16,7 +16,7 @@ export class DiscordService
   private onMessageHandlers: ((message: Message) => void)[] = [];
   private onNewUserHandlers: ((member: GuildMember) => void)[] = [];
   private onUserLeaveHandlers: ((
-    member: GuildMember | PartialGuildMember
+    member: GuildMember | PartialGuildMember,
   ) => void)[] = [];
 
   constructor(client: Client) {

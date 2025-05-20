@@ -1,15 +1,15 @@
 // TODO: Delete fisico em cascata
 
-import { GenericOutputDto } from "../../dtos/GenericOutputDto";
-import { UserEntity } from "../../entities/User";
-import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { IDeleteUser } from "../../interfaces/useCases/user/IDeleteUser";
-import { ErrorMessages } from "../../types/ErrorMessages";
+import { GenericOutputDto } from "@dtos/GenericOutputDto";
+import { UserEntity } from "@entities/User";
+import { IUserRepository } from "@repositories/IUserRepository";
+import { IDeleteUser } from "@interfaces/useCases/user/IDeleteUser";
+import { ErrorMessages } from "@type/ErrorMessages";
 
 export class DeleteUser implements IDeleteUser {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(id: number | string): Promise<GenericOutputDto<Boolean>> {
+  async execute(id: number | string): Promise<GenericOutputDto<boolean>> {
     try {
       let user: UserEntity;
 

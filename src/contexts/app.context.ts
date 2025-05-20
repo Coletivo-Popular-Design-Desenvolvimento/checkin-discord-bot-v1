@@ -1,14 +1,14 @@
 import { initializeDatabase } from "./database.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeDiscord } from "./discord.context";
-import { UserCommand } from "../application/command/userCommand";
-import { Logger } from "../application/services/Logger";
+import { UserCommand } from "@application/command/userCommand";
+import { Logger } from "@application/services/Logger";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../domain/types/LoggerContextEnum";
-import { ErrorMessages } from "../domain/types/ErrorMessages";
+} from "@type/LoggerContextEnum";
+import { ErrorMessages } from "@type/ErrorMessages";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas

@@ -2,7 +2,7 @@ import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../types/LoggerContextEnum";
+} from "@type/LoggerContextEnum";
 
 export class LogEvent {
   constructor(
@@ -11,6 +11,6 @@ export class LogEvent {
     public readonly context: LoggerContext,
     public readonly entity: LoggerContextEntity,
     public readonly message: string,
-    public readonly createdAt: Date
+    public readonly createdAt: Date,
   ) {}
 }

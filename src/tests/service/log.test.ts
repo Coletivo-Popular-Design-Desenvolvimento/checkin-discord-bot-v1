@@ -1,9 +1,9 @@
-import { Logger } from "../../application/services/Logger";
+import { Logger } from "@application/services/Logger";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../../domain/types/LoggerContextEnum";
+} from "@type/LoggerContextEnum";
 
 describe("Logger Service", () => {
   let logger: Logger;
@@ -23,11 +23,11 @@ describe("Logger Service", () => {
       LoggerContextStatus.SUCCESS,
       LoggerContext.REPOSITORY,
       LoggerContextEntity.USER,
-      "User created successfully"
+      "User created successfully",
     );
 
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('"status":"SUCCESS"')
+      expect.stringContaining('"status":"SUCCESS"'),
     );
   });
 
@@ -36,11 +36,11 @@ describe("Logger Service", () => {
       LoggerContextStatus.ERROR,
       LoggerContext.COMMAND,
       LoggerContextEntity.USER,
-      "Authentication failed"
+      "Authentication failed",
     );
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining('"status":"ERROR"')
+      expect.stringContaining('"status":"ERROR"'),
     );
   });
 
@@ -49,11 +49,11 @@ describe("Logger Service", () => {
       LoggerContextStatus.ERROR,
       LoggerContext.SERVICE,
       LoggerContextEntity.USER,
-      "User update delayed"
+      "User update delayed",
     );
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"User update delayed"')
+      expect.stringContaining('"message":"User update delayed"'),
     );
   });
 
@@ -62,11 +62,11 @@ describe("Logger Service", () => {
       LoggerContextStatus.SUCCESS,
       LoggerContext.INFRASTRUCTURE,
       LoggerContextEntity.USER,
-      "Debugging process"
+      "Debugging process",
     );
 
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringMatching(/"createdAt":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/) // Matches ISO date format
+      expect.stringMatching(/"createdAt":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/), // Matches ISO date format
     );
   });
 });

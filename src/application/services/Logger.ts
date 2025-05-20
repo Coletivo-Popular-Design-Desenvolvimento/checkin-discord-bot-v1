@@ -1,17 +1,17 @@
-import { LogEvent } from "../../domain/entities/LogEvent";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+import { LogEvent } from "@entities/LogEvent";
+import { ILoggerService } from "@services/ILogger";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../../domain/types/LoggerContextEnum";
+} from "@type/LoggerContextEnum";
 
 export class Logger implements ILoggerService {
   logToConsole(
     status: LoggerContextStatus,
     context: LoggerContext,
     entity: LoggerContextEntity,
-    message: string
+    message: string,
   ): void {
     const eventId = new Date().getTime();
     const event = new LogEvent(
@@ -20,17 +20,21 @@ export class Logger implements ILoggerService {
       context,
       entity,
       message,
-      new Date()
+      new Date(),
     );
     if (event.status === LoggerContextStatus.ERROR)
       console.error(JSON.stringify(event));
     else console.log(JSON.stringify(event));
   }
   logToDatabase(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     status: LoggerContextStatus,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: LoggerContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     entity: LoggerContextEntity,
-    message: string
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    message: string,
   ): void {
     throw new Error("Method not implemented.");
   }
