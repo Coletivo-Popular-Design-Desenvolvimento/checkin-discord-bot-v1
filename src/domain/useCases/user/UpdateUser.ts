@@ -1,24 +1,24 @@
-import { GenericOutputDto } from "../../dtos/GenericOutputDto";
-import { UserEntity } from "../../entities/User";
-import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { ILoggerService } from "../../interfaces/services/ILogger";
-import { IUpdateUser } from "../../interfaces/useCases/user/IUpdateUser";
-import { ErrorMessages } from "../../types/ErrorMessages";
+import { GenericOutputDto } from "@dtos/GenericOutputDto";
+import { UserEntity } from "@entities/User";
+import { IUserRepository } from "@repositories/IUserRepository";
+import { ILoggerService } from "@services/ILogger";
+import { IUpdateUser } from "@interfaces/useCases/user/IUpdateUser";
+import { ErrorMessages } from "@type/ErrorMessages";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../../types/LoggerContextEnum";
-import { UserStatus } from "../../types/UserStatusEnum";
+} from "@type/LoggerContextEnum";
+import { UserStatus } from "@type/UserStatusEnum";
 
 export class UpdateUser implements IUpdateUser {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly logger: ILoggerService
+    private readonly logger: ILoggerService,
   ) {}
   async execute(
     id: number | string,
-    data: Partial<UserEntity>
+    data: Partial<UserEntity>,
   ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
@@ -47,7 +47,7 @@ export class UpdateUser implements IUpdateUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `UpdateUser.execute | ${error.message}`
+        `UpdateUser.execute | ${error.message}`,
       );
       return {
         data: null,
@@ -58,7 +58,7 @@ export class UpdateUser implements IUpdateUser {
   }
 
   async executeInvertUserStatus(
-    id: number | string
+    id: number | string,
   ): Promise<GenericOutputDto<UserEntity>> {
     try {
       let user: UserEntity;
@@ -94,7 +94,7 @@ export class UpdateUser implements IUpdateUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `UpdateUser.executeDisableUser | ${error.message}`
+        `UpdateUser.executeDisableUser | ${error.message}`,
       );
       return {
         data: null,

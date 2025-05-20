@@ -1,4 +1,4 @@
-import { UserStatus } from "../../domain/types/UserStatusEnum";
+import { UserStatus } from "@type/UserStatusEnum";
 
 export type naturalizeUser = {
   id: number;
