@@ -1,10 +1,10 @@
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { UserRepository } from "@infra/repositories/UserRepository";
-import { MessageRepository } from "../infrastructure/persistence/repositories/MessageRepository";
+import { MessageRepository } from "@infra/persistence/repositories/MessageRepository";
 import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaClient } from "@prisma/client";
 import { ILoggerService } from "@services/ILogger";
-import { IMessageRepository } from "../domain/interfaces/repositories/IMessageRepository";
+import { IMessageRepository } from "@domain/interfaces/repositories/IMessageRepository";
 
 /**
  * Inicializa e configura o banco de dados.
@@ -32,8 +32,8 @@ export function initializeDatabase(
   );
   const messageRepository = new MessageRepository(
     prismaService ?? newPrismaService,
-    logger
-  )
+    logger,
+  );
 
   return { userRepository, messageRepository };
 }
