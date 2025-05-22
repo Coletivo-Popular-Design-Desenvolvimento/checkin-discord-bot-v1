@@ -1,20 +1,23 @@
 import { PrismaClient, User } from "@prisma/client";
-import { IUserRepository } from "../../../domain/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaService } from "../prisma/prismaService";
-import { UserEntity } from "../../../domain/entities/User";
-import { UserStatus } from "../../../domain/types/UserStatusEnum";
+import { UserEntity } from "@entities/User";
+import { UserStatus } from "@type/UserStatusEnum";
 import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../../../domain/types/LoggerContextEnum";
-import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
+} from "@type/LoggerContextEnum";
+import { ILoggerService } from "@services/ILogger";
 
 export class UserRepository implements IUserRepository {
   private client: PrismaClient;
   private logger: ILoggerService;
 
-  constructor(private prisma: PrismaService, logger: ILoggerService) {
+  constructor(
+    private prisma: PrismaService,
+    logger: ILoggerService,
+  ) {
     this.client = this.prisma.getClient();
     this.logger = logger;
   }
@@ -36,7 +39,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `create | ${error.message}`
+        `create | ${error.message}`,
       );
     }
   }
@@ -53,7 +56,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `createMany | ${error.message}`
+        `createMany | ${error.message}`,
       );
     }
   }
@@ -66,7 +69,7 @@ export class UserRepository implements IUserRepository {
    */
   async findById(
     id: number,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.findUnique({
@@ -85,7 +88,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `findById | ${error.message}`
+        `findById | ${error.message}`,
       );
     }
   }
@@ -98,7 +101,7 @@ export class UserRepository implements IUserRepository {
    */
   async findByDiscordId(
     id: string,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.findUnique({
@@ -117,7 +120,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `findByDiscordId | ${error.message}`
+        `findByDiscordId | ${error.message}`,
       );
     }
   }
@@ -130,7 +133,7 @@ export class UserRepository implements IUserRepository {
    */
   async listAll(
     limit?: number,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity[]> {
     try {
       const results = await this.client.user.findMany({
@@ -149,7 +152,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `create | ${error.message}`
+        `create | ${error.message}`,
       );
     }
   }
@@ -163,7 +166,7 @@ export class UserRepository implements IUserRepository {
    */
   async updateById(
     id: number,
-    user: Partial<UserEntity>
+    user: Partial<UserEntity>,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.update({
@@ -176,7 +179,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `updateById | ${error.message}`
+        `updateById | ${error.message}`,
       );
     }
   }
@@ -198,7 +201,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `deleteById | ${error.message}`
+        `deleteById | ${error.message}`,
       );
     }
   }
@@ -215,7 +218,7 @@ export class UserRepository implements IUserRepository {
       user.create_at,
       user.update_at,
       user.last_active,
-      user.email
+      user.email,
     );
   }
 

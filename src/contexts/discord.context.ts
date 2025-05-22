@@ -6,8 +6,8 @@ import {
   Message,
   PartialGuildMember,
 } from "discord.js";
-import { DiscordService } from "../infrastructure/discord/DiscordService";
-import { IDiscordService } from "../domain/interfaces/services/IDiscordService";
+import { DiscordService } from "@discord/DiscordService";
+import { IDiscordService } from "@services/IDiscordService";
 
 // Mapea os eventos do discord para as intents que precisam ser registradas no client.
 const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {

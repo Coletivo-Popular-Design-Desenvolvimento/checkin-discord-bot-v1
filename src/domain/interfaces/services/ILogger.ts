@@ -2,20 +2,20 @@ import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../../types/LoggerContextEnum";
+} from "@type/LoggerContextEnum";
 
 export interface ILoggerService {
   logToConsole(
     status: LoggerContextStatus,
     context: LoggerContext,
     entity: LoggerContextEntity,
-    message: string
+    message: string,
   ): void;
 
   logToDatabase(
     status: LoggerContextStatus,
     context: LoggerContext,
     entity: LoggerContextEntity,
-    message: string
+    message: string,
   ): void;
 }

@@ -5,7 +5,7 @@ import {
   GuildMember,
   PartialGuildMember,
 } from "discord.js";
-import { DiscordService } from "../../infrastructure/discord/DiscordService";
+import { DiscordService } from "@discord/DiscordService";
 
 describe("DiscordService", () => {
   let client: Client;
@@ -27,19 +27,19 @@ describe("DiscordService", () => {
 
     expect(client.once).toHaveBeenCalledWith(
       Events.ClientReady,
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(client.on).toHaveBeenCalledWith(
       Events.MessageCreate,
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(client.on).toHaveBeenCalledWith(
       Events.GuildMemberAdd,
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(client.on).toHaveBeenCalledWith(
       Events.GuildMemberRemove,
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -51,7 +51,7 @@ describe("DiscordService", () => {
 
     discordService.registerEvents();
     const readyCallback = (client.once as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.ClientReady
+      (call) => call[0] === Events.ClientReady,
     )?.[1];
 
     readyCallback?.(); // Simulate client ready event
@@ -66,7 +66,7 @@ describe("DiscordService", () => {
 
     discordService.registerEvents();
     const messageCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.MessageCreate
+      (call) => call[0] === Events.MessageCreate,
     )?.[1];
 
     const mockMessage = { content: "Hello" } as Message;
@@ -81,7 +81,7 @@ describe("DiscordService", () => {
 
     discordService.registerEvents();
     const joinCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.GuildMemberAdd
+      (call) => call[0] === Events.GuildMemberAdd,
     )?.[1];
 
     const mockMember = { id: "1234" } as GuildMember;
@@ -96,7 +96,7 @@ describe("DiscordService", () => {
 
     discordService.registerEvents();
     const leaveCallback = (client.on as jest.Mock).mock.calls.find(
-      (call) => call[0] === Events.GuildMemberRemove
+      (call) => call[0] === Events.GuildMemberRemove,
     )?.[1];
 
     const mockMember = { id: "5678" } as PartialGuildMember;

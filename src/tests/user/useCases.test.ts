@@ -1,11 +1,11 @@
-import { UserRepository } from "../../infrastructure/persistence/repositories/UserRepository";
+import { UserRepository } from "@infra/repositories/UserRepository";
 import { mockDeep, MockProxy } from "jest-mock-extended";
-import { CreateUser } from "../../domain/useCases/user/CreateUser";
-import { FindUser } from "../../domain/useCases/user/FindUser";
-import { UpdateUser } from "../../domain/useCases/user/UpdateUser";
-import { UserStatus } from "../../domain/types/UserStatusEnum";
-import { ErrorMessages } from "../../domain/types/ErrorMessages";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+import { CreateUser } from "@useCases/user/CreateUser";
+import { FindUser } from "@useCases/user/FindUser";
+import { UpdateUser } from "@useCases/user/UpdateUser";
+import { UserStatus } from "@type/UserStatusEnum";
+import { ErrorMessages } from "@type/ErrorMessages";
+import { ILoggerService } from "@services/ILogger";
 
 // Mock da entidade que representa o usuário no banco de dados.
 const mockUserValue = {
@@ -88,7 +88,7 @@ describe("User useCases", () => {
       expect(userRepository.findByDiscordId).toHaveBeenCalledTimes(1);
       expect(userRepository.findByDiscordId).toHaveBeenCalledWith(
         mockUserValue2.discordId,
-        true
+        true,
       );
     });
 
@@ -144,7 +144,7 @@ describe("User useCases", () => {
           .filter((user) => !user.bot)
           .map((user) => ({
             ...user,
-          }))
+          })),
       );
     });
   });
@@ -199,7 +199,7 @@ describe("User useCases", () => {
           status: UserStatus.ACTIVE,
           bot: false,
           discordId: mockUserValue2.discordId,
-        })
+        }),
       );
     });
 
@@ -227,7 +227,7 @@ describe("User useCases", () => {
           status: UserStatus.ACTIVE,
           bot: false,
           discordId: mockUserValue2.discordId,
-        })
+        }),
       );
     });
 
@@ -254,12 +254,6 @@ describe("User useCases", () => {
 
     it("should disable an user", async () => {
       const id = 2;
-      const userData = {
-        discordId: "1234567890",
-        username: "Jane Doe",
-        bot: false,
-        status: UserStatus.ACTIVE,
-      };
 
       userRepository.updateById.mockResolvedValue(mockUserValue2);
       userRepository.findById.mockResolvedValue(mockUserValue2);
@@ -275,7 +269,7 @@ describe("User useCases", () => {
           status: UserStatus.INACTIVE,
           bot: false,
           discordId: mockUserValue2.discordId,
-        })
+        }),
       );
     });
   });

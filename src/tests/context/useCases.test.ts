@@ -1,5 +1,5 @@
 // Mock the database initialization
-jest.mock("../../contexts/database.context", () => ({
+jest.mock("@contexts/database.context", () => ({
   initializeDatabase: jest.fn(() => ({
     userRepository: {
       create: jest.fn(),
@@ -11,14 +11,14 @@ jest.mock("../../contexts/database.context", () => ({
 }));
 
 import { PrismaClient } from "@prisma/client";
-import { initializeDatabase } from "../../contexts/database.context";
-import { CreateUser } from "../../domain/useCases/user/CreateUser";
-import { FindUser } from "../../domain/useCases/user/FindUser";
-import { UpdateUser } from "../../domain/useCases/user/UpdateUser";
-import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
+import { initializeDatabase } from "@contexts/database.context";
+import { CreateUser } from "@useCases/user/CreateUser";
+import { FindUser } from "@useCases/user/FindUser";
+import { UpdateUser } from "@useCases/user/UpdateUser";
+import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { mockUserValue } from "../config/constants";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import { initializeUserUseCases } from "../../contexts/useUserCases.context";
+import { ILoggerService } from "@services/ILogger";
+import { initializeUserUseCases } from "@contexts/useUserCases.context";
 
 describe("initializeUserCases", () => {
   beforeEach(() => {
@@ -66,14 +66,14 @@ describe("initializeUserCases", () => {
     const findResult = await secondCall.findUserCase.execute(mockUserValue.id);
     const updateResult = await secondCall.updateUserCase.execute(
       mockUserValue.id,
-      mockUserValue
+      mockUserValue,
     );
 
     const createResult2 = await firstCall.createUserCase.execute(mockUserValue);
     const findResult2 = await firstCall.findUserCase.execute(mockUserValue.id);
     const updateResult2 = await firstCall.updateUserCase.execute(
       mockUserValue.id,
-      mockUserValue
+      mockUserValue,
     );
 
     expect(createResult).toEqual(createResult2);
