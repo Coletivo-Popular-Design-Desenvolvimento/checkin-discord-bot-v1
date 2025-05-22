@@ -104,6 +104,7 @@ model Message {
   discord_id         String
   channel_id         Int
   channel            Channel           @relation(fields: [channel_id], references: [id])
+  is_deleted         Boolean           @default(false)
   user_id            Int
   user               User              @relation(fields: [user_id], references: [id])
   discord_created_at DateTime
