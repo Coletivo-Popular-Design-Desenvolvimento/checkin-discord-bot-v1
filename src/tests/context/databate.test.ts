@@ -8,10 +8,10 @@ jest.mock("@prisma/client", () => {
   };
 });
 
-import { initializeDatabase } from "../../contexts/database.context";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
-import { UserRepository } from "../../infrastructure/persistence/repositories/UserRepository";
+import { initializeDatabase } from "@contexts/database.context";
+import { ILoggerService } from "@services/ILogger";
+import { PrismaService } from "@infra/persistence/prisma/prismaService";
+import { UserRepository } from "@infra/repositories/UserRepository";
 import { PrismaClient } from "@prisma/client";
 
 describe("initializeDatabase", () => {

@@ -1,25 +1,25 @@
-import { CreateManyUserOutputDto } from "../../dtos/CreateManyUserOutputDto";
-import { GenericOutputDto } from "../../dtos/GenericOutputDto";
-import { UserEntity } from "../../entities/User";
-import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { ILoggerService } from "../../interfaces/services/ILogger";
+import { CreateManyUserOutputDto } from "@dtos/CreateManyUserOutputDto";
+import { GenericOutputDto } from "@dtos/GenericOutputDto";
+import { UserEntity } from "@entities/User";
+import { IUserRepository } from "@repositories/IUserRepository";
+import { ILoggerService } from "@services/ILogger";
 import {
   CreateUserInput,
   ICreateUser,
-} from "../../interfaces/useCases/user/ICreateUser";
-import { ErrorMessages } from "../../types/ErrorMessages";
+} from "@interfaces/useCases/user/ICreateUser";
+import { ErrorMessages } from "@type/ErrorMessages";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../../types/LoggerContextEnum";
-import { CommonMessages } from "../../types/CommonMessages";
-import { UserStatus } from "../../types/UserStatusEnum";
+} from "@type/LoggerContextEnum";
+import { CommonMessages } from "@type/CommonMessages";
+import { UserStatus } from "@type/UserStatusEnum";
 
 export class CreateUser implements ICreateUser {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly logger: ILoggerService
+    private readonly logger: ILoggerService,
   ) {}
 
   async execute(input: CreateUserInput): Promise<GenericOutputDto<UserEntity>> {
@@ -35,7 +35,7 @@ export class CreateUser implements ICreateUser {
       // Check if user already exists
       const existingUser = await this.userRepository.findByDiscordId(
         input.discordId,
-        true
+        true,
       );
       if (existingUser) {
         if (existingUser.status === UserStatus.INACTIVE) {
@@ -43,7 +43,7 @@ export class CreateUser implements ICreateUser {
             existingUser.id,
             {
               status: UserStatus.ACTIVE,
-            }
+            },
           );
           return {
             data: reactivatedUser,
@@ -73,7 +73,7 @@ export class CreateUser implements ICreateUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `createUser.execute | ${error.message}`
+        `createUser.execute | ${error.message}`,
       );
       return {
         data: null,
@@ -85,11 +85,11 @@ export class CreateUser implements ICreateUser {
   }
 
   async executeMany(
-    users: CreateUserInput[]
+    users: CreateUserInput[],
   ): Promise<GenericOutputDto<CreateManyUserOutputDto>> {
     try {
       const created = await this.userRepository.createMany(
-        users.filter((user) => !user.bot)
+        users.filter((user) => !user.bot),
       );
       return {
         data: {
@@ -103,7 +103,7 @@ export class CreateUser implements ICreateUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `CreateUser.executeMany | ${error.message}`
+        `CreateUser.executeMany | ${error.message}`,
       );
       return {
         data: null,

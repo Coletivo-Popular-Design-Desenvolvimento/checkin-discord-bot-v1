@@ -10,6 +10,7 @@ export enum LoggerContext {
 
 export enum LoggerContextEntity {
   USER = "USER",
+  MESSAGE = 'MESSAGE',
   CHANNEL = "CHANNEL",
 }
 

@@ -1,28 +1,28 @@
 import { initializeDatabase } from "./database.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeDiscord } from "./discord.context";
-import { UserCommand } from "../application/command/userCommand";
-import { Logger } from "../application/services/Logger";
+import { UserCommand } from "@application/command/userCommand";
+import { Logger } from "@application/services/Logger";
 import {
   LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
-} from "../domain/types/LoggerContextEnum";
-import { ErrorMessages } from "../domain/types/ErrorMessages";
+} from "@type/LoggerContextEnum";
+import { ErrorMessages } from "@type/ErrorMessages";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
   const { userRepository } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
-  const { SECRET_KEY } = process.env;
+  const { TOKEN_BOT } = process.env;
 
-  if (!SECRET_KEY) {
+  if (!TOKEN_BOT) {
     logger.logToConsole(
       LoggerContextStatus.ERROR,
       LoggerContext.APP_CONTEXT,
       LoggerContextEntity.USER,
-      ErrorMessages.MISSING_SECRET
+      ErrorMessages.MISSING_SECRET,
     );
   }
 
@@ -34,9 +34,9 @@ export function initializeApp() {
     discordService,
     logger,
     userUseCases.createUserCase,
-    userUseCases.updateUserCase
+    userUseCases.updateUserCase,
   );
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
-  discordService.client.login(SECRET_KEY);
+  discordService.client.login(TOKEN_BOT);
 }

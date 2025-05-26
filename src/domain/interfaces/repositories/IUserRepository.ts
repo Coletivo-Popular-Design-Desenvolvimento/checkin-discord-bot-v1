@@ -1,4 +1,4 @@
-import { UserEntity } from "../../entities/User";
+import { UserEntity } from "@entities/User";
 
 export interface IUserRepository {
   create(user: Omit<UserEntity, "id">): Promise<UserEntity>;
@@ -6,7 +6,7 @@ export interface IUserRepository {
   findById(id: number, includeInactive?: boolean): Promise<UserEntity | null>;
   findByDiscordId(
     id: string,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity | null>;
   listAll(limit?: number, includeInactive?: boolean): Promise<UserEntity[]>;
   updateById(id: number, user: Partial<UserEntity>): Promise<UserEntity | null>;

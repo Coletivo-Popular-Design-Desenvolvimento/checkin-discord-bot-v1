@@ -1,4 +1,4 @@
-import { UserStatus } from "../types/UserStatusEnum";
+import { UserStatus } from "@type/UserStatusEnum";
 
 export class UserEntity {
   // Deveria ser User, mas o discord ja tem User, é MUITO chato ficar importando a coisa errada toda hora.
@@ -14,6 +14,6 @@ export class UserEntity {
     public readonly createAt?: Date | null,
     public readonly updateAt?: Date | null,
     public readonly lastActive?: Date | null,
-    public readonly email?: string | null
+    public readonly email?: string | null,
   ) {}
 }

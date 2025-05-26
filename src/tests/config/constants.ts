@@ -1,4 +1,4 @@
-import { UserStatus } from "../../domain/types/UserStatusEnum";
+import { UserStatus } from "@type/UserStatusEnum";
 
 export type naturalizeUser = {
   id: number;
@@ -58,3 +58,67 @@ export const mockUserValue = {
   lastActive: undefined,
   email: undefined,
 };
+
+//MessageRepository tests consts
+
+export type messageDbModel = {
+  id: number;
+  channel_id: number;
+  discord_id: string;
+  user_id: number;
+  is_deleted: boolean;
+  discord_created_at: Date;
+  created_at: Date;
+};
+
+export const mockDbMessageValue = {
+  id: 1,
+  discord_id: "1234567890",
+  channel_id: 654341,
+  user_id: 1,
+  is_deleted: false,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
+
+export const mockMessageValue = {
+  id: 1,
+  discordId: "1234567890",
+  channelId: 654341,
+  userId: 1,
+  isDeleted: false,
+  discordCreatedAt: undefined,
+  createdAt: undefined,
+};
+
+export const mockMessageUpdateValue = {
+  id: 1,
+  discord_id: "1234567890",
+  channel_id: 654341,
+  user_id: 1,
+  is_deleted: true,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
+
+/**
+ * @description Função para criar quantos mocks quiser do model Message
+ * @param amount Quantidade de registros mockados a serem gerados
+ * @param includeDeleted Se devem ser gerados inclusive mocks com is_deleted = true
+ * @returns {messageDbModel[]} Lista de mensagens mockadas
+ */
+export function createNumerousMocks(amount, includeDeleted = false) {
+  const mocks: messageDbModel[] = [];
+  for (let i = 0; i < amount; i++) {
+    mocks.push({
+      ...mockDbMessageValue,
+      id: i + 2,
+      user_id: i + 10,
+      discord_id: `${(i + 1) * 1000}`,
+      channel_id: (i + 1) * 4000,
+      is_deleted: includeDeleted && i % 2 === 0,
+    });
+  }
+
+  return mocks;
+}
