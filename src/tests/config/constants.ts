@@ -122,3 +122,32 @@ export function createNumerousMocks(amount, includeDeleted = false) {
 
   return mocks;
 }
+
+//ChannelRepository tests consts
+
+export const mockDbChannelValue = {
+    id: 1,
+    discord_id: "discordId",
+    created_at: new Date(),
+    name: "channelName",
+    url: "channelUrl",
+};
+
+export const mockChannelEntityValue = {
+    id: 1,
+    discordId: "discordId",
+    name: "channelName",
+    url: "channelUrl",
+    createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
+};
+
+export const mockChannelUpdatePayload = {
+    name: "updatedChannelName",
+    url: "updatedChannelUrl",
+};
+
+export const mockDbChannelUpdatedValue = {
+    ...mockDbChannelValue,
+    name: mockChannelUpdatePayload.name,
+    url: mockChannelUpdatePayload.url,
+};
