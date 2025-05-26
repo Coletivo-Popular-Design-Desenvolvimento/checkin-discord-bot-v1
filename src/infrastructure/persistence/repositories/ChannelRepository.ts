@@ -65,7 +65,6 @@ export class ChannelRepository implements IChannelRepository {
    */
   async findById(
     id: number,
-    includeInactive?: boolean
   ): Promise<ChannelEntity | null> {
     try {
       const result = await this.client.channel.findUnique({
@@ -92,7 +91,6 @@ export class ChannelRepository implements IChannelRepository {
    */
   async findByDiscordId(
     id: string,
-    includeInactive?: boolean
   ): Promise<ChannelEntity | null> {
     try {
       const result = await this.client.channel.findFirst({
@@ -119,7 +117,6 @@ export class ChannelRepository implements IChannelRepository {
    */
   async listAll(
     limit?: number,
-    includeInactive?: boolean
   ): Promise<ChannelEntity[]> {
     try {
       const results = await this.client.channel.findMany({
