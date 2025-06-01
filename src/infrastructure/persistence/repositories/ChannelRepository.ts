@@ -32,50 +32,59 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `listAll | ${error.Message}`,
+        `listAll | ${error.message}`,
       );
+      return undefined;
     }
   }
 
-  async findByIdAsync(id: number): Promise<ChannelEntity> {
+  async findByIdAsync(id: number): Promise<ChannelEntity | null> {
     try {
       const result = await this.client.channel.findFirst({
         where: {
           id: id,
         },
       });
+      if (!result) {
+        return null;
+      }
       return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `findById | ${error.Message}`,
+        `findById | ${error.message}`,
       );
+      return null;
     }
   }
 
-  async findByDiscordIdAsync(discordId: string): Promise<ChannelEntity> {
+  async findByDiscordIdAsync(discordId: string): Promise<ChannelEntity | null> {
     try {
       const result = await this.client.channel.findFirst({
         where: {
           discord_id: discordId,
         },
       });
+      if (!result) {
+        return null;
+      }
       return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `findByName | ${error.Message}`,
+        `findByDiscordId | ${error.message}`,
       );
+      return null;
     }
   }
 
   async createAsync(
     channel: Omit<ChannelEntity, "id">,
-  ): Promise<ChannelEntity> {
+  ): Promise<ChannelEntity | undefined> {
     try {
       const result = await this.client.channel.create({
         data: this.toPersistence(channel),
@@ -86,8 +95,9 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `create | ${error.Message}`,
+        `create | ${error.message}`,
       );
+      return undefined;
     }
   }
 
@@ -105,7 +115,7 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `createMany | ${error.Message}`,
+        `createMany | ${error.message}`,
       );
     }
   }
@@ -126,7 +136,7 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `update | ${error.Message}`,
+        `update | ${error.message}`,
       );
     }
   }
@@ -174,7 +184,7 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `update | ${error.Message}`,
+        `update | ${error.message}`,
       );
     }
   }
