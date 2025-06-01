@@ -26,7 +26,7 @@ export default class ChannelRepository implements IChannelRepository {
       const results = await this.client.channel.findMany({
         take: limit,
       });
-      return results.map((c) => this.mapToEntity(c));
+      return results.map((c) => this.toDomain(c));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -44,7 +44,7 @@ export default class ChannelRepository implements IChannelRepository {
           id: id,
         },
       });
-      return this.mapToEntity(result);
+      return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -62,7 +62,7 @@ export default class ChannelRepository implements IChannelRepository {
           discord_id: discordId,
         },
       });
-      return this.mapToEntity(result);
+      return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -78,14 +78,9 @@ export default class ChannelRepository implements IChannelRepository {
   ): Promise<ChannelEntity> {
     try {
       const result = await this.client.channel.create({
-        data: {
-          discord_id: channel.discordId,
-          name: channel.name,
-          url: channel.url,
-          created_at: channel.createAt,
-        },
+        data: this.toPersistence(channel),
       });
-      return this.mapToEntity(result);
+      return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -99,12 +94,7 @@ export default class ChannelRepository implements IChannelRepository {
   async createManyAsync(channels: Omit<ChannelEntity, "id">[]): Promise<void> {
     try {
       await this.client.$transaction(async (tx) => {
-        const dataToCreate = channels.map((c) => ({
-          discord_id: c.discordId,
-          name: c.name,
-          url: c.url,
-          created_at: c.createAt,
-        }));
+        const dataToCreate = channels.map((c) => this.toPersistence(c));
         await tx.channel.createMany({
           data: dataToCreate,
           skipDuplicates: true,
@@ -129,12 +119,7 @@ export default class ChannelRepository implements IChannelRepository {
         where: {
           id: id,
         },
-        data: {
-          discord_id: channel.discordId,
-          name: channel.name,
-          url: channel.url,
-          created_at: channel.createAt,
-        },
+        data: this.toPersistence(channel),
       });
     } catch (error) {
       this.logger.logToConsole(
@@ -194,7 +179,7 @@ export default class ChannelRepository implements IChannelRepository {
     }
   }
 
-  private mapToEntity(channel: Channel): ChannelEntity {
+  private toDomain(channel: Channel): ChannelEntity {
     return new ChannelEntity(
       channel.id,
       channel.discord_id,
@@ -202,5 +187,14 @@ export default class ChannelRepository implements IChannelRepository {
       channel.url,
       channel.created_at,
     );
+  }
+
+  private toPersistence(channel: Partial<ChannelEntity> | Omit<ChannelEntity, "id">) {
+    return {
+      discord_id: channel.discordId,
+      name: channel.name,
+      url: channel.url,
+      created_at: channel.createAt,
+    };
   }
 }
