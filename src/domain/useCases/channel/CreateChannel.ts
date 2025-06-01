@@ -15,7 +15,7 @@ export default class CreateChannel implements ICreateChannelUseCase {
     channel: CreateChannelInput,
   ): Promise<GenericOutputDto<ChannelEntity>> {
     const existingChannel = await this.channelRepository.findByDiscordIdAsync(
-      channel.name,
+      channel.discordId,
     );
     if (existingChannel) {
       return {
