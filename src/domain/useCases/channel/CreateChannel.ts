@@ -2,13 +2,13 @@ import { CreateChannelInput } from "../../dtos/channels/channelDto";
 import { GenericOutputDto } from "../../dtos/GenericOutputDto";
 import ChannelEntity from "../../entities/Channel";
 import IChannelRepository from "../../interfaces/repositories/IChannelRepository";
-import { ILoggerService } from "../../interfaces/services/ILogger";
+// import { ILoggerService } from "../../interfaces/services/ILogger";
 import ICreateChannelUseCase from "../../interfaces/useCases/channel/ICreateChannelUseCase";
 
 export default class CreateChannel implements ICreateChannelUseCase {
   constructor(
     private readonly channelRepository: IChannelRepository,
-    private readonly logger: ILoggerService,
+    // private readonly logger: ILoggerService,
   ) {}
 
   async executeAsync(
