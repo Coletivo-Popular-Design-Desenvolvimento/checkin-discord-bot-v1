@@ -20,7 +20,6 @@ export default class ChannelRepository implements IChannelRepository {
     this.client = this.prisma.getClient();
     this.logger = logger;
   }
-
   async listAllAsync(limit?: number): Promise<ChannelEntity[]> {
     try {
       const results = await this.client.channel.findMany({
@@ -34,7 +33,7 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `listAll | ${error.message}`,
       );
-      return undefined;
+      return [];
     }
   }
 
@@ -81,10 +80,9 @@ export default class ChannelRepository implements IChannelRepository {
       return null;
     }
   }
-
   async createAsync(
     channel: Omit<ChannelEntity, "id">,
-  ): Promise<ChannelEntity | undefined> {
+  ): Promise<ChannelEntity | null> {
     try {
       const result = await this.client.channel.create({
         data: this.toPersistence(channel),
@@ -97,19 +95,17 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
-      return undefined;
+      return null;
     }
   }
-
-  async createManyAsync(channels: Omit<ChannelEntity, "id">[]): Promise<void> {
+  async createManyAsync(channels: Omit<ChannelEntity, "id">[]): Promise<number | null> {
     try {
-      await this.client.$transaction(async (tx) => {
-        const dataToCreate = channels.map((c) => this.toPersistence(c));
-        await tx.channel.createMany({
-          data: dataToCreate,
-          skipDuplicates: true,
-        });
+      const dataToCreate = channels.map((c) => this.toPersistence(c));
+      const result = await this.client.channel.createMany({
+        data: dataToCreate,
+        skipDuplicates: true,
       });
+      return result.count;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -117,6 +113,7 @@ export default class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `createMany | ${error.message}`,
       );
+      return null;
     }
   }
 
@@ -171,21 +168,22 @@ export default class ChannelRepository implements IChannelRepository {
   //         );
   //     }
   // }
-
-  async deleteAsync(id: number): Promise<void> {
+  async deleteAsync(id: number): Promise<ChannelEntity | null> {
     try {
-      await this.client.channel.delete({
+      const result = await this.client.channel.delete({
         where: {
           id: id,
         },
       });
+      return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
-        `update | ${error.message}`,
+        `delete | ${error.message}`,
       );
+      return null;
     }
   }
 
