@@ -5,6 +5,7 @@ import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaClient } from "@prisma/client";
 import { ILoggerService } from "@services/ILogger";
 import { IMessageRepository } from "@domain/interfaces/repositories/IMessageRepository";
+import ChannelRepository from "@infra/repositories/ChannelRepository";
 
 /**
  * Inicializa e configura o banco de dados.
@@ -22,6 +23,7 @@ export function initializeDatabase(
 ): {
   userRepository: IUserRepository;
   messageRepository: IMessageRepository;
+  channelRepository: ChannelRepository;
 } {
   const prismaClient = new PrismaClient();
   const newPrismaService = new PrismaService(prismaClient);
@@ -34,6 +36,10 @@ export function initializeDatabase(
     prismaService ?? newPrismaService,
     logger,
   );
+  const channelRepository = new ChannelRepository(
+    prismaService ?? newPrismaService,
+    logger,
+  );
 
-  return { userRepository, messageRepository };
+  return { userRepository, messageRepository, channelRepository };
 }
