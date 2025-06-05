@@ -83,6 +83,7 @@ Table message {
   discord_id String [not null]
   channel_id Int [not null]
   channel channel [not null]
+  is_deleted Boolean [not null, default: false]
   user_id Int [not null]
   user user [not null]
   discord_created_at DateTime [not null]

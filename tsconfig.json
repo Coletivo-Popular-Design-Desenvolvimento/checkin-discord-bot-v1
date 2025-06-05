@@ -23,7 +23,8 @@
       "@type/*": ["domain/types/*"],
       "@infra/repositories/*": ["infrastructure/persistence/repositories/*"],
       "@infra/*": ["infrastructure/*"],
-      "@discord/*": ["infrastructure/discord/*"]
+      "@discord/*": ["infrastructure/discord/*"],
+      "@tests/*":["tests/*"]
     },
     "baseUrl": "./src"
   },
