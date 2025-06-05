@@ -1,4 +1,6 @@
 import { UserStatus } from "@type/UserStatusEnum";
+import { AudioEvent as PrismaAudioEvent } from "@prisma/client";
+import { AudioEventEntity } from "@domain/entities/AudioEvent";
 
 export type naturalizeUser = {
   id: number;
@@ -126,28 +128,103 @@ export function createNumerousMocks(amount, includeDeleted = false) {
 //ChannelRepository tests consts
 
 export const mockDbChannelValue = {
-    id: 1,
-    discord_id: "discordId",
-    created_at: new Date(),
-    name: "channelName",
-    url: "channelUrl",
+  id: 1,
+  discord_id: "discordId",
+  created_at: new Date(),
+  name: "channelName",
+  url: "channelUrl",
 };
 
 export const mockChannelEntityValue = {
-    id: 1,
-    discordId: "discordId",
-    name: "channelName",
-    url: "channelUrl",
-    createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
+  id: 1,
+  discordId: "discordId",
+  name: "channelName",
+  url: "channelUrl",
+  createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
 };
 
 export const mockChannelUpdatePayload = {
-    name: "updatedChannelName",
-    url: "updatedChannelUrl",
+  name: "updatedChannelName",
+  url: "updatedChannelUrl",
 };
 
 export const mockDbChannelUpdatedValue = {
-    ...mockDbChannelValue,
-    name: mockChannelUpdatePayload.name,
-    url: mockChannelUpdatePayload.url,
+  ...mockDbChannelValue,
+  name: mockChannelUpdatePayload.name,
+  url: mockChannelUpdatePayload.url,
+};
+
+// Audio event repository const mocks.
+export const mockDate = new Date("2023-01-01T00:00:00.000Z");
+
+export const mockDbAudioEventValue: PrismaAudioEvent = {
+  id: 1,
+  channel_id: 101,
+  creator_id: 202,
+  name: "Test Event",
+  description: "This is a test event.",
+  status_id: 1,
+  start_at: mockDate,
+  end_at: new Date("2023-01-01T01:00:00.000Z"),
+  user_count: 0,
+  image: "http://example.com/image.png",
+  created_at: mockDate,
+};
+
+export const mockAudioEventEntityValue = new AudioEventEntity(
+  mockDbAudioEventValue.id,
+  mockDbAudioEventValue.channel_id,
+  mockDbAudioEventValue.creator_id,
+  mockDbAudioEventValue.name,
+  mockDbAudioEventValue.status_id,
+  mockDbAudioEventValue.start_at,
+  mockDbAudioEventValue.end_at,
+  mockDbAudioEventValue.user_count,
+  mockDbAudioEventValue.created_at,
+  mockDbAudioEventValue.description,
+  mockDbAudioEventValue.image,
+);
+
+export const mockAudioEventCreatePayload: Omit<
+  AudioEventEntity,
+  "id" | "createdAt"
+> = {
+  channelId: 102,
+  creatorId: 203,
+  name: "New Event",
+  description: "A brand new event",
+  statusId: 2,
+  startAt: new Date("2023-02-01T10:00:00.000Z"),
+  endAt: new Date("2023-02-01T11:00:00.000Z"),
+  userCount: 5,
+  image: "http://example.com/new_image.png",
+};
+
+export const mockDbAudioEventCreatedValue: PrismaAudioEvent = {
+  id: 2,
+  channel_id: mockAudioEventCreatePayload.channelId,
+  creator_id: mockAudioEventCreatePayload.creatorId,
+  name: mockAudioEventCreatePayload.name!,
+  description: mockAudioEventCreatePayload.description!,
+  status_id: mockAudioEventCreatePayload.statusId,
+  start_at: mockAudioEventCreatePayload.startAt,
+  end_at: mockAudioEventCreatePayload.endAt,
+  user_count: mockAudioEventCreatePayload.userCount,
+  image: mockAudioEventCreatePayload.image!,
+  created_at: new Date("2023-02-01T09:00:00.000Z"), // Simulating DB generated
+};
+
+export const mockAudioEventUpdatePayload: Partial<
+  Omit<AudioEventEntity, "id" | "createdAt" | "channelId" | "creatorId">
+> = {
+  name: "Updated Event Name",
+  statusId: 3,
+  userCount: 10,
+};
+
+export const mockDbAudioEventUpdatedValue: PrismaAudioEvent = {
+  ...mockDbAudioEventValue,
+  name: mockAudioEventUpdatePayload.name!,
+  status_id: mockAudioEventUpdatePayload.statusId!,
+  user_count: mockAudioEventUpdatePayload.userCount!,
 };
