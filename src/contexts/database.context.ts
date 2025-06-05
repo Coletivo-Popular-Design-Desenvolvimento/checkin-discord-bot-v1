@@ -7,6 +7,8 @@ import { ILoggerService } from "@services/ILogger";
 import { IMessageRepository } from "@domain/interfaces/repositories/IMessageRepository";
 import { ChannelRepository } from "@infra/repositories/ChannelRepository";
 import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepository";
+import { AudioEventRepository } from "@infra/repositories/AudioEventRepository";
+import { IAudioEventRepository } from "@domain/interfaces/repositories/IAudioEventRepository";
 
 /**
  * Inicializa e configura o banco de dados.
@@ -25,6 +27,7 @@ export function initializeDatabase(
   userRepository: IUserRepository;
   messageRepository: IMessageRepository;
   channelRepository: IChannelRepository;
+  audioEventRepository: IAudioEventRepository;
 } {
   const prismaClient = new PrismaClient();
   const newPrismaService = new PrismaService(prismaClient);
@@ -41,6 +44,15 @@ export function initializeDatabase(
     prismaService ?? newPrismaService,
     logger,
   );
+  const audioEventRepository = new AudioEventRepository(
+    prismaService ?? newPrismaService,
+    logger,
+  );
 
-  return { userRepository, messageRepository, channelRepository };
+  return {
+    userRepository,
+    messageRepository,
+    channelRepository,
+    audioEventRepository,
+  };
 }
