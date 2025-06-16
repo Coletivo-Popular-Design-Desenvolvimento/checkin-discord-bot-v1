@@ -31,6 +31,7 @@ export class AudioEventRepository implements IAudioEventRepository {
   private toDomain(prismaEvent: PrismaAudioEvent): AudioEventEntity {
     return new AudioEventEntity(
       prismaEvent.id,
+      prismaEvent.platform_id,
       prismaEvent.channel_id,
       prismaEvent.creator_id,
       prismaEvent.name,
@@ -48,6 +49,7 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventData: Partial<Omit<AudioEventEntity, "id" | "createdAt">>,
   ) {
     return {
+      platform_id: eventData.platformId,
       channel_id: eventData.channelId,
       creator_id: eventData.creatorId,
       name: eventData.name,
@@ -119,9 +121,9 @@ export class AudioEventRepository implements IAudioEventRepository {
   async listAll(params?: AudioEventListAllInput): Promise<AudioEventEntity[]> {
     try {
       const whereClause: {
-        status_id?: number;
-        channel_id?: number;
-        creator_id?: number;
+        status_id?: string;
+        channel_id?: string;
+        creator_id?: string;
       } = {};
       if (params?.statusId) whereClause.status_id = params.statusId;
       if (params?.channelId) whereClause.channel_id = params.channelId;
@@ -144,15 +146,15 @@ export class AudioEventRepository implements IAudioEventRepository {
     }
   }
 
-  async findByChannelId(channelId: number): Promise<AudioEventEntity[]> {
+  async findByChannelId(channelId: string): Promise<AudioEventEntity[]> {
     return this.listAll({ channelId });
   }
 
-  async findByCreatorId(creatorId: number): Promise<AudioEventEntity[]> {
+  async findByCreatorId(creatorId: string): Promise<AudioEventEntity[]> {
     return this.listAll({ creatorId });
   }
 
-  async findByStatusId(statusId: number): Promise<AudioEventEntity[]> {
+  async findByStatusId(statusId: string): Promise<AudioEventEntity[]> {
     return this.listAll({ statusId });
   }
 

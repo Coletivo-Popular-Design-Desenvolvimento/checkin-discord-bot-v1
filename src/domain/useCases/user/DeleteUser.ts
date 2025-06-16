@@ -14,7 +14,7 @@ export class DeleteUser implements IDeleteUser {
       let user: UserEntity;
 
       if (typeof id === "string") {
-        await this.userRepository.findByDiscordId(id);
+        await this.userRepository.findByPlatformId(id);
       } else if (typeof id === "number") {
         await this.userRepository.findById(id);
       }

@@ -1,10 +1,11 @@
 export class AudioEventEntity {
   constructor(
     public readonly id: number,
-    public readonly channelId: number,
-    public readonly creatorId: number,
+    public readonly platformId: string,
+    public readonly channelId: string,
+    public readonly creatorId: string,
     public readonly name: string,
-    public readonly statusId: number, // Represents the foreign key to EventStatus
+    public readonly statusId: string, // Represents the foreign key to EventStatus
     public readonly startAt: Date,
     public readonly endAt: Date,
     public readonly userCount: number,

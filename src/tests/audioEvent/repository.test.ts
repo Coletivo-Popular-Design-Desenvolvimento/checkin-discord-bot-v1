@@ -46,6 +46,7 @@ describe("AudioEventRepository", () => {
       expect(prismaMock.audioEvent.create).toHaveBeenCalledTimes(1);
       expect(prismaMock.audioEvent.create).toHaveBeenCalledWith({
         data: {
+          platform_id: mockAudioEventCreatePayload.platformId,
           channel_id: mockAudioEventCreatePayload.channelId,
           creator_id: mockAudioEventCreatePayload.creatorId,
           name: mockAudioEventCreatePayload.name,
@@ -60,6 +61,7 @@ describe("AudioEventRepository", () => {
       expect(event).toEqual(
         new AudioEventEntity(
           mockDbAudioEventCreatedValue.id,
+          mockDbAudioEventCreatedValue.platform_id,
           mockDbAudioEventCreatedValue.channel_id,
           mockDbAudioEventCreatedValue.creator_id,
           mockDbAudioEventCreatedValue.name,
@@ -157,10 +159,10 @@ describe("AudioEventRepository", () => {
 
     it("should filter by statusId if provided", async () => {
       prismaMock.audioEvent.findMany.mockResolvedValue([mockDbAudioEventValue]);
-      await audioEventRepository.listAll({ statusId: 1 });
+      await audioEventRepository.listAll({ statusId: "1" });
       expect(prismaMock.audioEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { status_id: 1 },
+        where: { status_id: "1" },
         orderBy: { start_at: "desc" },
       });
     });
@@ -169,10 +171,10 @@ describe("AudioEventRepository", () => {
   describe("findByChannelId", () => {
     it("should return audio events by channelId", async () => {
       prismaMock.audioEvent.findMany.mockResolvedValue([mockDbAudioEventValue]);
-      const events = await audioEventRepository.findByChannelId(101);
+      const events = await audioEventRepository.findByChannelId("101");
       expect(prismaMock.audioEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { channel_id: 101 },
+        where: { channel_id: "101" },
         orderBy: { start_at: "desc" },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
@@ -182,10 +184,10 @@ describe("AudioEventRepository", () => {
   describe("findByCreatorId", () => {
     it("should return audio events by creatorId", async () => {
       prismaMock.audioEvent.findMany.mockResolvedValue([mockDbAudioEventValue]);
-      const events = await audioEventRepository.findByCreatorId(202);
+      const events = await audioEventRepository.findByCreatorId("202");
       expect(prismaMock.audioEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { creator_id: 202 },
+        where: { creator_id: "202" },
         orderBy: { start_at: "desc" },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
@@ -195,10 +197,10 @@ describe("AudioEventRepository", () => {
   describe("findByStatusId", () => {
     it("should return audio events by statusId", async () => {
       prismaMock.audioEvent.findMany.mockResolvedValue([mockDbAudioEventValue]);
-      const events = await audioEventRepository.findByStatusId(1);
+      const events = await audioEventRepository.findByStatusId("1");
       expect(prismaMock.audioEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { status_id: 1 },
+        where: { status_id: "1" },
         orderBy: { start_at: "desc" },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
@@ -219,6 +221,7 @@ describe("AudioEventRepository", () => {
       expect(prismaMock.audioEvent.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
+          platform_id: mockAudioEventUpdatePayload.platformId,
           name: mockAudioEventUpdatePayload.name,
           status_id: mockAudioEventUpdatePayload.statusId,
           user_count: mockAudioEventUpdatePayload.userCount,

@@ -10,7 +10,7 @@ import { ILoggerService } from "@services/ILogger";
 // Mock da entidade que representa o usuário no banco de dados.
 const mockUserValue = {
   id: 1,
-  discordId: "1234567890",
+  platformId: "1234567890",
   username: "John Doe",
   bot: false,
   status: UserStatus.ACTIVE,
@@ -24,7 +24,7 @@ const mockUserValue = {
 
 const mockUserValue2 = {
   id: 2,
-  discordId: "1234567890",
+  platformId: "1234567890",
   username: "Jane Doe",
   bot: false,
   status: UserStatus.ACTIVE,
@@ -58,7 +58,7 @@ describe("User useCases", () => {
       // Mock da funcao que cria um novo usuario no banco de dados do repositorio.
       // -- ARRANGE --
       userRepository.create.mockResolvedValue(mockUserValue);
-      userRepository.findByDiscordId.mockResolvedValue(null);
+      userRepository.findByPlatformId.mockResolvedValue(null);
 
       // Invoca o metodo createUser do UserService.
       // -- ACT --
@@ -76,7 +76,7 @@ describe("User useCases", () => {
     });
 
     it("should return existing user", async () => {
-      userRepository.findByDiscordId.mockResolvedValue(mockUserValue2);
+      userRepository.findByPlatformId.mockResolvedValue(mockUserValue2);
 
       const result = await createUserCase.execute(mockUserValue2);
 
@@ -85,15 +85,15 @@ describe("User useCases", () => {
         data: mockUserValue2,
         message: ErrorMessages.USER_ALREADY_EXISTS,
       });
-      expect(userRepository.findByDiscordId).toHaveBeenCalledTimes(1);
-      expect(userRepository.findByDiscordId).toHaveBeenCalledWith(
-        mockUserValue2.discordId,
+      expect(userRepository.findByPlatformId).toHaveBeenCalledTimes(1);
+      expect(userRepository.findByPlatformId).toHaveBeenCalledWith(
+        mockUserValue2.platformId,
         true,
       );
     });
 
     it("should fail to create an user for a bot", async () => {
-      userRepository.findByDiscordId.mockResolvedValue(null);
+      userRepository.findByPlatformId.mockResolvedValue(null);
 
       const result = await createUserCase.execute({
         ...mockUserValue,
@@ -111,19 +111,19 @@ describe("User useCases", () => {
     it("create many users, but no bots", async () => {
       const users = [
         {
-          discordId: "1234567890",
+          platformId: "1234567890",
           username: "John Doe",
           bot: false,
           status: UserStatus.ACTIVE,
         },
         {
-          discordId: "1234567891",
+          platformId: "1234567891",
           username: "Jane Doe",
           bot: false,
           status: UserStatus.ACTIVE,
         },
         {
-          discordId: "666",
+          platformId: "666",
           username: "The Bad Bot",
           bot: true,
           status: UserStatus.ACTIVE,
@@ -165,13 +165,13 @@ describe("User useCases", () => {
     it("should get a user by discord id", async () => {
       const id = "1234567890";
 
-      userRepository.findByDiscordId.mockResolvedValue(mockUserValue);
+      userRepository.findByPlatformId.mockResolvedValue(mockUserValue);
 
       const result = await findUserCase.execute(id);
 
       expect(result).toEqual({ success: true, data: mockUserValue });
-      expect(userRepository.findByDiscordId).toHaveBeenCalledTimes(1);
-      expect(userRepository.findByDiscordId).toHaveBeenCalledWith(id);
+      expect(userRepository.findByPlatformId).toHaveBeenCalledTimes(1);
+      expect(userRepository.findByPlatformId).toHaveBeenCalledWith(id);
     });
   });
 
@@ -179,7 +179,7 @@ describe("User useCases", () => {
     it("should update a user", async () => {
       const id = 1;
       const userData = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "Jane Doe",
         bot: false,
         status: UserStatus.ACTIVE,
@@ -198,25 +198,25 @@ describe("User useCases", () => {
           username: mockUserValue2.username,
           status: UserStatus.ACTIVE,
           bot: false,
-          discordId: mockUserValue2.discordId,
+          platformId: mockUserValue2.platformId,
         }),
       );
     });
 
     it("update usar by discord id", async () => {
-      const discordId = "1234567890";
+      const platformId = "1234567890";
       const id = 1;
       const userData = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "Jane Doe",
         bot: false,
         status: UserStatus.ACTIVE,
       };
 
       userRepository.updateById.mockResolvedValue(mockUserValue2);
-      userRepository.findByDiscordId.mockResolvedValue(mockUserValue);
+      userRepository.findByPlatformId.mockResolvedValue(mockUserValue);
 
-      const result = await updateUserCase.execute(discordId, userData);
+      const result = await updateUserCase.execute(platformId, userData);
 
       expect(result).toEqual({ success: true, data: mockUserValue2 });
       expect(userRepository.updateById).toHaveBeenCalledTimes(1);
@@ -226,7 +226,7 @@ describe("User useCases", () => {
           username: mockUserValue2.username,
           status: UserStatus.ACTIVE,
           bot: false,
-          discordId: mockUserValue2.discordId,
+          platformId: mockUserValue2.platformId,
         }),
       );
     });
@@ -234,7 +234,7 @@ describe("User useCases", () => {
     it("user not found", async () => {
       const id = 1;
       const userData = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "Jane Doe",
         bot: false,
         status: UserStatus.ACTIVE,
@@ -268,7 +268,7 @@ describe("User useCases", () => {
           username: mockUserValue2.username,
           status: UserStatus.INACTIVE,
           bot: false,
-          discordId: mockUserValue2.discordId,
+          platformId: mockUserValue2.platformId,
         }),
       );
     });

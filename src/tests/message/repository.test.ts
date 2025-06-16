@@ -41,7 +41,7 @@ describe("MessageRepository", () => {
       });
 
       expect(message).toHaveProperty("id", 1);
-      expect(message).toHaveProperty("discordId", mockMessageValue.discordId);
+      expect(message).toHaveProperty("platformId", mockMessageValue.platformId);
     });
 
     it("should return null when no message is found", async () => {
@@ -102,7 +102,7 @@ describe("MessageRepository", () => {
     });
 
     it("should return empty array when no message is found", async () => {
-      const channelId = 23232676;
+      const channelId = "23232676";
 
       prismaMock.message.findMany.mockResolvedValue([]);
 
@@ -117,7 +117,7 @@ describe("MessageRepository", () => {
     });
 
     it("should return no message if error occurs", async () => {
-      const channelId = 32687576;
+      const channelId = "32687576";
 
       prismaMock.message.findMany.mockRejectedValue(new Error());
 
@@ -136,50 +136,50 @@ describe("MessageRepository", () => {
     });
   });
 
-  describe("findByDiscordId", () => {
+  describe("findByplatformId", () => {
     it("should return a message by discord id", async () => {
-      const discordId = mockMessageValue.discordId;
+      const platformId = mockMessageValue.platformId;
 
       prismaMock.message.findFirst.mockResolvedValue(mockDbMessageValue);
 
-      const message = await messageRepository.findByDiscordId(discordId);
+      const message = await messageRepository.findByPlatformId(platformId);
 
       expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { platform_id: platformId },
       });
 
       expect(message).toHaveProperty("id", 1);
-      expect(message).toHaveProperty("discordId", mockMessageValue.discordId);
+      expect(message).toHaveProperty("platformId", mockMessageValue.platformId);
     });
 
     it("should return null if no message is found", async () => {
-      const discordId = mockMessageValue.discordId;
+      const platformId = mockMessageValue.platformId;
 
       prismaMock.message.findFirst.mockResolvedValue(null);
 
-      const message = await messageRepository.findByDiscordId(discordId);
+      const message = await messageRepository.findByPlatformId(platformId);
 
       expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { platform_id: platformId },
       });
 
       expect(message).toBeNull();
     });
 
     it("should not return message if error occurs", async () => {
-      const discordId = "23232687576";
+      const platformId = "23232687576";
 
       prismaMock.message.findFirst.mockRejectedValue(new Error());
 
       const spy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-      const response = await messageRepository.findByDiscordId(discordId);
+      const response = await messageRepository.findByPlatformId(platformId);
 
       expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { platform_id: platformId },
       });
 
       expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
@@ -224,7 +224,7 @@ describe("MessageRepository", () => {
     });
 
     it("should return empty array when no message is found", async () => {
-      const userId = 23232676;
+      const userId = "23232676";
 
       prismaMock.message.findMany.mockResolvedValue([]);
 
@@ -243,7 +243,7 @@ describe("MessageRepository", () => {
     const today = new Date();
     const messageToCreate: Omit<MessageEntity, "id"> = {
       ...mockMessageValue,
-      discordCreatedAt: today,
+      platformCreatedAt: today,
       createdAt: today,
     };
 
@@ -257,7 +257,7 @@ describe("MessageRepository", () => {
         expect(prismaMock.message.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             channel_id: messageToCreate.channelId,
-            discord_id: messageToCreate.discordId,
+            platform_id: messageToCreate.platformId,
             user_id: messageToCreate.userId,
           }),
         });
@@ -282,8 +282,8 @@ describe("MessageRepository", () => {
     describe("createMany", () => {
       const otherMessageToCreate: Omit<MessageEntity, "id"> = {
         ...messageToCreate,
-        channelId: 3,
-        userId: 2,
+        channelId: "3",
+        userId: "2",
       };
       const messagesToCreate = [messageToCreate, otherMessageToCreate];
 
@@ -301,10 +301,10 @@ describe("MessageRepository", () => {
             messagesToCreate.map((msg) => {
               return {
                 channel_id: msg.channelId,
-                discord_id: msg.discordId,
+                platform_id: msg.platformId,
                 user_id: msg.userId,
                 created_at: expect.anything(),
-                discord_created_at: expect.anything(),
+                platform_created_at: expect.anything(),
                 is_deleted: false,
                 id: undefined,
               };
@@ -372,8 +372,8 @@ describe("MessageRepository", () => {
 
       expect(response).toHaveLength(1);
       expect(response[0]).toHaveProperty(
-        "discordId",
-        mockDbMessageValue.discord_id,
+        "platformId",
+        mockDbMessageValue.platform_id,
       );
       expect(response[0]).toHaveProperty("userId", mockDbMessageValue.user_id);
     });
@@ -393,18 +393,18 @@ describe("MessageRepository", () => {
       });
 
       expect(response).toHaveLength(limit);
-      expect(response[0]).toHaveProperty("discordId", "1000");
-      expect(response[0]).toHaveProperty("userId", 10);
+      expect(response[0]).toHaveProperty("platformId", "1000");
+      expect(response[0]).toHaveProperty("userId", "10");
     });
 
     it("should bring all messages, including soft deleted", async () => {
       const mockDeleted: messageDbModel = {
         id: 4,
-        user_id: 4,
-        discord_id: "343534353",
-        channel_id: 2345424,
+        user_id: "4",
+        platform_id: "343534353",
+        channel_id: "2345424",
         created_at: new Date("2025-04-01"),
-        discord_created_at: new Date("2025-04-01"),
+        platform_created_at: new Date("2025-04-01"),
         is_deleted: true,
       };
 

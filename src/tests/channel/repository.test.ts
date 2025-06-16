@@ -1,8 +1,13 @@
-import { ChannelRepository } from "../../infrastructure/persistence/repositories/ChannelRepository"
+import { ChannelRepository } from "../../infrastructure/persistence/repositories/ChannelRepository";
 import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
 import { prismaMock } from "../config/singleton";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import { mockDbChannelValue, mockChannelEntityValue, mockChannelUpdatePayload, mockDbChannelUpdatedValue } from "@tests/config/constants";
+import {
+  mockDbChannelValue,
+  mockChannelEntityValue,
+  mockChannelUpdatePayload,
+  mockDbChannelUpdatedValue,
+} from "@tests/config/constants";
 
 describe("ChannelRepository", () => {
   let channelRepository: ChannelRepository;
@@ -16,13 +21,13 @@ describe("ChannelRepository", () => {
       console.error(message);
     });
     channelRepository = new ChannelRepository(prismaServiceMock, mockLogger);
-  })
+  });
 
   describe("findById", () => {
     it("should return channel by id", async () => {
       //Arrange
       const id = 1;
-      prismaMock.channel.findUnique.mockResolvedValue(mockDbChannelValue)
+      prismaMock.channel.findUnique.mockResolvedValue(mockDbChannelValue);
       //Action
       const channel = await channelRepository.findById(id);
       //Assert
@@ -31,10 +36,10 @@ describe("ChannelRepository", () => {
         where: {
           id,
         },
-      })
+      });
 
       expect(channel).toHaveProperty("id", 1);
-      expect(channel).toHaveProperty("discordId", "discordId");
+      expect(channel).toHaveProperty("platformId", "discordId");
       expect(channel).toHaveProperty("name", "channelName");
       expect(channel).toHaveProperty("url", "channelUrl");
       expect(channel).toHaveProperty("createdAt", expect.any(Date));
@@ -58,37 +63,37 @@ describe("ChannelRepository", () => {
       const id = 1;
       prismaMock.channel.findUnique.mockRejectedValue(new Error("DB error"));
       const channel = await channelRepository.findById(id);
-      expect(channelRepository['logger'].logToConsole).toHaveBeenCalledWith(
+      expect(channelRepository["logger"].logToConsole).toHaveBeenCalledWith(
         "ERROR",
         "REPOSITORY",
         "CHANNEL",
-        "findById | DB error"
+        "findById | DB error",
       );
       expect(channel).toBeUndefined(); // or null, depending on how you handle errors
     });
   });
 
-  describe("findByDiscordId", () => {
+  describe("findByPlatformId", () => {
     it("should return channel by discord id", async () => {
-      const discordId = "discordId";
+      const platformId = "discordId";
       prismaMock.channel.findFirst.mockResolvedValue(mockDbChannelValue);
-      const channel = await channelRepository.findByDiscordId(discordId);
+      const channel = await channelRepository.findByPlatformId(platformId);
 
       expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { platform_id: platformId },
       });
       expect(channel).toEqual(mockChannelEntityValue);
     });
 
     it("should return null if channel not found by discord id", async () => {
-      const discordId = "nonExistentDiscordId";
+      const platformId = "nonExistentDiscordId";
       prismaMock.channel.findFirst.mockResolvedValue(null);
-      const channel = await channelRepository.findByDiscordId(discordId);
+      const channel = await channelRepository.findByPlatformId(platformId);
 
       expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
-        where: { discord_id: discordId },
+        where: { platform_id: platformId },
       });
       expect(channel).toBeNull();
     });
@@ -97,18 +102,18 @@ describe("ChannelRepository", () => {
   describe("create", () => {
     it("should create a new channel", async () => {
       const channelData = {
-        discordId: "newDiscordId",
+        platformId: "newDiscordId",
         name: "newChannelName",
         url: "newChannelUrl",
         createdAt: new Date(),
       };
       const dbChannelData = {
         id: 2,
-        discord_id: channelData.discordId,
+        platform_id: channelData.platformId,
         name: channelData.name,
         url: channelData.url,
         created_at: channelData.createdAt,
-      }
+      };
       prismaMock.channel.create.mockResolvedValue(dbChannelData);
 
       const channel = await channelRepository.create(channelData);
@@ -116,22 +121,32 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.create).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.create).toHaveBeenCalledWith({
         data: {
-          discord_id: channelData.discordId,
+          platform_id: channelData.platformId,
           name: channelData.name,
           url: channelData.url,
           created_at: channelData.createdAt,
         },
       });
       expect(channel).toHaveProperty("id", dbChannelData.id);
-      expect(channel).toHaveProperty("discordId", channelData.discordId);
+      expect(channel).toHaveProperty("platformId", channelData.platformId);
     });
   });
 
   describe("createMany", () => {
     it("should create multiple channels and return the count", async () => {
       const channelsData = [
-        { discordId: "id1", name: "name1", url: "url1", createdAt: new Date() },
-        { discordId: "id2", name: "name2", url: "url2", createdAt: new Date() },
+        {
+          platformId: "id1",
+          name: "name1",
+          url: "url1",
+          createdAt: new Date(),
+        },
+        {
+          platformId: "id2",
+          name: "name2",
+          url: "url2",
+          createdAt: new Date(),
+        },
       ];
       prismaMock.channel.createMany.mockResolvedValue({ count: 2 });
 
@@ -139,11 +154,11 @@ describe("ChannelRepository", () => {
 
       expect(prismaMock.channel.createMany).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.createMany).toHaveBeenCalledWith({
-        data: channelsData.map(ch => ({
-          discord_id: ch.discordId,
+        data: channelsData.map((ch) => ({
+          platform_id: ch.platformId,
           name: ch.name,
           url: ch.url,
-          created_at: ch.createdAt
+          created_at: ch.createdAt,
         })),
         skipDuplicates: true,
       });
@@ -153,45 +168,57 @@ describe("ChannelRepository", () => {
 
   describe("listAll", () => {
     it("should return a list of channels", async () => {
-      const dbChannels = [mockDbChannelValue, { ...mockDbChannelValue, id: 2, discord_id: "discordId2" }];
+      const dbChannels = [
+        mockDbChannelValue,
+        { ...mockDbChannelValue, id: 2, platform_id: "discordId2" },
+      ];
       prismaMock.channel.findMany.mockResolvedValue(dbChannels);
 
       const channels = await channelRepository.listAll();
 
       expect(prismaMock.channel.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findMany).toHaveBeenCalledWith({ take: undefined, where: {} });
+      expect(prismaMock.channel.findMany).toHaveBeenCalledWith({
+        take: undefined,
+        where: {},
+      });
       expect(channels).toHaveLength(2);
       expect(channels[0]).toEqual(mockChannelEntityValue);
     });
 
     it("should return a list of channels with limit", async () => {
-        const dbChannels = [mockDbChannelValue];
-        prismaMock.channel.findMany.mockResolvedValue(dbChannels);
-  
-        const channels = await channelRepository.listAll(1);
-  
-        expect(prismaMock.channel.findMany).toHaveBeenCalledTimes(1);
-        expect(prismaMock.channel.findMany).toHaveBeenCalledWith({ take: 1, where: {} });
-        expect(channels).toHaveLength(1);
-        expect(channels[0]).toEqual(mockChannelEntityValue);
-    })
+      const dbChannels = [mockDbChannelValue];
+      prismaMock.channel.findMany.mockResolvedValue(dbChannels);
+
+      const channels = await channelRepository.listAll(1);
+
+      expect(prismaMock.channel.findMany).toHaveBeenCalledTimes(1);
+      expect(prismaMock.channel.findMany).toHaveBeenCalledWith({
+        take: 1,
+        where: {},
+      });
+      expect(channels).toHaveLength(1);
+      expect(channels[0]).toEqual(mockChannelEntityValue);
+    });
   });
 
   describe("updateById", () => {
     it("should update a channel by id", async () => {
       const id = 1;
-      
+
       prismaMock.channel.update.mockResolvedValue(mockDbChannelUpdatedValue);
 
-      const channel = await channelRepository.updateById(id, mockChannelUpdatePayload);
+      const channel = await channelRepository.updateById(
+        id,
+        mockChannelUpdatePayload,
+      );
 
       expect(prismaMock.channel.update).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.update).toHaveBeenCalledWith({
         where: { id },
         data: {
-            name: mockChannelUpdatePayload.name,
-            url: mockChannelUpdatePayload.url,
-            // discord_id e created_at não devem ser enviados se não estiverem no payload parcial
+          name: mockChannelUpdatePayload.name,
+          url: mockChannelUpdatePayload.url,
+          // platform_id e created_at não devem ser enviados se não estiverem no payload parcial
         },
       });
       expect(channel).toHaveProperty("id", id);
@@ -201,12 +228,17 @@ describe("ChannelRepository", () => {
 
     it("should return null if channel to update is not found", async () => {
       const id = 99;
-      prismaMock.channel.update.mockRejectedValue(new Error("Record to update not found.")); // Prisma comum erro
-      
-      // Mock logger para verificar se o erro é logado
-      const spyLogger = jest.spyOn(channelRepository['logger'], 'logToConsole');
+      prismaMock.channel.update.mockRejectedValue(
+        new Error("Record to update not found."),
+      ); // Prisma comum erro
 
-      const channel = await channelRepository.updateById(id, mockChannelUpdatePayload);
+      // Mock logger para verificar se o erro é logado
+      const spyLogger = jest.spyOn(channelRepository["logger"], "logToConsole");
+
+      const channel = await channelRepository.updateById(
+        id,
+        mockChannelUpdatePayload,
+      );
 
       expect(prismaMock.channel.update).toHaveBeenCalledTimes(1);
       expect(channel).toBeUndefined(); // Ou null, dependendo da sua lógica de tratamento de erro no repositório
@@ -230,8 +262,10 @@ describe("ChannelRepository", () => {
 
     it("should return false if channel to delete is not found (or error occurs)", async () => {
       const id = 99;
-      prismaMock.channel.delete.mockRejectedValue(new Error("Record to delete not found."));
-      const spyLogger = jest.spyOn(channelRepository['logger'], 'logToConsole');
+      prismaMock.channel.delete.mockRejectedValue(
+        new Error("Record to delete not found."),
+      );
+      const spyLogger = jest.spyOn(channelRepository["logger"], "logToConsole");
 
       const result = await channelRepository.deleteById(id);
 
