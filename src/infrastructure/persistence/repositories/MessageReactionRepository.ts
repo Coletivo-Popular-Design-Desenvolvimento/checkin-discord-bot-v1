@@ -1,4 +1,11 @@
-import { PrismaClient, MessageReaction } from "@prisma/client";
+import {
+  PrismaClient,
+  MessageReaction,
+  User,
+  Message,
+  Channel,
+  Prisma,
+} from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
 import {
   LoggerContext,
@@ -6,8 +13,21 @@ import {
   LoggerContextStatus,
 } from "../../../domain/types/LoggerContextEnum";
 import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
-import { IMessageReactionRepository } from "../../../domain/interfaces/repositories/IMessageReactionRepository";
+import {
+  IMessageReactionRepository,
+  UpdateMessageReactionData,
+} from "../../../domain/interfaces/repositories/IMessageReactionRepository";
 import { MessageReactionEntity } from "../../../domain/entities/MessageReaction";
+import { UserEntity } from "../../../domain/entities/User";
+import { MessageEntity } from "../../../domain/entities/Message";
+import { ChannelEntity } from "../../../domain/entities/Channel";
+import { CreateMessageReactionData } from "@domain/dtos/CreateMessageReactionData";
+
+type FullMessageReaction = MessageReaction & {
+  user: User;
+  message: Message;
+  channel: Channel;
+};
 
 export class MessageReactionRepository implements IMessageReactionRepository {
   private client: PrismaClient;
@@ -22,11 +42,16 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   }
 
   async create(
-    reaction: MessageReactionEntity,
+    data: CreateMessageReactionData,
   ): Promise<MessageReactionEntity | null> {
     try {
       const result = await this.client.messageReaction.create({
-        data: this.toPersistence(reaction),
+        data: {
+          user: { connect: { platform_id: data.userId } },
+          message: { connect: { platform_id: data.messageId } },
+          channel: { connect: { platform_id: data.channelId } },
+        },
+        include: { user: true, message: true, channel: true },
       });
       return this.toDomain(result);
     } catch (error) {
@@ -40,10 +65,14 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     }
   }
 
-  async createMany(reactions: MessageReactionEntity[]): Promise<number> {
+  async createMany(data: CreateMessageReactionData[]): Promise<number> {
     try {
       const result = await this.client.messageReaction.createMany({
-        data: reactions.map((reaction) => this.toPersistence(reaction)),
+        data: data.map((d) => ({
+          user_id: d.userId,
+          message_id: d.messageId,
+          channel_id: d.channelId,
+        })),
         skipDuplicates: true,
       });
       return result.count;
@@ -65,11 +94,9 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     try {
       const result = await this.client.messageReaction.findUnique({
         where: {
-          user_id_message_id: {
-            user_id: userId,
-            message_id: messageId,
-          },
+          user_id_message_id: { user_id: userId, message_id: messageId },
         },
+        include: { user: true, message: true, channel: true },
       });
       return result ? this.toDomain(result) : null;
     } catch (error) {
@@ -89,6 +116,7 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     try {
       const results = await this.client.messageReaction.findMany({
         where: { user_id: userId },
+        include: { user: true, message: true, channel: true },
       });
       return results.map((result) => this.toDomain(result));
     } catch (error) {
@@ -105,61 +133,36 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   async getMessageReactionByUserDiscordId(
     userId: string,
   ): Promise<MessageReactionEntity[]> {
-    try {
-      const results = await this.client.messageReaction.findMany({
-        where: { user_id: userId },
-      });
-      return results.map((result) => this.toDomain(result));
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.MESSAGE_REACTION,
-        `getMessageReactionByUserDiscordId | ${error.message}`,
-      );
-      return [];
-    }
+    return this.getMessageReactionByUserId(userId);
   }
 
   async getMessageReactionByDiscordId(
     userId: string,
     messageId: string,
   ): Promise<MessageReactionEntity | null> {
-    try {
-      const result = await this.client.messageReaction.findUnique({
-        where: {
-          user_id_message_id: {
-            user_id: userId,
-            message_id: messageId,
-          },
-        },
-      });
-      return result ? this.toDomain(result) : null;
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.MESSAGE_REACTION,
-        `getMessageReactionByDiscordId | ${error.message}`,
-      );
-      return null;
-    }
+    return this.getMessageReactionById(userId, messageId);
   }
 
   async updateMessageReaction(
     userId: string,
     messageId: string,
-    data: Partial<MessageReactionEntity>,
+    data: UpdateMessageReactionData,
   ): Promise<MessageReactionEntity | null> {
     try {
+      const persistenceData: Prisma.MessageReactionUpdateInput = {};
+      if (data.userId)
+        persistenceData.user = { connect: { platform_id: data.userId } };
+      if (data.messageId)
+        persistenceData.message = { connect: { platform_id: data.messageId } };
+      if (data.channelId)
+        persistenceData.channel = { connect: { platform_id: data.channelId } };
+
       const result = await this.client.messageReaction.update({
         where: {
-          user_id_message_id: {
-            user_id: userId,
-            message_id: messageId,
-          },
+          user_id_message_id: { user_id: userId, message_id: messageId },
         },
-        data: this.toPersistence(data),
+        data: persistenceData,
+        include: { user: true, message: true, channel: true },
       });
       return this.toDomain(result);
     } catch (error) {
@@ -180,11 +183,9 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     try {
       const result = await this.client.messageReaction.delete({
         where: {
-          user_id_message_id: {
-            user_id: userId,
-            message_id: messageId,
-          },
+          user_id_message_id: { user_id: userId, message_id: messageId },
         },
+        include: { user: true, message: true, channel: true },
       });
       return this.toDomain(result);
     } catch (error) {
@@ -198,19 +199,40 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     }
   }
 
-  private toDomain(reaction: MessageReaction): MessageReactionEntity {
-    return new MessageReactionEntity(
-      reaction.user_id,
-      reaction.message_id,
-      reaction.channel_id,
+  private toDomain(reaction: FullMessageReaction): MessageReactionEntity {
+    const user = new UserEntity(
+      reaction.user.id,
+      reaction.user.platform_id,
+      reaction.user.username,
+      reaction.user.bot,
+      reaction.user.status,
+      reaction.user.global_name,
+      reaction.user.joined_at,
+      reaction.user.platform_created_at,
+      reaction.user.create_at,
+      reaction.user.update_at,
+      reaction.user.last_active,
+      reaction.user.email,
     );
-  }
 
-  private toPersistence(reaction: Partial<MessageReactionEntity>) {
-    return {
-      user_id: reaction.userId,
-      message_id: reaction.messageId,
-      channel_id: reaction.channelId,
-    };
+    const message = new MessageEntity(
+      reaction.message.channel_id,
+      reaction.message.platform_id,
+      reaction.message.platform_created_at,
+      reaction.message.is_deleted,
+      reaction.message.user_id,
+      reaction.message.id,
+      reaction.message.created_at,
+    );
+
+    const channel = new ChannelEntity(
+      reaction.channel.id,
+      reaction.channel.platform_id,
+      reaction.channel.name,
+      reaction.channel.url,
+      reaction.channel.created_at,
+    );
+
+    return new MessageReactionEntity(reaction.id, user, message, channel);
   }
 }

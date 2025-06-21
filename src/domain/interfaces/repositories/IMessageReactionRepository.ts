@@ -1,10 +1,14 @@
 import { MessageReactionEntity } from "../../entities/MessageReaction";
+import { CreateMessageReactionData } from "../../dtos/CreateMessageReactionData";
+
+export type UpdateMessageReactionData = Partial<CreateMessageReactionData>;
 
 export interface IMessageReactionRepository {
   create(
-    reaction: MessageReactionEntity,
+    data: CreateMessageReactionData,
   ): Promise<MessageReactionEntity | null>;
-  createMany(reactions: MessageReactionEntity[]): Promise<number>;
+
+  createMany(data: CreateMessageReactionData[]): Promise<number>;
 
   getMessageReactionById(
     userId: string,
@@ -25,7 +29,7 @@ export interface IMessageReactionRepository {
   updateMessageReaction(
     userId: string,
     messageId: string,
-    data: Partial<MessageReactionEntity>,
+    data: UpdateMessageReactionData,
   ): Promise<MessageReactionEntity | null>;
 
   deleteMessageReaction(
