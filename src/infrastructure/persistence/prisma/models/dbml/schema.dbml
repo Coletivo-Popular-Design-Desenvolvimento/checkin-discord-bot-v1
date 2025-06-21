@@ -105,6 +105,7 @@ Table channel {
 }
 
 Table message_reaction {
+  id Int [pk, increment]
   user user [not null]
   user_id String [not null]
   message message [not null]
@@ -113,7 +114,7 @@ Table message_reaction {
   channel_id String [not null]
 
   indexes {
-    (user_id, message_id) [pk]
+    (user_id, message_id) [unique]
   }
 }
 

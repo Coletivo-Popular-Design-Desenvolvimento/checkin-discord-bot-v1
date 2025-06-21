@@ -1,6 +1,9 @@
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { UserRepository } from "@infra/repositories/UserRepository";
 import { MessageRepository } from "@infra/persistence/repositories/MessageRepository";
+import { IMessageReactionRepository } from "@domain/interfaces/repositories/IMessageReactionRepository";
+import { MessageReactionRepository } from "@infra/persistence/repositories/MessageReactionRepository";
+
 import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaClient } from "@prisma/client";
 import { ILoggerService } from "@services/ILogger";
@@ -26,6 +29,7 @@ export function initializeDatabase(
 ): {
   userRepository: IUserRepository;
   messageRepository: IMessageRepository;
+  messageReactionRepository: IMessageReactionRepository;
   channelRepository: IChannelRepository;
   audioEventRepository: IAudioEventRepository;
 } {
@@ -37,6 +41,10 @@ export function initializeDatabase(
     logger,
   );
   const messageRepository = new MessageRepository(
+    prismaService ?? newPrismaService,
+    logger,
+  );
+  const messageReactionRepository = new MessageReactionRepository(
     prismaService ?? newPrismaService,
     logger,
   );
@@ -52,6 +60,7 @@ export function initializeDatabase(
   return {
     userRepository,
     messageRepository,
+    messageReactionRepository,
     channelRepository,
     audioEventRepository,
   };
