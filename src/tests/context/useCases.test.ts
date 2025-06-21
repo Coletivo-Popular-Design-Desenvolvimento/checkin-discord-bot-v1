@@ -5,7 +5,7 @@ jest.mock("@contexts/database.context", () => ({
       create: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
-      findByDiscordId: jest.fn(),
+      findByPlatformId: jest.fn(),
     },
   })),
 }));

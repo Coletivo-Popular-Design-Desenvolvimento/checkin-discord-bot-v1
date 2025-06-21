@@ -34,7 +34,7 @@ describe("UserRepository", () => {
       });
 
       expect(user).toHaveProperty("id", 1);
-      expect(user).toHaveProperty("discordId", "1234567890");
+      expect(user).toHaveProperty("platformId", "1234567890");
       expect(user).toHaveProperty("username", "John Doe");
       expect(user).toHaveProperty("bot", false);
     });
@@ -55,35 +55,35 @@ describe("UserRepository", () => {
     });
   });
 
-  describe("findByDiscordId", () => {
+  describe("findByPlatformId", () => {
     it("should return a user by discord id", async () => {
-      const discordId = "1234567890";
+      const platformId = "1234567890";
 
       prismaMock.user.findUnique.mockResolvedValue(mockDBUserValue);
 
-      const user = await userRepository.findByDiscordId(discordId);
+      const user = await userRepository.findByPlatformId(platformId);
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { discord_id: discordId, status: { in: [UserStatus.ACTIVE] } },
+        where: { platform_id: platformId, status: { in: [UserStatus.ACTIVE] } },
       });
 
       expect(user).toHaveProperty("id", 1);
-      expect(user).toHaveProperty("discordId", "1234567890");
+      expect(user).toHaveProperty("platformId", "1234567890");
       expect(user).toHaveProperty("username", "John Doe");
       expect(user).toHaveProperty("bot", false);
     });
 
     it("should return null if user not found", async () => {
-      const discordId = "1234567890";
+      const platformId = "1234567890";
 
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      const user = await userRepository.findByDiscordId(discordId);
+      const user = await userRepository.findByPlatformId(platformId);
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { discord_id: discordId, status: { in: [UserStatus.ACTIVE] } },
+        where: { platform_id: platformId, status: { in: [UserStatus.ACTIVE] } },
       });
 
       expect(user).toBeNull();
@@ -93,7 +93,7 @@ describe("UserRepository", () => {
   describe("createUser", () => {
     it("should create a new user", async () => {
       const userData: Omit<UserEntity, "id"> = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "John Doe",
         bot: false,
         status: UserStatus.ACTIVE,
@@ -109,7 +109,7 @@ describe("UserRepository", () => {
       });
 
       expect(user).toHaveProperty("id", 1);
-      expect(user).toHaveProperty("discordId", "1234567890");
+      expect(user).toHaveProperty("platformId", "1234567890");
       expect(user).toHaveProperty("username", "John Doe");
       expect(user).toHaveProperty("bot", false);
     });
@@ -117,13 +117,13 @@ describe("UserRepository", () => {
     it("should create many users", async () => {
       const userData: Omit<UserEntity, "id">[] = [
         {
-          discordId: "1234567890",
+          platformId: "1234567890",
           username: "John Doe",
           bot: false,
           status: UserStatus.ACTIVE,
         },
         {
-          discordId: "1234567891",
+          platformId: "1234567891",
           username: "Jane Doe",
           bot: false,
           status: UserStatus.ACTIVE,
@@ -139,7 +139,7 @@ describe("UserRepository", () => {
       expect(prismaMock.user.createMany).toHaveBeenCalledTimes(1);
       expect(prismaMock.user.createMany).toHaveBeenCalledWith({
         data: userData.map((user) => ({
-          discord_id: user.discordId,
+          platform_id: user.platformId,
           username: user.username,
           bot: user.bot,
           status: user.status,
@@ -160,7 +160,7 @@ describe("UserRepository", () => {
     it("should update a user", async () => {
       const id = 1;
       const userData = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "Jane Doe",
         bot: false,
         status: UserStatus.ACTIVE,
@@ -177,7 +177,7 @@ describe("UserRepository", () => {
       });
 
       expect(user).toHaveProperty("id", 1);
-      expect(user).toHaveProperty("discordId", "1234567890");
+      expect(user).toHaveProperty("platformId", "1234567890");
       expect(user).toHaveProperty("username", "Jane Doe");
       expect(user).toHaveProperty("bot", false);
     });
@@ -185,7 +185,7 @@ describe("UserRepository", () => {
     it("should throw an error if user not found", async () => {
       const id = 1;
       const userData = {
-        discordId: "1234567890",
+        platformId: "1234567890",
         username: "Jane Doe",
         bot: false,
         status: UserStatus.ACTIVE,

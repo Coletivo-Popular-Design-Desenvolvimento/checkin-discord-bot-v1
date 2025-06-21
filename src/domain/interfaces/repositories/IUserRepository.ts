@@ -4,7 +4,7 @@ export interface IUserRepository {
   create(user: Omit<UserEntity, "id">): Promise<UserEntity>;
   createMany(users: Omit<UserEntity, "id">[]): Promise<number>;
   findById(id: number, includeInactive?: boolean): Promise<UserEntity | null>;
-  findByDiscordId(
+  findByPlatformId(
     id: string,
     includeInactive?: boolean,
   ): Promise<UserEntity | null>;

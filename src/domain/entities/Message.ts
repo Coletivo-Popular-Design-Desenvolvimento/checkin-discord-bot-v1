@@ -1,12 +1,11 @@
 export class MessageEntity {
-    constructor(
-      public readonly channelId: number,
-      public readonly discordId: string,
-      public readonly discordCreatedAt: Date,
-      public readonly isDeleted: boolean,
-      public readonly userId: number,
-      public readonly id?: number | null,
-      public readonly createdAt?: Date | null,
-    ) {}
-  }
-  
+  constructor(
+    public readonly channelId: string,
+    public readonly platformId: string,
+    public readonly platformCreatedAt: Date,
+    public readonly isDeleted: boolean,
+    public readonly userId: string,
+    public readonly id?: number | null,
+    public readonly createdAt?: Date | null,
+  ) {}
+}

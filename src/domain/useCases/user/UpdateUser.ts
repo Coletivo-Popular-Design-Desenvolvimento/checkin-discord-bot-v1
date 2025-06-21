@@ -24,7 +24,7 @@ export class UpdateUser implements IUpdateUser {
       let user: UserEntity;
 
       if (typeof id === "string") {
-        user = await this.userRepository.findByDiscordId(id);
+        user = await this.userRepository.findByPlatformId(id);
       } else if (typeof id === "number") {
         user = await this.userRepository.findById(id);
       }
@@ -64,7 +64,7 @@ export class UpdateUser implements IUpdateUser {
       let user: UserEntity;
 
       if (typeof id === "string") {
-        user = await this.userRepository.findByDiscordId(id, true);
+        user = await this.userRepository.findByPlatformId(id, true);
       } else if (typeof id === "number") {
         user = await this.userRepository.findById(id, true);
       }

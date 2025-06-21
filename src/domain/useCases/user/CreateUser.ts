@@ -33,8 +33,8 @@ export class CreateUser implements ICreateUser {
       }
 
       // Check if user already exists
-      const existingUser = await this.userRepository.findByDiscordId(
-        input.discordId,
+      const existingUser = await this.userRepository.findByPlatformId(
+        input.platformId,
         true,
       );
       if (existingUser) {

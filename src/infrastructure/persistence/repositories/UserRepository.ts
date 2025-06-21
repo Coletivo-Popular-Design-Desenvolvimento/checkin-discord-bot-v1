@@ -99,14 +99,14 @@ export class UserRepository implements IUserRepository {
    * @param {string} id O id do Discord do usuario a ser buscado.
    * @returns {Promise<UserEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
    */
-  async findByDiscordId(
+  async findByPlatformId(
     id: string,
     includeInactive?: boolean,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.findUnique({
         where: {
-          discord_id: id,
+          platform_id: id,
           status: {
             in: includeInactive
               ? [UserStatus.ACTIVE, UserStatus.INACTIVE]
@@ -120,7 +120,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `findByDiscordId | ${error.message}`,
+        `findByPlatformId | ${error.message}`,
       );
     }
   }
@@ -208,13 +208,13 @@ export class UserRepository implements IUserRepository {
   private toDomain(user: User): UserEntity {
     return new UserEntity(
       user.id,
-      user.discord_id,
+      user.platform_id,
       user.username,
       user.bot,
       user.status,
       user.global_name,
       user.joined_at,
-      user.discord_created_at,
+      user.platform_created_at,
       user.create_at,
       user.update_at,
       user.last_active,
@@ -224,13 +224,13 @@ export class UserRepository implements IUserRepository {
 
   private toPersistence(user: Partial<UserEntity>) {
     return {
-      discord_id: user.discordId,
+      platform_id: user.platformId,
       username: user.username,
       bot: user.bot,
       status: user.status,
       global_name: user.globalName,
       joined_at: user.joinedAt,
-      discord_created_at: user.discordCreatedAt,
+      platform_created_at: user.platformCreatedAt,
       update_at: user.updateAt,
       last_active: user.lastActive,
       email: user.email,

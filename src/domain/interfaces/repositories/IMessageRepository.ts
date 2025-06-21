@@ -7,12 +7,12 @@ export interface IMessageRepository {
 
   findById(id: number): Promise<MessageEntity | null>;
   findByChannelId(
-    channelId: number,
+    channelId: string,
     includeDeleted?: boolean,
   ): Promise<MessageEntity[]>;
-  findByDiscordId(discordId: string): Promise<MessageEntity>;
+  findByPlatformId(platformId: string): Promise<MessageEntity>;
   findByUserId(
-    userId: number,
+    userId: string,
     includeDeleted?: boolean,
   ): Promise<MessageEntity[]>;
 

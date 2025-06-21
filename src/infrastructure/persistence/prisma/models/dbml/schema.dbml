@@ -4,11 +4,11 @@
 
 Table user {
   id Int [pk, increment]
-  discord_id String [unique, not null]
+  platform_id String [unique, not null]
   username String [not null]
   global_name String
   joined_at DateTime
-  discord_created_at DateTime
+  platform_created_at DateTime
   update_at DateTime
   last_active DateTime
   create_at DateTime [default: `now()`]
@@ -24,18 +24,18 @@ Table user {
 
 Table role {
   id Int [pk, increment]
-  discord_id String [not null]
+  platform_id String [unique, not null]
   name String [not null]
-  discord_created_at DateTime [not null]
+  platform_created_at DateTime [not null]
   created_at DateTime [default: `now()`, not null]
   user_role user_role [not null]
 }
 
 Table user_role {
   user user [not null]
-  user_id Int [not null]
+  user_id String [not null]
   role role [not null]
-  roleId Int [not null]
+  roleId String [not null]
 
   indexes {
     (user_id, roleId) [pk]
@@ -44,14 +44,15 @@ Table user_role {
 
 Table audio_event {
   id Int [pk, increment]
-  channel_id Int [not null]
+  platform_id String [unique, not null]
+  channel_id String [not null]
   channel channel [not null]
-  creator_id Int [not null]
+  creator_id String [not null]
   creator user [not null]
   name String [not null]
   description String
   status event_status [not null]
-  status_id Int [not null]
+  status_id String [not null]
   start_at DateTime [not null]
   end_at DateTime [not null]
   user_count Int [not null]
@@ -62,6 +63,7 @@ Table audio_event {
 
 Table event_status {
   id Int [pk, increment]
+  platform_id String [unique, not null]
   name String [not null]
   event audio_event [not null]
   created_at DateTime [default: `now()`, not null]
@@ -69,9 +71,9 @@ Table event_status {
 
 Table user_event {
   event audio_event [not null]
-  event_id Int [not null]
+  event_id String [not null]
   user user [not null]
-  user_id Int [not null]
+  user_id String [not null]
 
   indexes {
     (user_id, event_id) [pk]
@@ -80,20 +82,20 @@ Table user_event {
 
 Table message {
   id Int [pk, increment]
-  discord_id String [not null]
-  channel_id Int [not null]
+  platform_id String [unique, not null]
+  channel_id String [not null]
   channel channel [not null]
   is_deleted Boolean [not null, default: false]
-  user_id Int [not null]
+  user_id String [not null]
   user user [not null]
-  discord_created_at DateTime [not null]
+  platform_created_at DateTime [not null]
   created_at DateTime [default: `now()`, not null]
   message_reaction message_reaction [not null]
 }
 
 Table channel {
   id Int [pk, increment]
-  discord_id String [not null]
+  platform_id String [unique, not null]
   name String [not null]
   url String [not null]
   message message [not null]
@@ -104,37 +106,37 @@ Table channel {
 
 Table message_reaction {
   user user [not null]
-  user_id Int [not null]
+  user_id String [not null]
   message message [not null]
-  message_id Int [not null]
+  message_id String [not null]
   channel channel [not null]
-  channel_id Int [not null]
+  channel_id String [not null]
 
   indexes {
     (user_id, message_id) [pk]
   }
 }
 
-Ref: user_role.user_id > user.id
+Ref: user_role.user_id > user.platform_id
 
-Ref: user_role.roleId > role.id
+Ref: user_role.roleId > role.platform_id
 
-Ref: audio_event.channel_id > channel.id
+Ref: audio_event.channel_id > channel.platform_id
 
-Ref: audio_event.creator_id > user.id
+Ref: audio_event.creator_id > user.platform_id
 
-Ref: audio_event.status_id > event_status.id
+Ref: audio_event.status_id > event_status.platform_id
 
-Ref: user_event.event_id > audio_event.id
+Ref: user_event.event_id > audio_event.platform_id
 
-Ref: user_event.user_id > user.id
+Ref: user_event.user_id > user.platform_id
 
-Ref: message.channel_id > channel.id
+Ref: message.channel_id > channel.platform_id
 
-Ref: message.user_id > user.id
+Ref: message.user_id > user.platform_id
 
-Ref: message_reaction.user_id > user.id
+Ref: message_reaction.user_id > user.platform_id
 
-Ref: message_reaction.message_id > message.id
+Ref: message_reaction.message_id > message.platform_id
 
-Ref: message_reaction.channel_id > channel.id
+Ref: message_reaction.channel_id > channel.platform_id

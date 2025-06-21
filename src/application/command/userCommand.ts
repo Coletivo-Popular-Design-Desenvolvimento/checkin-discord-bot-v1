@@ -84,12 +84,12 @@ export class UserCommand implements IUserCommand {
 
   static toUserEntity(discordUser: GuildMember): CreateUserInput {
     return {
-      discordId: discordUser.id,
+      platformId: discordUser.id,
       username: discordUser.user.username,
       globalName: discordUser.user.globalName,
       bot: discordUser.user.bot,
       status: UserStatus.ACTIVE,
-      discordCreatedAt: discordUser.user.createdTimestamp
+      platformCreatedAt: discordUser.user.createdTimestamp
         ? new Date(discordUser.user.createdTimestamp)
         : undefined,
       joinedAt: discordUser.joinedTimestamp

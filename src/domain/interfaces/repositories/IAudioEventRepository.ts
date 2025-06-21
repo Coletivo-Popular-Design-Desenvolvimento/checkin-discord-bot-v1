@@ -2,9 +2,9 @@ import { AudioEventEntity } from "../../entities/AudioEvent";
 
 export interface AudioEventListAllInput {
   limit?: number;
-  statusId?: number;
-  channelId?: number;
-  creatorId?: number;
+  statusId?: string;
+  channelId?: string;
+  creatorId?: string;
 }
 
 export interface IAudioEventRepository {
@@ -20,11 +20,11 @@ export interface IAudioEventRepository {
 
   listAll(params?: AudioEventListAllInput): Promise<AudioEventEntity[]>;
 
-  findByChannelId(channelId: number): Promise<AudioEventEntity[]>;
+  findByChannelId(channelId: string): Promise<AudioEventEntity[]>;
 
-  findByCreatorId(creatorId: number): Promise<AudioEventEntity[]>;
+  findByCreatorId(creatorId: string): Promise<AudioEventEntity[]>;
 
-  findByStatusId(statusId: number): Promise<AudioEventEntity[]>;
+  findByStatusId(statusId: string): Promise<AudioEventEntity[]>;
 
   updateById(
     id: number,
