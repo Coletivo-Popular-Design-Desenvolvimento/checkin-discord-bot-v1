@@ -1,5 +1,9 @@
-import { MessageReaction } from "@prisma/client";
+import { MessageReaction, User, Message, Channel } from "@prisma/client";
+import { ChannelEntity } from "../../domain/entities/Channel";
+import { MessageEntity } from "../../domain/entities/Message";
 import { MessageReactionEntity } from "../../domain/entities/MessageReaction";
+import { UserEntity } from "../../domain/entities/User";
+import { CreateMessageReactionData } from "../../domain/dtos/CreateMessageReactionData";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
 import {
   LoggerContext,
@@ -10,17 +14,99 @@ import { PrismaService } from "../../infrastructure/persistence/prisma/prismaSer
 import { MessageReactionRepository } from "../../infrastructure/persistence/repositories/MessageReactionRepository";
 import { prismaMock } from "../config/singleton";
 
-// Mock de dados para os testes
+// --- Mocks Completos para a Nova Arquitetura ---
+
+const mockDate = new Date();
+
+// Mocks dos modelos do Prisma (como se viessem do DB)
+const mockDbUser: User = {
+  id: 1,
+  platform_id: "user123",
+  username: "TestUser",
+  global_name: "Test User",
+  joined_at: mockDate,
+  platform_created_at: mockDate,
+  update_at: mockDate,
+  last_active: mockDate,
+  create_at: mockDate,
+  bot: false,
+  email: "test@test.com",
+  status: 1,
+};
+
+const mockDbMessage: Message = {
+  id: 10,
+  platform_id: "message456",
+  channel_id: "channel789",
+  is_deleted: false,
+  user_id: "user123",
+  platform_created_at: mockDate,
+  created_at: mockDate,
+};
+
+const mockDbChannel: Channel = {
+  id: 20,
+  platform_id: "channel789",
+  name: "test-channel",
+  url: "http://test.channel",
+  created_at: mockDate,
+};
+
 const mockDbMessageReaction: MessageReaction = {
+  id: 100,
   user_id: "user123",
   message_id: "message456",
   channel_id: "channel789",
 };
 
+// Mock do que o Prisma retorna com `include`
+const mockFullMessageReaction = {
+  ...mockDbMessageReaction,
+  user: mockDbUser,
+  message: mockDbMessage,
+  channel: mockDbChannel,
+};
+
+// Mocks das Entidades de Domínio
+const mockUserEntity = new UserEntity(
+  mockDbUser.id,
+  mockDbUser.platform_id,
+  mockDbUser.username,
+  mockDbUser.bot,
+  mockDbUser.status,
+  mockDbUser.global_name,
+  mockDbUser.joined_at,
+  mockDbUser.platform_created_at,
+  mockDbUser.create_at,
+  mockDbUser.update_at,
+  mockDbUser.last_active,
+  mockDbUser.email,
+);
+
+const mockMessageEntity = new MessageEntity(
+  mockDbMessage.channel_id,
+  mockDbMessage.platform_id,
+  mockDbMessage.platform_created_at,
+  mockDbMessage.is_deleted,
+  mockDbMessage.user_id,
+  mockDbMessage.id,
+  mockDbMessage.created_at,
+);
+
+const mockChannelEntity = new ChannelEntity(
+  mockDbChannel.id,
+  mockDbChannel.platform_id,
+  mockDbChannel.name,
+  mockDbChannel.url,
+  mockDbChannel.created_at,
+);
+
+// A entidade rica que o repositório deve retornar
 const mockMessageReactionEntity = new MessageReactionEntity(
-  mockDbMessageReaction.user_id,
-  mockDbMessageReaction.message_id,
-  mockDbMessageReaction.channel_id,
+  mockFullMessageReaction.id,
+  mockUserEntity,
+  mockMessageEntity,
+  mockChannelEntity,
 );
 
 describe("MessageReactionRepository", () => {
@@ -43,121 +129,228 @@ describe("MessageReactionRepository", () => {
     jest.clearAllMocks();
   });
 
+  describe("create", () => {
+    it("should create a message reaction and return the full entity", async () => {
+      const createData: CreateMessageReactionData = {
+        userId: "user123",
+        messageId: "message456",
+        channelId: "channel789",
+      };
+      prismaMock.messageReaction.create.mockResolvedValue(
+        mockFullMessageReaction,
+      );
+
+      const result = await messageReactionRepository.create(createData);
+
+      expect(prismaMock.messageReaction.create).toHaveBeenCalledWith({
+        data: {
+          user: { connect: { platform_id: createData.userId } },
+          message: { connect: { platform_id: createData.messageId } },
+          channel: { connect: { platform_id: createData.channelId } },
+        },
+        include: { user: true, message: true, channel: true },
+      });
+      expect(result).toEqual(mockMessageReactionEntity);
+    });
+
+    it("should log an error and return null when prisma throws an error", async () => {
+      const createData: CreateMessageReactionData = {
+        userId: "user123",
+        messageId: "message456",
+        channelId: "channel789",
+      };
+      const errorMessage = "Database connection failed";
+      prismaMock.messageReaction.create.mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      const result = await messageReactionRepository.create(createData);
+
+      expect(result).toBeNull();
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `create | ${errorMessage}`,
+      );
+    });
+  });
+
+  describe("createMany", () => {
+    it("should create multiple reactions and return the count", async () => {
+      const createData: CreateMessageReactionData[] = [
+        { userId: "user1", messageId: "msg1", channelId: "ch1" },
+        { userId: "user2", messageId: "msg2", channelId: "ch2" },
+      ];
+      prismaMock.messageReaction.createMany.mockResolvedValue({ count: 2 });
+
+      const result = await messageReactionRepository.createMany(createData);
+
+      expect(result).toBe(2);
+      expect(prismaMock.messageReaction.createMany).toHaveBeenCalledWith({
+        data: [
+          { user_id: "user1", message_id: "msg1", channel_id: "ch1" },
+          { user_id: "user2", message_id: "msg2", channel_id: "ch2" },
+        ],
+        skipDuplicates: true,
+      });
+    });
+
+    it("should log an error and return 0 when createMany fails", async () => {
+      const createData: CreateMessageReactionData[] = [];
+      const errorMessage = "Bulk insert failed";
+      prismaMock.messageReaction.createMany.mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      const result = await messageReactionRepository.createMany(createData);
+
+      expect(result).toBe(0);
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `createMany | ${errorMessage}`,
+      );
+    });
+  });
+
   describe("getMessageReactionById", () => {
     it("should return a message reaction by user and message id", async () => {
       prismaMock.messageReaction.findUnique.mockResolvedValue(
-        mockDbMessageReaction,
+        mockFullMessageReaction,
       );
 
       const result = await messageReactionRepository.getMessageReactionById(
-        mockMessageReactionEntity.userId,
-        mockMessageReactionEntity.messageId,
+        "user123",
+        "message456",
       );
 
       expect(prismaMock.messageReaction.findUnique).toHaveBeenCalledWith({
         where: {
           user_id_message_id: {
-            user_id: mockMessageReactionEntity.userId,
-            message_id: mockMessageReactionEntity.messageId,
+            user_id: "user123",
+            message_id: "message456",
           },
         },
+        include: { user: true, message: true, channel: true },
       });
       expect(result).toEqual(mockMessageReactionEntity);
     });
 
     it("should return null if message reaction is not found", async () => {
       prismaMock.messageReaction.findUnique.mockResolvedValue(null);
-
       const result = await messageReactionRepository.getMessageReactionById(
         "user1",
         "message1",
       );
-
       expect(result).toBeNull();
     });
 
-    it("should log an error and return null if findUnique fails", async () => {
-      const error = new Error("DB error");
-      prismaMock.messageReaction.findUnique.mockRejectedValue(error);
-
-      const result = await messageReactionRepository.getMessageReactionById(
-        "user1",
-        "message1",
+    it("should log an error and return null when findUnique fails", async () => {
+      const errorMessage = "Query failed";
+      prismaMock.messageReaction.findUnique.mockRejectedValue(
+        new Error(errorMessage),
       );
 
+      const result = await messageReactionRepository.getMessageReactionById(
+        "user123",
+        "message456",
+      );
+
+      expect(result).toBeNull();
       expect(mockLogger.logToConsole).toHaveBeenCalledWith(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.MESSAGE_REACTION,
-        `getMessageReactionById | ${error.message}`,
+        `getMessageReactionById | ${errorMessage}`,
       );
-      expect(result).toBeNull();
     });
   });
 
   describe("getMessageReactionByUserId", () => {
-    it("should return an array of message reactions for a given user id", async () => {
+    it("should return an array of message reactions for a user", async () => {
       prismaMock.messageReaction.findMany.mockResolvedValue([
-        mockDbMessageReaction,
+        mockFullMessageReaction,
       ]);
 
-      const result = await messageReactionRepository.getMessageReactionByUserId(
-        mockMessageReactionEntity.userId,
-      );
+      const result =
+        await messageReactionRepository.getMessageReactionByUserId("user123");
 
       expect(prismaMock.messageReaction.findMany).toHaveBeenCalledWith({
-        where: { user_id: mockMessageReactionEntity.userId },
+        where: { user_id: "user123" },
+        include: { user: true, message: true, channel: true },
       });
       expect(result).toEqual([mockMessageReactionEntity]);
-      expect(result.length).toBe(1);
     });
 
-    it("should return an empty array if no reactions are found for the user", async () => {
-      prismaMock.messageReaction.findMany.mockResolvedValue([]);
+    it("should log an error and return an empty array when findMany fails", async () => {
+      const errorMessage = "Query failed";
+      prismaMock.messageReaction.findMany.mockRejectedValue(
+        new Error(errorMessage),
+      );
 
       const result =
-        await messageReactionRepository.getMessageReactionByUserId(
-          "nonexistentuser",
-        );
+        await messageReactionRepository.getMessageReactionByUserId("user123");
 
       expect(result).toEqual([]);
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `getMessageReactionByUserId | ${errorMessage}`,
+      );
     });
   });
 
   describe("updateMessageReaction", () => {
     it("should update a message reaction and return the updated entity", async () => {
       const updatedData = { channelId: "newChannel123" };
-      const updatedDbReaction = {
-        ...mockDbMessageReaction,
-        channel_id: updatedData.channelId,
+      const updatedFullReaction = {
+        ...mockFullMessageReaction,
+        channel: { ...mockDbChannel, platform_id: "newChannel123" },
       };
-      prismaMock.messageReaction.update.mockResolvedValue(updatedDbReaction);
+      prismaMock.messageReaction.update.mockResolvedValue(updatedFullReaction);
 
       const result = await messageReactionRepository.updateMessageReaction(
-        mockMessageReactionEntity.userId,
-        mockMessageReactionEntity.messageId,
+        "user123",
+        "message456",
         updatedData,
       );
 
       expect(prismaMock.messageReaction.update).toHaveBeenCalledWith({
         where: {
           user_id_message_id: {
-            user_id: mockMessageReactionEntity.userId,
-            message_id: mockMessageReactionEntity.messageId,
+            user_id: "user123",
+            message_id: "message456",
           },
         },
         data: {
-          user_id: undefined,
-          message_id: undefined,
-          channel_id: updatedData.channelId,
+          channel: { connect: { platform_id: updatedData.channelId } },
         },
+        include: { user: true, message: true, channel: true },
       });
-      expect(result).toEqual(
-        new MessageReactionEntity(
-          updatedDbReaction.user_id,
-          updatedDbReaction.message_id,
-          updatedDbReaction.channel_id,
-        ),
+      expect(result.channel.platformId).toBe("newChannel123");
+    });
+
+    it("should log an error and return null when update fails", async () => {
+      const errorMessage = "Update failed";
+      prismaMock.messageReaction.update.mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      const result = await messageReactionRepository.updateMessageReaction(
+        "user123",
+        "message456",
+        {},
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `updateMessageReaction | ${errorMessage}`,
       );
     });
   });
@@ -165,41 +358,44 @@ describe("MessageReactionRepository", () => {
   describe("deleteMessageReaction", () => {
     it("should delete a message reaction and return the deleted entity", async () => {
       prismaMock.messageReaction.delete.mockResolvedValue(
-        mockDbMessageReaction,
+        mockFullMessageReaction,
       );
 
       const result = await messageReactionRepository.deleteMessageReaction(
-        mockMessageReactionEntity.userId,
-        mockMessageReactionEntity.messageId,
+        "user123",
+        "message456",
       );
 
       expect(prismaMock.messageReaction.delete).toHaveBeenCalledWith({
         where: {
           user_id_message_id: {
-            user_id: mockMessageReactionEntity.userId,
-            message_id: mockMessageReactionEntity.messageId,
+            user_id: "user123",
+            message_id: "message456",
           },
         },
+        include: { user: true, message: true, channel: true },
       });
       expect(result).toEqual(mockMessageReactionEntity);
     });
 
-    it("should log an error and return null if deletion fails", async () => {
-      const error = new Error("DB error");
-      prismaMock.messageReaction.delete.mockRejectedValue(error);
-
-      const result = await messageReactionRepository.deleteMessageReaction(
-        "user1",
-        "message1",
+    it("should log an error and return null when delete fails", async () => {
+      const errorMessage = "Delete failed";
+      prismaMock.messageReaction.delete.mockRejectedValue(
+        new Error(errorMessage),
       );
 
+      const result = await messageReactionRepository.deleteMessageReaction(
+        "user123",
+        "message456",
+      );
+
+      expect(result).toBeNull();
       expect(mockLogger.logToConsole).toHaveBeenCalledWith(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.MESSAGE_REACTION,
-        `deleteMessageReaction | ${error.message}`,
+        `deleteMessageReaction | ${errorMessage}`,
       );
-      expect(result).toBeNull();
     });
   });
 });
