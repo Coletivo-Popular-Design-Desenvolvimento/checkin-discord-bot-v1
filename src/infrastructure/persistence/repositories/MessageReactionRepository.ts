@@ -130,13 +130,13 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     }
   }
 
-  async getMessageReactionByUserDiscordId(
+  async getMessageReactionByUserPlatformId(
     userId: string,
   ): Promise<MessageReactionEntity[]> {
     return this.getMessageReactionByUserId(userId);
   }
 
-  async getMessageReactionByDiscordId(
+  async getMessageReactionByPlatformId(
     userId: string,
     messageId: string,
   ): Promise<MessageReactionEntity | null> {

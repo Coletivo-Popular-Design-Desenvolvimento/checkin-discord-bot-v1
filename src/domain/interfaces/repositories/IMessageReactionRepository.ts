@@ -17,11 +17,11 @@ export interface IMessageReactionRepository {
 
   getMessageReactionByUserId(userId: string): Promise<MessageReactionEntity[]>;
 
-  getMessageReactionByUserDiscordId(
+  getMessageReactionByUserPlatformId(
     userId: string,
   ): Promise<MessageReactionEntity[]>;
 
-  getMessageReactionByDiscordId(
+  getMessageReactionByPlatformId(
     userId: string,
     messageId: string,
   ): Promise<MessageReactionEntity | null>;
