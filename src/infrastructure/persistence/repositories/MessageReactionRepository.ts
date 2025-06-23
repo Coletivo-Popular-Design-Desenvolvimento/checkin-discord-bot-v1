@@ -200,38 +200,9 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   }
 
   private toDomain(reaction: FullMessageReaction): MessageReactionEntity {
-    const user = new UserEntity(
-      reaction.user.id,
-      reaction.user.platform_id,
-      reaction.user.username,
-      reaction.user.bot,
-      reaction.user.status,
-      reaction.user.global_name,
-      reaction.user.joined_at,
-      reaction.user.platform_created_at,
-      reaction.user.create_at,
-      reaction.user.update_at,
-      reaction.user.last_active,
-      reaction.user.email,
-    );
-
-    const message = new MessageEntity(
-      reaction.message.channel_id,
-      reaction.message.platform_id,
-      reaction.message.platform_created_at,
-      reaction.message.is_deleted,
-      reaction.message.user_id,
-      reaction.message.id,
-      reaction.message.created_at,
-    );
-
-    const channel = new ChannelEntity(
-      reaction.channel.id,
-      reaction.channel.platform_id,
-      reaction.channel.name,
-      reaction.channel.url,
-      reaction.channel.created_at,
-    );
+    const user = UserEntity.fromPersistence(reaction.user);
+    const message = MessageEntity.fromPersistence(reaction.message);
+    const channel = ChannelEntity.fromPersistence(reaction.channel);
 
     return new MessageReactionEntity(reaction.id, user, message, channel);
   }
