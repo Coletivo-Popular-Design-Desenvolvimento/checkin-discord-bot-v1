@@ -88,14 +88,11 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   }
 
   async getMessageReactionById(
-    userId: string,
-    messageId: string,
+    id: number,
   ): Promise<MessageReactionEntity | null> {
     try {
       const result = await this.client.messageReaction.findUnique({
-        where: {
-          user_id_message_id: { user_id: userId, message_id: messageId },
-        },
+        where: { id },
         include: { user: true, message: true, channel: true },
       });
       return result ? this.toDomain(result) : null;
@@ -131,21 +128,27 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   }
 
   async getMessageReactionByUserPlatformId(
-    userId: string,
+    userPlatformId: string,
   ): Promise<MessageReactionEntity[]> {
-    return this.getMessageReactionByUserId(userId);
-  }
-
-  async getMessageReactionByPlatformId(
-    userId: string,
-    messageId: string,
-  ): Promise<MessageReactionEntity | null> {
-    return this.getMessageReactionById(userId, messageId);
+    try {
+      const results = await this.client.messageReaction.findMany({
+        where: { user_id: userPlatformId },
+        include: { user: true, message: true, channel: true },
+      });
+      return results.map((result) => this.toDomain(result));
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `getMessageReactionByUserPlatformId | ${error.message}`,
+      );
+      return [];
+    }
   }
 
   async updateMessageReaction(
-    userId: string,
-    messageId: string,
+    id: number,
     data: UpdateMessageReactionData,
   ): Promise<MessageReactionEntity | null> {
     try {
@@ -158,9 +161,7 @@ export class MessageReactionRepository implements IMessageReactionRepository {
         persistenceData.channel = { connect: { platform_id: data.channelId } };
 
       const result = await this.client.messageReaction.update({
-        where: {
-          user_id_message_id: { user_id: userId, message_id: messageId },
-        },
+        where: { id },
         data: persistenceData,
         include: { user: true, message: true, channel: true },
       });
@@ -176,18 +177,12 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     }
   }
 
-  async deleteMessageReaction(
-    userId: string,
-    messageId: string,
-  ): Promise<MessageReactionEntity | null> {
+  async deleteMessageReaction(id: number): Promise<boolean> {
     try {
-      const result = await this.client.messageReaction.delete({
-        where: {
-          user_id_message_id: { user_id: userId, message_id: messageId },
-        },
-        include: { user: true, message: true, channel: true },
+      await this.client.messageReaction.delete({
+        where: { id },
       });
-      return this.toDomain(result);
+      return true;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -195,7 +190,7 @@ export class MessageReactionRepository implements IMessageReactionRepository {
         LoggerContextEntity.MESSAGE_REACTION,
         `deleteMessageReaction | ${error.message}`,
       );
-      return null;
+      return false;
     }
   }
 

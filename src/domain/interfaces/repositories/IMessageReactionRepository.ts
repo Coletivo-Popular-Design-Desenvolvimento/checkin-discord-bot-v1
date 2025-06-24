@@ -10,30 +10,18 @@ export interface IMessageReactionRepository {
 
   createMany(data: CreateMessageReactionData[]): Promise<number>;
 
-  getMessageReactionById(
-    userId: string,
-    messageId: string,
-  ): Promise<MessageReactionEntity | null>;
+  getMessageReactionById(id: number): Promise<MessageReactionEntity | null>;
 
   getMessageReactionByUserId(userId: string): Promise<MessageReactionEntity[]>;
 
   getMessageReactionByUserPlatformId(
-    userId: string,
+    userPlatformId: string,
   ): Promise<MessageReactionEntity[]>;
 
-  getMessageReactionByPlatformId(
-    userId: string,
-    messageId: string,
-  ): Promise<MessageReactionEntity | null>;
-
   updateMessageReaction(
-    userId: string,
-    messageId: string,
+    id: number,
     data: UpdateMessageReactionData,
   ): Promise<MessageReactionEntity | null>;
 
-  deleteMessageReaction(
-    userId: string,
-    messageId: string,
-  ): Promise<MessageReactionEntity | null>;
+  deleteMessageReaction(id: number): Promise<boolean>;
 }
