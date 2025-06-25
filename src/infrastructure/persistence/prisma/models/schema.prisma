@@ -130,6 +130,7 @@ model Channel {
 }
 
 model MessageReaction {
+  id         Int     @id @default(autoincrement())
   user       User    @relation(fields: [user_id], references: [platform_id])
   user_id    String
   message    Message @relation(fields: [message_id], references: [platform_id])
@@ -137,6 +138,6 @@ model MessageReaction {
   channel    Channel @relation(fields: [channel_id], references: [platform_id])
   channel_id String
 
-  @@id([user_id, message_id])
+  @@unique([user_id, message_id])
   @@map("message_reaction")
 }
