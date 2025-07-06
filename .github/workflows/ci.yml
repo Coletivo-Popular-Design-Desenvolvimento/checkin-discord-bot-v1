@@ -27,6 +27,9 @@ jobs:
         run: npm install
 
       - name: Executar testes
+        run: npm build
+
+      - name: Executar testes
         run: npm test
 
       - name: Executar migrações
