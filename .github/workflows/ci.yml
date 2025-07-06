@@ -1,8 +1,22 @@
-name: CI
+name: ci
 on: [push]
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mariadb
+        env:
+          MARIADB_ROOT_PASSWORD: mariadb
+          MARIADB_DATABASE: checkindb
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 5
+          --health-start-period 30s
+        ports:
+          - 3306:3306
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -14,3 +28,8 @@ jobs:
 
       - name: Executar testes
         run: npm test
+
+      - name: Executar migrações
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: mysql://root:mariadb@localhost:3306/checkindb
