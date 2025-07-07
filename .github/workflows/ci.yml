@@ -26,11 +26,19 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
-      - name: Executar testes
-        run: npm build
+      - name: Validar tipos
+        run: npm run build
 
       - name: Executar testes
         run: npm test
+
+      - name: Validar schema
+        run: npx prisma format --check
+
+      - name: Validar alterações pendentes ao schema
+        run: |
+          npx prisma generate
+          git diff --exit-code src/infrastructure/persistence/prisma/models/dbml/
 
       - name: Executar migrações
         run: npx prisma migrate deploy
