@@ -29,6 +29,9 @@ jobs:
       - name: Validar tipos
         run: npm run build
 
+      - name: Executar linter
+        run: npm run lint
+
       - name: Executar testes
         run: npm test
 

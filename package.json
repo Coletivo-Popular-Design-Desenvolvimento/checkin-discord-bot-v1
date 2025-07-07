@@ -15,6 +15,7 @@
     "db:studio": "npx prisma studio",
     "db:migrate-reset": "npx prisma migrate reset",
     "test": "jest",
+    "lint": "eslint && prettier \"src/{application,contexts,domain,infraestructure,tests}/*.ts\" --check",
     "prepare": "husky"
   },
   "dependencies": {
@@ -65,5 +66,11 @@
   },
   "prisma": {
     "schema": "src/infrastructure/persistence/prisma/models/schema.prisma"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": false
   }
 }
