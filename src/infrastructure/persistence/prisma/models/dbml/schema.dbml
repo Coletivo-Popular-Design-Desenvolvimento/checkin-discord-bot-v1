@@ -20,6 +20,7 @@ Table user {
   message message [not null]
   message_reaction message_reaction [not null]
   audio_event audio_event [not null]
+  user_channel user_channel [not null]
 }
 
 Table role {
@@ -101,6 +102,7 @@ Table channel {
   message message [not null]
   audio_event audio_event [not null]
   message_reaction message_reaction [not null]
+  user_channel user_channel [not null]
   created_at DateTime [default: `now()`, not null]
 }
 
@@ -115,6 +117,17 @@ Table message_reaction {
 
   indexes {
     (user_id, message_id) [unique]
+  }
+}
+
+Table user_channel {
+  user user [not null]
+  user_id String [not null]
+  channel channel [not null]
+  channel_id String [not null]
+
+  indexes {
+    (user_id, channel_id) [pk]
   }
 }
 
@@ -141,3 +154,7 @@ Ref: message_reaction.user_id > user.platform_id
 Ref: message_reaction.message_id > message.platform_id
 
 Ref: message_reaction.channel_id > channel.platform_id
+
+Ref: user_channel.user_id > user.platform_id
+
+Ref: user_channel.channel_id > channel.platform_id

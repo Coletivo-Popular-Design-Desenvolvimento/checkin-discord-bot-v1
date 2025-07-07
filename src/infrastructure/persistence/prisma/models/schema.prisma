@@ -35,6 +35,7 @@ model User {
   message             Message[]
   message_reaction    MessageReaction[]
   audio_event         AudioEvent[]
+  user_channel        UserChannel[]
 
   @@map("user")
 }
@@ -124,6 +125,7 @@ model Channel {
   message          Message[]
   audio_event      AudioEvent[]
   message_reaction MessageReaction[]
+  user_channel     UserChannel[]
   created_at       DateTime          @default(now())
 
   @@map("channel")
@@ -140,4 +142,14 @@ model MessageReaction {
 
   @@unique([user_id, message_id])
   @@map("message_reaction")
+}
+
+model UserChannel {
+  user       User    @relation(fields: [user_id], references: [platform_id])
+  user_id    String
+  channel    Channel @relation(fields: [channel_id], references: [platform_id])
+  channel_id String
+
+  @@id([user_id, channel_id])
+  @@map("user_channel")
 }
