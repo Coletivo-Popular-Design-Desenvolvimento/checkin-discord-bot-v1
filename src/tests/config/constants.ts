@@ -232,3 +232,13 @@ export const mockDbAudioEventUpdatedValue: PrismaAudioEvent = {
   status_id: mockAudioEventUpdatePayload.statusId!,
   user_count: mockAudioEventUpdatePayload.userCount!,
 };
+
+//RoleRepository tests consts
+export const mockDBRoleValue = {
+  id: 1,
+  platform_id: "1",
+  name: "dev",
+  created_at: new Date("2025-01-01"),
+  platform_created_at: new Date("2025-01-01"),
+  user_role: [{ user: mockDBUserValue }],
+};

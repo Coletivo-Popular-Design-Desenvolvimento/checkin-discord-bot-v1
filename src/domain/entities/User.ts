@@ -19,7 +19,7 @@ export class UserEntity {
   ) {}
 
   public static fromPersistence(user: User): UserEntity {
-    return new UserEntity(
+    const test = new UserEntity(
       user.id,
       user.platform_id,
       user.username,
@@ -33,5 +33,6 @@ export class UserEntity {
       user.last_active,
       user.email,
     );
+    return test;
   }
 }
