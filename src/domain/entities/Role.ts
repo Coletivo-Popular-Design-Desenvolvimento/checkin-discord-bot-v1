@@ -17,7 +17,7 @@ export class RoleEntity {
       include: { user_role: { include: { user: true } } };
     }>,
   ): RoleEntity {
-    const test = new RoleEntity(
+    return new RoleEntity(
       role.id,
       role.platform_id,
       role.name,
@@ -27,6 +27,5 @@ export class RoleEntity {
         UserEntity.fromPersistence(userRole.user),
       ),
     );
-    return test;
   }
 }

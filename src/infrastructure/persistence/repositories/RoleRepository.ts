@@ -49,7 +49,7 @@ export class RoleRepository implements IRoleRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.ROLE,
-        `UserPlatformId | ${error.message}`,
+        `findByUserPlatformId | ${error.message}`,
       );
     }
   }
@@ -65,7 +65,7 @@ export class RoleRepository implements IRoleRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.ROLE,
-        `findByPlataformIdRole | ${error.message}`,
+        `findByPlatformId | ${error.message}`,
       );
     }
   }

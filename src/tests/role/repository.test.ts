@@ -13,21 +13,14 @@ describe("RoleRepository", () => {
       logToConsole: jest.fn(),
       logToDatabase: jest.fn(),
     };
-    // mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
-    //     console.error(message); // Simulate logging to console.error
-    // });
+    mockLogger.logToConsole = jest.fn().mockImplementation(() => {
+      console.error("ERROR"); // Simulate logging to console.error
+    });
     roleRepository = new RoleRepository(prismaServiceMock, mockLogger);
   });
 
   describe("findById", () => {
     it("should return a role by id", async () => {
-      // prismaMock.role.findUnique.mockResolvedValue(mockDBRoleValue);
-      // const spy = jest.spyOn(console, "error").mockImplementation(() => { });
-
-      // await roleRepository.findById(mockDBRoleValue.id);
-
-      // expect(spy).toHaveBeenCalledWith("ERROR");
-
       // Bloco de Arrange
       prismaMock.role.findUnique.mockResolvedValue(mockDBRoleValue);
 
@@ -70,6 +63,15 @@ describe("RoleRepository", () => {
 
       expect(role).toBeUndefined();
     });
+
+    it("should log an error", async () => {
+      prismaMock.role.findUnique.mockRejectedValue(new Error());
+      const spy = jest.spyOn(console, "error");
+
+      await roleRepository.findById(mockDBRoleValue.id);
+
+      expect(spy).toHaveBeenCalledWith("ERROR");
+    });
   });
 
   //findByUserRolePlatformId
@@ -77,8 +79,21 @@ describe("RoleRepository", () => {
     it("shoud return a role id", async () => {
       const roleData = [mockDBRoleValue];
       prismaMock.role.findMany.mockResolvedValue(roleData);
-      // const role = await roleRepository.findByUserPlatformId(mockDBRoleValue.platform_id);
-      // expect(role).toBe(roleData);
+      const roleArray = await roleRepository.findByUserPlatformId(
+        mockDBRoleValue.platform_id,
+      );
+      const role = roleArray[0];
+      expect(role).toHaveProperty("id", 1);
+      expect(role).toHaveProperty("platformId", "1");
+      expect(role).toHaveProperty("name", "dev");
+      expect(role).toHaveProperty("createdAt", new Date("2025-01-01"));
+      expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
+      expect(role).toHaveProperty(
+        "user",
+        mockDBRoleValue.user_role.map((userRole) =>
+          UserEntity.fromPersistence(userRole.user),
+        ),
+      );
     });
     it("should return null if role not found", async () => {
       const platform_id = mockDBRoleValue.platform_id;
@@ -175,8 +190,7 @@ describe("RoleRepository", () => {
 
     expect(prismaMock.role.findMany).toHaveBeenCalledTimes(1);
 
-    //expect(role).toBeDefined();
-    //expect(role.length).toBeGreaterThan(0);
+    expect(role.length).toBeGreaterThan(0);
     expect(role[0]).toHaveProperty("id", 1);
     expect(role[0]).toHaveProperty("platformId", "1");
   });
@@ -205,13 +219,13 @@ describe("RoleRepository", () => {
       expect(role).toBe(role);
     });
 
-    it("should throw an error if role not found", async () => {
+    it("should throw an error", async () => {
       prismaMock.role.delete.mockRejectedValue(new Error());
-      // const spy = jest.spyOn(console, "error").mockImplementation(() => { });
+      const spy = jest.spyOn(console, "error");
 
       await roleRepository.deleteById(mockDBRoleValue.id);
 
-      // expect(spy).toHaveBeenCalledWith("error");
+      expect(spy).toHaveBeenCalledWith("ERROR");
 
       expect(prismaMock.role.delete).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.delete).toHaveBeenCalledWith({
