@@ -14,6 +14,7 @@ export enum LoggerContextEntity {
   MESSAGE_REACTION = "MESSAGE_REACTION",
   CHANNEL = "CHANNEL",
   AUDIO_EVENT = "AUDIO_EVENT",
+  ROLE = "ROLE",
 }
 
 export enum LoggerContextStatus {
