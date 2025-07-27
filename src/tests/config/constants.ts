@@ -163,6 +163,7 @@ export const mockDbAudioEventValue = {
   channel_id: "101",
   channel: mockDbChannelValue,
   creator_id: "202",
+  creator: mockDBUserValue,
   name: "Test Event",
   description: "This is a test event.",
   status_id: "1",
@@ -176,6 +177,7 @@ export const mockDbAudioEventValue = {
 export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
   mockDbAudioEventValue,
   mockDbChannelValue,
+  mockDBUserValue
 );
 
 export const mockAudioEventCreatePayload: Omit<
@@ -184,7 +186,7 @@ export const mockAudioEventCreatePayload: Omit<
 > = {
   platformId: "1234567890",
   channel: mockChannelEntityValue,
-  creatorId: "203",
+  creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",
   statusId: "2",
@@ -199,7 +201,8 @@ export const mockDbAudioEventCreatedValue = {
   platform_id: mockAudioEventCreatePayload.platformId,
   channel_id: mockDbChannelValue.platform_id,
   channel: mockDbChannelValue,
-  creator_id: mockAudioEventCreatePayload.creatorId,
+  creator: mockDBUserValue,
+  creator_id: mockDBUserValue.platform_id,
   name: mockAudioEventCreatePayload.name!,
   description: mockAudioEventCreatePayload.description!,
   status_id: mockAudioEventCreatePayload.statusId,

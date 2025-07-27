@@ -34,7 +34,7 @@ export class AudioEventRepository implements IAudioEventRepository {
     return {
       platform_id: eventData.platformId,
       channel_id: eventData.channel?.platformId,
-      creator_id: eventData.creatorId,
+      creator_id: eventData.creator?.platformId,
       name: eventData.name,
       status_id: eventData.statusId,
       start_at: eventData.startAt,
@@ -51,9 +51,9 @@ export class AudioEventRepository implements IAudioEventRepository {
     try {
       const result = await this.client.audioEvent.create({
         data: this.toPersistence(eventData),
-        include: { channel: true },
+        include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel);
+      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -89,10 +89,10 @@ export class AudioEventRepository implements IAudioEventRepository {
     try {
       const result = await this.client.audioEvent.findUnique({
         where: { id },
-        include: { channel: true },
+        include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(result, result.channel)
+        ? AudioEventEntity.fromPersistence(result, result.channel, result.creator)
         : null;
     } catch (error) {
       this.logger.logToConsole(
@@ -120,10 +120,10 @@ export class AudioEventRepository implements IAudioEventRepository {
         take: params?.limit,
         where: whereClause,
         orderBy: { start_at: "desc" },
-        include: { channel: true },
+        include: { channel: true, creator: true },
       });
       return results.map((result) =>
-        AudioEventEntity.fromPersistence(result, result.channel),
+        AudioEventEntity.fromPersistence(result, result.channel, result.creator),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -156,9 +156,9 @@ export class AudioEventRepository implements IAudioEventRepository {
       const result = await this.client.audioEvent.update({
         where: { id },
         data: this.toPersistence(eventData),
-        include: { channel: true },
+        include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel);
+      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
