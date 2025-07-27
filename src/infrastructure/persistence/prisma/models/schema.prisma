@@ -130,7 +130,7 @@ model Channel {
   audio_event      AudioEvent[]
   message          Message[]
   message_reaction MessageReaction[]
-  User             User[]
+  user             User[]
   user_channel     UserChannel[]
 
   @@map("channel")

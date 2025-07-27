@@ -105,7 +105,7 @@ Table channel {
   audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  User user [not null]
+  user user [not null]
   user_channel user_channel [not null]
 }
 

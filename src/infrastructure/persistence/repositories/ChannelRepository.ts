@@ -31,14 +31,27 @@ export class ChannelRepository implements IChannelRepository {
     try {
       const result = await this.client.channel.create({
         data: {
-          user: { connect: { platform_id: channel.user } },
-          message: { connect: { platform_id: channel.messageId } },
-          messageReaction: { connect: { platform_id: channel.channelId } },
+          ...this.toPersistence(channel),
+          user: {
+            connect: channel.user.map((user) => ({
+              platform_id: user.platformId,
+            })),
+          },
+          message: {
+            connect: channel.message.map((message) => ({
+              platform_id: message.platformId,
+            })),
+          },
+          message_reaction: {
+            connect: channel.messageReaction.map((messageReaction) => ({
+              id: messageReaction.id,
+            })),
+          },
         },
-        include: { user: true, message: true, messageReaction: true },
+        include: { user: true, message: true, message_reaction: true },
       });
 
-      return this.toDomain(result);
+      return ChannelEntity.fromPersistence(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -52,7 +65,24 @@ export class ChannelRepository implements IChannelRepository {
   async createMany(channel: Omit<ChannelEntity, "id">[]): Promise<number> {
     try {
       const result = await this.client.channel.createMany({
-        data: channel.map((channel) => this.toPersistence(channel)),
+        data: channel.map((channel) => ({
+          ...this.toPersistence(channel),
+          user: {
+            connect: channel.user.map((user) => ({
+              platform_id: user.platformId,
+            })),
+          },
+          message: {
+            connect: channel.message.map((message) => ({
+              platform_id: message.platformId,
+            })),
+          },
+          message_reaction: {
+            connect: channel.messageReaction.map((messageReaction) => ({
+              id: messageReaction.id,
+            })),
+          },
+        })),
         skipDuplicates: true,
       });
       return result.count;
@@ -78,8 +108,9 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           id,
         },
+        include: { user: true, message: true, message_reaction: true },
       });
-      return result ? this.toDomain(result) : null;
+      return result ? ChannelEntity.fromPersistence(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -102,8 +133,9 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           platform_id: id,
         },
+        include: { user: true, message: true, message_reaction: true },
       });
-      return result ? this.toDomain(result) : null;
+      return result ? ChannelEntity.fromPersistence(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -125,8 +157,9 @@ export class ChannelRepository implements IChannelRepository {
       const results = await this.client.channel.findMany({
         take: limit,
         where: {},
+        include: { user: true, message: true, message_reaction: true },
       });
-      return results.map((result) => this.toDomain(result));
+      return results.map((result) => ChannelEntity.fromPersistence(result));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -153,7 +186,7 @@ export class ChannelRepository implements IChannelRepository {
         where: { id },
         data: this.toPersistence(channel),
       });
-      return result ? this.toDomain(result) : null;
+      return result ? ChannelEntity.fromPersistence(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -185,25 +218,15 @@ export class ChannelRepository implements IChannelRepository {
       );
     }
   }
-  private toDomain(channel: Channel): ChannelEntity {
-    return new ChannelEntity(
-      channel.id,
-      channel.platform_id,
-      channel.name,
-      channel.url,
-      channel.created_at,
-      undefined,
-      undefined,
-      undefined
-    );
-  }
+
+  // toDomain = fromPersistence :O
 
   private toPersistence(channel: Partial<ChannelEntity>) {
     return {
       platform_id: channel.platformId,
       name: channel.name,
       url: channel.url,
-      created_at: channel.createdAt
+      created_at: channel.createdAt,
     };
   }
 }
