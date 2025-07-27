@@ -1,4 +1,5 @@
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
+import { ChannelEntity } from "@domain/entities/Channel";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
   LoggerContextStatus,
@@ -47,7 +48,7 @@ describe("AudioEventRepository", () => {
       expect(prismaMock.audioEvent.create).toHaveBeenCalledWith({
         data: {
           platform_id: mockAudioEventCreatePayload.platformId,
-          channel_id: mockAudioEventCreatePayload.channelId,
+          channel_id: mockAudioEventCreatePayload.channel.platformId,
           creator_id: mockAudioEventCreatePayload.creatorId,
           name: mockAudioEventCreatePayload.name,
           description: mockAudioEventCreatePayload.description,
@@ -57,12 +58,13 @@ describe("AudioEventRepository", () => {
           user_count: mockAudioEventCreatePayload.userCount,
           image: mockAudioEventCreatePayload.image,
         },
+        include: { channel: true },
       });
       expect(event).toEqual(
         new AudioEventEntity(
           mockDbAudioEventCreatedValue.id,
           mockDbAudioEventCreatedValue.platform_id,
-          mockDbAudioEventCreatedValue.channel_id,
+          ChannelEntity.fromPersistence(mockDbAudioEventCreatedValue.channel),
           mockDbAudioEventCreatedValue.creator_id,
           mockDbAudioEventCreatedValue.name,
           mockDbAudioEventCreatedValue.status_id,
@@ -125,9 +127,12 @@ describe("AudioEventRepository", () => {
       const event = await audioEventRepository.findById(1);
 
       expect(prismaMock.audioEvent.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.audioEvent.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
+      expect(prismaMock.audioEvent.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          include: { channel: true },
+        }),
+      );
       expect(event).toEqual(mockAudioEventEntityValue);
     });
 
@@ -152,6 +157,7 @@ describe("AudioEventRepository", () => {
         take: undefined,
         where: {},
         orderBy: { start_at: "desc" },
+        include: { channel: true },
       });
       expect(events).toHaveLength(2);
       expect(events[0]).toEqual(mockAudioEventEntityValue);
@@ -164,6 +170,7 @@ describe("AudioEventRepository", () => {
         take: undefined,
         where: { status_id: "1" },
         orderBy: { start_at: "desc" },
+        include: { channel: true },
       });
     });
   });
@@ -176,6 +183,7 @@ describe("AudioEventRepository", () => {
         take: undefined,
         where: { channel_id: "101" },
         orderBy: { start_at: "desc" },
+        include: { channel: true },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
     });
@@ -189,6 +197,7 @@ describe("AudioEventRepository", () => {
         take: undefined,
         where: { creator_id: "202" },
         orderBy: { start_at: "desc" },
+        include: { channel: true },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
     });
@@ -202,6 +211,7 @@ describe("AudioEventRepository", () => {
         take: undefined,
         where: { status_id: "1" },
         orderBy: { start_at: "desc" },
+        include: { channel: true },
       });
       expect(events[0]).toEqual(mockAudioEventEntityValue);
     });
@@ -233,6 +243,7 @@ describe("AudioEventRepository", () => {
           end_at: undefined,
           image: undefined,
         },
+        include: { channel: true },
       });
       expect(event?.name).toBe(mockAudioEventUpdatePayload.name);
       expect(event?.statusId).toBe(mockAudioEventUpdatePayload.statusId);
