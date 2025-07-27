@@ -30,8 +30,14 @@ export class ChannelRepository implements IChannelRepository {
   async create(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity> {
     try {
       const result = await this.client.channel.create({
-        data: this.toPersistence(channel),
+        data: {
+          user: { connect: { platform_id: channel.user } },
+          message: { connect: { platform_id: channel.messageId } },
+          messageReaction: { connect: { platform_id: channel.channelId } },
+        },
+        include: { user: true, message: true, messageReaction: true },
       });
+
       return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
@@ -186,6 +192,9 @@ export class ChannelRepository implements IChannelRepository {
       channel.name,
       channel.url,
       channel.created_at,
+      undefined,
+      undefined,
+      undefined
     );
   }
 
@@ -194,7 +203,7 @@ export class ChannelRepository implements IChannelRepository {
       platform_id: channel.platformId,
       name: channel.name,
       url: channel.url,
-      created_at: channel.createdAt,
+      created_at: channel.createdAt
     };
   }
 }

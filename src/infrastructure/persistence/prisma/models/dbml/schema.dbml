@@ -4,39 +4,41 @@
 
 Table user {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   username String [not null]
   global_name String
   joined_at DateTime
-  platform_created_at DateTime
   update_at DateTime
   last_active DateTime
   create_at DateTime [default: `now()`]
   bot Boolean [not null]
   email String
   status Int [not null]
-  user_role user_role [not null]
-  user_event user_event [not null]
+  platform_created_at DateTime
+  platform_id String [unique, not null]
+  channelId Int
+  audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  audio_event audio_event [not null]
+  Channel channel
   user_channel user_channel [not null]
+  user_event user_event [not null]
+  user_role user_role [not null]
 }
 
 Table role {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   name String [not null]
-  platform_created_at DateTime [not null]
   created_at DateTime [default: `now()`, not null]
+  platform_created_at DateTime [not null]
+  platform_id String [unique, not null]
   user_role user_role [not null]
 }
 
 Table user_role {
-  user user [not null]
   user_id String [not null]
-  role role [not null]
   roleId String [not null]
+  role role [not null]
+  user user [not null]
 
   indexes {
     (user_id, roleId) [pk]
@@ -45,36 +47,36 @@ Table user_role {
 
 Table audio_event {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   channel_id String [not null]
-  channel channel [not null]
   creator_id String [not null]
-  creator user [not null]
   name String [not null]
   description String
-  status event_status [not null]
   status_id String [not null]
   start_at DateTime [not null]
   end_at DateTime [not null]
   user_count Int [not null]
-  user_event user_event [not null]
   image String
   created_at DateTime [default: `now()`, not null]
+  platform_id String [unique, not null]
+  channel channel [not null]
+  creator user [not null]
+  status event_status [not null]
+  user_event user_event [not null]
 }
 
 Table event_status {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   name String [not null]
-  event audio_event [not null]
   created_at DateTime [default: `now()`, not null]
+  platform_id String [unique, not null]
+  event audio_event [not null]
 }
 
 Table user_event {
-  event audio_event [not null]
   event_id String [not null]
-  user user [not null]
   user_id String [not null]
+  event audio_event [not null]
+  user user [not null]
 
   indexes {
     (user_id, event_id) [pk]
@@ -83,37 +85,38 @@ Table user_event {
 
 Table message {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   channel_id String [not null]
-  channel channel [not null]
-  is_deleted Boolean [not null, default: false]
   user_id String [not null]
-  user user [not null]
-  platform_created_at DateTime [not null]
   created_at DateTime [default: `now()`, not null]
+  is_deleted Boolean [not null, default: false]
+  platform_created_at DateTime [not null]
+  platform_id String [unique, not null]
+  channel channel [not null]
+  user user [not null]
   message_reaction message_reaction [not null]
 }
 
 Table channel {
   id Int [pk, increment]
-  platform_id String [unique, not null]
   name String [not null]
   url String [not null]
-  message message [not null]
-  audio_event audio_event [not null]
-  message_reaction message_reaction [not null]
-  user_channel user_channel [not null]
   created_at DateTime [default: `now()`, not null]
+  platform_id String [unique, not null]
+  audio_event audio_event [not null]
+  message message [not null]
+  message_reaction message_reaction [not null]
+  User user [not null]
+  user_channel user_channel [not null]
 }
 
 Table message_reaction {
-  id Int [pk, increment]
-  user user [not null]
   user_id String [not null]
-  message message [not null]
   message_id String [not null]
-  channel channel [not null]
   channel_id String [not null]
+  id Int [pk, increment]
+  channel channel [not null]
+  message message [not null]
+  user user [not null]
 
   indexes {
     (user_id, message_id) [unique]
@@ -121,19 +124,21 @@ Table message_reaction {
 }
 
 Table user_channel {
-  user user [not null]
   user_id String [not null]
-  channel channel [not null]
   channel_id String [not null]
+  channel channel [not null]
+  user user [not null]
 
   indexes {
     (user_id, channel_id) [pk]
   }
 }
 
-Ref: user_role.user_id > user.platform_id
+Ref: user.channelId > channel.id
 
 Ref: user_role.roleId > role.platform_id
+
+Ref: user_role.user_id > user.platform_id
 
 Ref: audio_event.channel_id > channel.platform_id
 
@@ -149,12 +154,12 @@ Ref: message.channel_id > channel.platform_id
 
 Ref: message.user_id > user.platform_id
 
-Ref: message_reaction.user_id > user.platform_id
+Ref: message_reaction.channel_id > channel.platform_id
 
 Ref: message_reaction.message_id > message.platform_id
 
-Ref: message_reaction.channel_id > channel.platform_id
-
-Ref: user_channel.user_id > user.platform_id
+Ref: message_reaction.user_id > user.platform_id
 
 Ref: user_channel.channel_id > channel.platform_id
+
+Ref: user_channel.user_id > user.platform_id

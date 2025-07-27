@@ -6,8 +6,9 @@ import {
   mockDbChannelValue,
   mockChannelEntityValue,
   mockChannelUpdatePayload,
-  mockDbChannelUpdatedValue,
+  mockDbChannelUpdatedValue, mockDBUserValue,
 } from "@tests/config/constants";
+import {User} from "discord.js";
 
 describe("ChannelRepository", () => {
   let channelRepository: ChannelRepository;
@@ -42,7 +43,9 @@ describe("ChannelRepository", () => {
       expect(channel).toHaveProperty("platformId", "discordId");
       expect(channel).toHaveProperty("name", "channelName");
       expect(channel).toHaveProperty("url", "channelUrl");
-      expect(channel).toHaveProperty("createdAt", expect.any(Date));
+      expect(channel).toHaveProperty("user", expect.any(Object));
+      expect(channel).toHaveProperty("message", expect.any(Object));
+      expect(channel).toHaveProperty("messageReactionEntity", expect.any(Object));
     });
 
     it("should return null if channel not found", async () => {
@@ -106,6 +109,9 @@ describe("ChannelRepository", () => {
         name: "newChannelName",
         url: "newChannelUrl",
         createdAt: new Date(),
+        user: mockDBUserValue,
+        message: mockDBUserValue,
+        user: mockDBUserValue
       };
       const dbChannelData = {
         id: 2,
@@ -113,6 +119,9 @@ describe("ChannelRepository", () => {
         name: channelData.name,
         url: channelData.url,
         created_at: channelData.createdAt,
+        user: channelData.user,
+        message: channelData.message,
+        messageReactionEntity: channelData.messageReactionEntity
       };
       prismaMock.channel.create.mockResolvedValue(dbChannelData);
 
