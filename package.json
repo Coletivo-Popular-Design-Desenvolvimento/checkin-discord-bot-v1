@@ -14,7 +14,8 @@
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
     "db:migrate-reset": "npx prisma migrate reset",
-    "test": "jest",
+    "pretest": "dotenv -e .env.test -- npx prisma migrate dev",
+    "test": "dotenv -e .env.test -- jest",
     "lint": "eslint && prettier \"src/{application,contexts,domain,infraestructure,tests}/*.ts\" --check",
     "prepare": "husky"
   },

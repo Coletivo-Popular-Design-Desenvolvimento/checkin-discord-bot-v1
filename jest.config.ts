@@ -7,7 +7,10 @@ const config: JestConfigWithTsJest = {
   transform: {
     "^.+\\.tsx?$": ["ts-jest", {}],
   },
-  setupFilesAfterEnv: ["<rootDir>/src/tests/config/singleton.ts"],
+  setupFilesAfterEnv: [
+    "<rootDir>/src/tests/jestSetup.ts",
+    "<rootDir>/src/tests/config/singleton.ts",
+  ],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths || {}, {
     prefix: "<rootDir>/src/",
   }),

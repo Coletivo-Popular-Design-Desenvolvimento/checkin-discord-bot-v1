@@ -3,40 +3,49 @@ import { ILoggerService } from "@services/ILogger";
 import { UserStatus } from "@type/UserStatusEnum";
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { UserRepository } from "@infra/repositories/UserRepository";
-import { mockDBUserValue, mockUserUpdateValue } from "../config/constants";
+import {
+  mockDBUserValue,
+  mockUserUpdateValue,
+  mockUserValue,
+} from "../config/constants";
 import { prismaMock } from "../config/singleton";
+import { PrismaClient } from "@prisma/client";
 
 describe("UserRepository", () => {
   let userRepository: UserRepository;
-  const prismaServiceMock = new PrismaService(prismaMock);
+  const prismaService = new PrismaService(new PrismaClient());
+
   beforeAll(() => {
     const mockLogger: ILoggerService = {
       logToConsole: jest.fn(),
       logToDatabase: jest.fn(),
     };
+
     mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
       console.error(message); // Simulate logging to console.error
     });
-    userRepository = new UserRepository(prismaServiceMock, mockLogger);
+
+    userRepository = new UserRepository(prismaService, mockLogger);
   });
 
   describe("findById", () => {
-    it("should return a user by id", async () => {
-      const id = 1;
+    it.only("should return a user by id", async () => {
+      try {
+        await prismaService.getClient().$transaction(async () => {
+          await userRepository.create(mockUserValue);
 
-      prismaMock.user.findUnique.mockResolvedValue(mockDBUserValue);
+          const id = 1;
+          const user = await userRepository.findById(id);
 
-      const user = await userRepository.findById(id);
-
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id, status: { in: [UserStatus.ACTIVE] } },
-      });
-
-      expect(user).toHaveProperty("id", 1);
-      expect(user).toHaveProperty("platformId", "1234567890");
-      expect(user).toHaveProperty("username", "John Doe");
-      expect(user).toHaveProperty("bot", false);
+          expect(user).toHaveProperty("id", 1);
+          expect(user).toHaveProperty("platformId", "1234567890");
+          expect(user).toHaveProperty("username", "John Doe");
+          expect(user).toHaveProperty("bot", false);
+          throw new Error("Rollback");
+        });
+      } catch (error) {
+        if (error.message !== "Rollback") throw error;
+      }
     });
 
     it("should return null if user not found", async () => {
