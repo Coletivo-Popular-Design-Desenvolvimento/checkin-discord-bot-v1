@@ -254,8 +254,6 @@ export class ChannelRepository implements IChannelRepository {
     }
   }
 
-  // toDomain = fromPersistence :O
-
   private toPersistence(channel: Partial<ChannelEntity>) {
     return {
       platform_id: channel.platformId,
