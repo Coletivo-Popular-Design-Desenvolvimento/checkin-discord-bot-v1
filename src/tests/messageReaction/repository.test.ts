@@ -33,6 +33,7 @@ const mockDbUser: User = {
   bot: false,
   email: "test@test.com",
   status: 1,
+  channelId: null,
 };
 
 const mockDbMessage: Message = {

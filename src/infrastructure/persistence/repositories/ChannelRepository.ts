@@ -1,4 +1,4 @@
-import { PrismaClient, Channel } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
 import {
   LoggerContext,
@@ -59,33 +59,40 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
+      throw error;
     }
   }
 
   async createMany(channel: Omit<ChannelEntity, "id">[]): Promise<number> {
     try {
-      const result = await this.client.channel.createMany({
-        data: channel.map((channel) => ({
-          ...this.toPersistence(channel),
-          user: {
-            connect: channel.user.map((user) => ({
-              platform_id: user.platformId,
-            })),
-          },
-          message: {
-            connect: channel.message.map((message) => ({
-              platform_id: message.platformId,
-            })),
-          },
-          message_reaction: {
-            connect: channel.messageReaction.map((messageReaction) => ({
-              id: messageReaction.id,
-            })),
-          },
-        })),
-        skipDuplicates: true,
-      });
-      return result.count;
+      // createMany do Prisma não suporta inclusão de relacionamentos, por isso as associações precisam ser gerenciadas manualmente.
+
+      const creations = await Promise.all(
+        channel.map((ch) =>
+          this.client.channel.create({
+            data: {
+              ...this.toPersistence(ch),
+              user: {
+                connect: ch.user.map((user) => ({
+                  platform_id: user.platformId,
+                })),
+              },
+              message: {
+                connect: ch.message.map((message) => ({
+                  platform_id: message.platformId,
+                })),
+              },
+              message_reaction: {
+                connect: ch.messageReaction.map((reaction) => ({
+                  id: reaction.id,
+                })),
+              },
+            },
+          }),
+        ),
+      );
+
+      return creations.length;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -93,6 +100,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `createMany | ${error.message}`,
       );
+      return 0;
     }
   }
 
@@ -110,7 +118,15 @@ export class ChannelRepository implements IChannelRepository {
         },
         include: { user: true, message: true, message_reaction: true },
       });
-      return result ? ChannelEntity.fromPersistence(result) : null;
+
+      if (!result) return null;
+
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user,
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -118,6 +134,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `findById | ${error.message}`,
       );
+      return null;
     }
   }
 
@@ -135,7 +152,15 @@ export class ChannelRepository implements IChannelRepository {
         },
         include: { user: true, message: true, message_reaction: true },
       });
-      return result ? ChannelEntity.fromPersistence(result) : null;
+
+      if (!result) return null;
+
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user,
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -143,6 +168,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `findByPlatformId | ${error.message}`,
       );
+      return null;
     }
   }
 
@@ -159,7 +185,15 @@ export class ChannelRepository implements IChannelRepository {
         where: {},
         include: { user: true, message: true, message_reaction: true },
       });
-      return results.map((result) => ChannelEntity.fromPersistence(result));
+
+      return results.map((result) =>
+        ChannelEntity.fromPersistence(
+          result,
+          result.user,
+          result.message,
+          result.message_reaction,
+        ),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -167,6 +201,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
+      return [];
     }
   }
 

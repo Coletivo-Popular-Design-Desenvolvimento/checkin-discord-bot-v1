@@ -15,6 +15,7 @@ export type naturalizeUser = {
   last_active: Date | null;
   bot: boolean;
   email: string | null;
+  channelId: number | null;
 };
 
 export const mockDBUserValue = {
@@ -133,6 +134,9 @@ export const mockDbChannelValue = {
   created_at: new Date(),
   name: "channelName",
   url: "channelUrl",
+  user: [mockDBUserValue],
+  message: [mockDbMessageValue],
+  message_reaction: [],
 };
 
 export const mockChannelEntityValue = {
@@ -141,6 +145,9 @@ export const mockChannelEntityValue = {
   name: "channelName",
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
+  user: [mockUserValue],
+  message: [mockMessageValue],
+  messageReaction: [],
 };
 
 export const mockChannelUpdatePayload = {
