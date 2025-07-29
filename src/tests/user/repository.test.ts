@@ -13,14 +13,14 @@ import { PrismaClient } from "@prisma/client";
 
 describe("UserRepository", () => {
   let userRepository: UserRepository;
+  const mockLogger: ILoggerService = {
+    logToConsole: jest.fn(),
+    logToDatabase: jest.fn(),
+  };
+
   const prismaService = new PrismaService(new PrismaClient());
 
   beforeAll(() => {
-    const mockLogger: ILoggerService = {
-      logToConsole: jest.fn(),
-      logToDatabase: jest.fn(),
-    };
-
     mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
       console.error(message); // Simulate logging to console.error
     });
@@ -29,15 +29,21 @@ describe("UserRepository", () => {
   });
 
   describe("findById", () => {
+    // https://github.com/Quramy/jest-prisma/blob/743e9ce1913af0749d2a6703c8314dfcba9553e3/packages/jest-prisma-core/src/delegate.ts#L99
+    // it.only("should return a user by id", async (prisma) => {
+    //   userRepository = new UserRepository(prisma, mockLogger);
+    // });
+
     it.only("should return a user by id", async () => {
       try {
-        await prismaService.getClient().$transaction(async () => {
-          await userRepository.create(mockUserValue);
+        await prismaService.getClient().$transaction(async (tx) => {
+          userRepository = new UserRepository(
+            new PrismaService(tx as PrismaClient),
+            mockLogger,
+          );
+          const result = await userRepository.create(mockUserValue);
+          const user = await userRepository.findById(result.id);
 
-          const id = 1;
-          const user = await userRepository.findById(id);
-
-          expect(user).toHaveProperty("id", 1);
           expect(user).toHaveProperty("platformId", "1234567890");
           expect(user).toHaveProperty("username", "John Doe");
           expect(user).toHaveProperty("bot", false);

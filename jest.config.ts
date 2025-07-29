@@ -3,7 +3,7 @@ import { pathsToModuleNameMapper } from "ts-jest";
 import { compilerOptions } from "./tsconfig.json";
 
 const config: JestConfigWithTsJest = {
-  testEnvironment: "node",
+  testEnvironment: "@quramy/jest-prisma/environment",
   transform: {
     "^.+\\.tsx?$": ["ts-jest", {}],
   },
