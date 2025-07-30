@@ -15,7 +15,6 @@ export type naturalizeUser = {
   last_active: Date | null;
   bot: boolean;
   email: string | null;
-  channelId: number | null;
 };
 
 export const mockDBUserValue = {
@@ -134,7 +133,11 @@ export const mockDbChannelValue = {
   created_at: new Date(),
   name: "channelName",
   url: "channelUrl",
-  user: [mockDBUserValue],
+  user_channel: [
+    {
+      user: mockDBUserValue,
+    },
+  ],
   message: [mockDbMessageValue],
   message_reaction: [],
 };

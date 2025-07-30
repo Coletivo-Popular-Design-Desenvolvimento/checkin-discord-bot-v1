@@ -15,11 +15,9 @@ Table user {
   status Int [not null]
   platform_created_at DateTime
   platform_id String [unique, not null]
-  channelId Int
   audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  Channel channel
   user_channel user_channel [not null]
   user_event user_event [not null]
   user_role user_role [not null]
@@ -105,7 +103,6 @@ Table channel {
   audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  user user [not null]
   user_channel user_channel [not null]
 }
 
@@ -133,8 +130,6 @@ Table user_channel {
     (user_id, channel_id) [pk]
   }
 }
-
-Ref: user.channelId > channel.id
 
 Ref: user_role.roleId > role.platform_id
 

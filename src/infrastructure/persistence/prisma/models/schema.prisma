@@ -24,16 +24,13 @@ model User {
   status              Int
   platform_created_at DateTime?
   platform_id         String            @unique
-  channelId           Int?
   audio_event         AudioEvent[]
   message             Message[]
   message_reaction    MessageReaction[]
-  Channel             Channel?          @relation(fields: [channelId], references: [id])
   user_channel        UserChannel[]
   user_event          userEvent[]
   user_role           UserRole[]
 
-  @@index([channelId], map: "user_channelId_fkey")
   @@map("user")
 }
 
@@ -130,7 +127,6 @@ model Channel {
   audio_event      AudioEvent[]
   message          Message[]
   message_reaction MessageReaction[]
-  user             User[]
   user_channel     UserChannel[]
 
   @@map("channel")

@@ -17,7 +17,7 @@ export class ChannelEntity {
 
   public static fromPersistence(
     channel: Channel,
-    user?: User[],
+    userChannel?: User[],
     message?: Message[],
     messageReaction?: MessageReaction[],
   ): ChannelEntity {
@@ -27,7 +27,7 @@ export class ChannelEntity {
       channel.name,
       channel.url,
       channel.created_at,
-      user?.map((user) => UserEntity.fromPersistence(user)),
+      userChannel?.map((user) => UserEntity.fromPersistence(user)),
       message?.map((message) => MessageEntity.fromPersistence(message)),
       messageReaction?.map((messageReaction) =>
         MessageReactionEntity.fromPersistence(messageReaction),

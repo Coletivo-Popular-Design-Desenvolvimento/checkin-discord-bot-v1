@@ -39,7 +39,11 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.findUnique).toHaveBeenCalledWith({
         where: { id },
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       expect(channel).toHaveProperty("id", 1);
@@ -90,12 +94,16 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
         where: { platform_id: platformId },
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       const expectedEntity = ChannelEntity.fromPersistence(
         mockDbChannelValue,
-        mockDbChannelValue.user,
+        mockDbChannelValue.user_channel.map((uc) => uc.user),
         mockDbChannelValue.message,
         mockDbChannelValue.message_reaction,
       );
@@ -111,7 +119,11 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
         where: { platform_id: platformId },
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       expect(channel).toBeNull();
@@ -143,10 +155,15 @@ describe("ChannelRepository", () => {
         name: channelData.name,
         url: channelData.url,
         created_at: channelData.createdAt,
-        user: [mockUserEntity],
+        user_channel: [
+          {
+            user: mockUserEntity,
+          },
+        ],
         message: [mockMessageEntity],
         message_reaction: [],
       };
+
       prismaMock.channel.create.mockResolvedValue(dbChannelData);
 
       const channel = await channelRepository.create(channelData);
@@ -158,11 +175,6 @@ describe("ChannelRepository", () => {
           name: channelData.name,
           url: channelData.url,
           created_at: channelData.createdAt,
-          user: {
-            connect: channelData.user.map((user) => ({
-              platform_id: user.platformId,
-            })),
-          },
           message: {
             connect: channelData.message.map((message) => ({
               platform_id: message.platformId,
@@ -173,11 +185,17 @@ describe("ChannelRepository", () => {
           },
         },
         include: {
-          user: true,
           message: true,
           message_reaction: true,
         },
       });
+      expect(prismaMock.userChannel.create).toHaveBeenCalledWith({
+        data: {
+          user: { connect: { platform_id: mockUserEntity.platformId } },
+          channel: { connect: { id: dbChannelData.id } },
+        },
+      });
+
       expect(channel).toHaveProperty("id", dbChannelData.id);
       expect(channel).toHaveProperty("platformId", channelData.platformId);
     });
@@ -233,7 +251,6 @@ describe("ChannelRepository", () => {
             name: ch.name,
             url: ch.url,
             created_at: ch.createdAt,
-            user: { connect: [] },
             message: { connect: [] },
             message_reaction: { connect: [] },
           },
@@ -248,7 +265,7 @@ describe("ChannelRepository", () => {
       const dbChannels = [
         {
           ...mockDbChannelValue,
-          user: [mockDBUserValue],
+          user_channel: [{ user: mockDBUserValue }],
           message: [mockDbMessageValue],
           message_reaction: [],
         },
@@ -256,7 +273,7 @@ describe("ChannelRepository", () => {
           ...mockDbChannelValue,
           id: 2,
           platform_id: "discordId2",
-          user: [mockDBUserValue],
+          user_channel: [{ user: mockDBUserValue }],
           message: [mockDbMessageValue],
           message_reaction: [],
         },
@@ -270,7 +287,11 @@ describe("ChannelRepository", () => {
         where: {},
         take: undefined,
         include: {
-          user: true,
+          user_channel: {
+            include: {
+              user: true,
+            },
+          },
           message: true,
           message_reaction: true,
         },
@@ -304,7 +325,7 @@ describe("ChannelRepository", () => {
       const dbChannels = [
         {
           ...mockDbChannelValue,
-          user: [mockDBUserValue],
+          user_channel: [{ user: mockDBUserValue }],
           message: [mockDbMessageValue],
           message_reaction: [],
         },
@@ -319,7 +340,11 @@ describe("ChannelRepository", () => {
         where: {},
         take: 1,
         include: {
-          user: true,
+          user_channel: {
+            include: {
+              user: true,
+            },
+          },
           message: true,
           message_reaction: true,
         },

@@ -16,7 +16,6 @@ export class UserEntity {
     public readonly updateAt?: Date | null,
     public readonly lastActive?: Date | null,
     public readonly email?: string | null,
-    public readonly channelId?: number | null,
   ) {}
 
   public static fromPersistence(user: User): UserEntity {
@@ -33,7 +32,6 @@ export class UserEntity {
       user.update_at,
       user.last_active,
       user.email,
-      user.channelId,
     );
   }
 }

@@ -32,11 +32,6 @@ export class ChannelRepository implements IChannelRepository {
       const result = await this.client.channel.create({
         data: {
           ...this.toPersistence(channel),
-          user: {
-            connect: channel.user.map((user) => ({
-              platform_id: user.platformId,
-            })),
-          },
           message: {
             connect: channel.message.map((message) => ({
               platform_id: message.platformId,
@@ -48,10 +43,28 @@ export class ChannelRepository implements IChannelRepository {
             })),
           },
         },
-        include: { user: true, message: true, message_reaction: true },
+        include: { message: true, message_reaction: true },
       });
 
-      return ChannelEntity.fromPersistence(result);
+      if (channel.user?.length) {
+        await Promise.all(
+          channel.user.map((user) =>
+            this.client.userChannel.create({
+              data: {
+                user: { connect: { platform_id: user.platformId } },
+                channel: { connect: { id: result.id } },
+              },
+            }),
+          ),
+        );
+      }
+
+      return ChannelEntity.fromPersistence(
+        result,
+        [],
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -68,15 +81,10 @@ export class ChannelRepository implements IChannelRepository {
       // createMany do Prisma não suporta inclusão de relacionamentos, por isso as associações precisam ser gerenciadas manualmente.
 
       const creations = await Promise.all(
-        channel.map((ch) =>
-          this.client.channel.create({
+        channel.map(async (ch) => {
+          const createdChannel = await this.client.channel.create({
             data: {
               ...this.toPersistence(ch),
-              user: {
-                connect: ch.user.map((user) => ({
-                  platform_id: user.platformId,
-                })),
-              },
               message: {
                 connect: ch.message.map((message) => ({
                   platform_id: message.platformId,
@@ -88,8 +96,19 @@ export class ChannelRepository implements IChannelRepository {
                 })),
               },
             },
-          }),
-        ),
+          });
+
+          if (ch.user.length > 0) {
+            await this.client.userChannel.createMany({
+              data: ch.user.map((user) => ({
+                user_id: user.platformId,
+                channel_id: createdChannel.platform_id,
+              })),
+              skipDuplicates: true,
+            });
+          }
+          return createdChannel;
+        }),
       );
 
       return creations.length;
@@ -116,14 +135,20 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           id,
         },
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: {
+            include: { user: true },
+          },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       if (!result) return null;
 
       return ChannelEntity.fromPersistence(
         result,
-        result.user,
+        result.user_channel.map((uc) => uc.user),
         result.message,
         result.message_reaction,
       );
@@ -150,14 +175,18 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           platform_id: id,
         },
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       if (!result) return null;
 
       return ChannelEntity.fromPersistence(
         result,
-        result.user,
+        result.user_channel.map((uc) => uc.user),
         result.message,
         result.message_reaction,
       );
@@ -183,13 +212,17 @@ export class ChannelRepository implements IChannelRepository {
       const results = await this.client.channel.findMany({
         take: limit,
         where: {},
-        include: { user: true, message: true, message_reaction: true },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
 
       return results.map((result) =>
         ChannelEntity.fromPersistence(
           result,
-          result.user,
+          result.user_channel.map((uc) => uc.user),
           result.message,
           result.message_reaction,
         ),
