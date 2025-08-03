@@ -1,4 +1,10 @@
-import { PrismaClient, Message } from "@prisma/client";
+import {
+  PrismaClient,
+  Message,
+  User,
+  Channel,
+  MessageReaction,
+} from "@prisma/client";
 import { MessageEntity } from "../../../domain/entities/Message";
 import { IMessageRepository } from "../../../domain/interfaces/repositories/IMessageRepository";
 import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
@@ -31,8 +37,13 @@ export class MessageRepository implements IMessageRepository {
     try {
       const result = await this.client.message.create({
         data: this.toPersistence(message),
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
-      return this.toDomain(result);
+      return this.toDomainWithRelations(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -98,9 +109,14 @@ export class MessageRepository implements IMessageRepository {
         where: {
           id,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
-      return result ? this.toDomain(result) : null;
+      return result ? this.toDomainWithRelations(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -127,9 +143,14 @@ export class MessageRepository implements IMessageRepository {
           channel_id: channelId,
           is_deleted: includeDeleted ? undefined : false,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
-      return messages.map((message) => this.toDomain(message));
+      return messages.map((message) => this.toDomainWithRelations(message));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -151,9 +172,14 @@ export class MessageRepository implements IMessageRepository {
         where: {
           platform_id: platformId,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
-      return message ? this.toDomain(message) : null;
+      return message ? this.toDomainWithRelations(message) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -180,8 +206,13 @@ export class MessageRepository implements IMessageRepository {
           user_id: userId,
           is_deleted: includeDeleted ? undefined : false,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
-      return results.map((result) => this.toDomain(result));
+      return results.map((result) => this.toDomainWithRelations(result));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -213,8 +244,13 @@ export class MessageRepository implements IMessageRepository {
         where: {
           is_deleted: includeDeleted ? undefined : false,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
-      return results.map((result) => this.toDomain(result));
+      return results.map((result) => this.toDomainWithRelations(result));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -234,9 +270,14 @@ export class MessageRepository implements IMessageRepository {
         where: {
           id,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
-      return result ? this.toDomain(result) : null;
+      return result ? this.toDomainWithRelations(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -253,12 +294,23 @@ export class MessageRepository implements IMessageRepository {
     return MessageEntity.fromPersistence(message);
   }
 
+  private toDomainWithRelations(
+    message: Message & {
+      user: User;
+      channel: Channel;
+      message_reaction?: MessageReaction[];
+    },
+  ): MessageEntity {
+    // Usando o novo método com relacionamentos completos
+    return MessageEntity.fromPersistenceWithRelations(message);
+  }
+
   private toPersistence(message: Partial<MessageEntity>) {
     return {
       platform_id: message.platformId,
-      channel_id: message.channelId,
+      channel_id: message.channelId, // Usa getter para compatibilidade
       is_deleted: message.isDeleted,
-      user_id: message.userId,
+      user_id: message.userId, // Usa getter para compatibilidade
       platform_created_at: message.platformCreatedAt,
       created_at: message.createdAt,
     };

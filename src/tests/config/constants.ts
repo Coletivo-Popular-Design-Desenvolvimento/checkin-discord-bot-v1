@@ -93,6 +93,23 @@ export const mockDbMessageValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
+export const mockDbMessageValueWithRelations = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: false,
+  platform_created_at: new Date(),
+  created_at: new Date(),
+  user: createMockDbUser({ id: 1, platform_id: "1" }),
+  channel: createMockDbChannel({ id: 1, platform_id: "654341" }),
+  message_reaction: [],
+} as unknown as messageDbModel & {
+  user: User;
+  channel: Channel;
+  message_reaction: MessageReaction[];
+};
+
 export const mockMessageValue = {
   id: 1,
   platformId: "1234567890",
@@ -113,6 +130,23 @@ export const mockMessageUpdateValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
+export const mockMessageUpdateValueWithRelations = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: true,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+  user: createMockDbUser({ id: 1, platform_id: "1" }),
+  channel: createMockDbChannel({ id: 1, platform_id: "654341" }),
+  message_reaction: [],
+} as unknown as messageDbModel & {
+  user: User;
+  channel: Channel;
+  message_reaction: MessageReaction[];
+};
+
 /**
  * @description Função para criar quantos mocks quiser do model Message
  * @param amount Quantidade de registros mockados a serem gerados
@@ -129,6 +163,36 @@ export function createNumerousMocks(amount, includeDeleted = false) {
       platform_id: `${(i + 1) * 1000}`,
       channel_id: `${(i + 1) * 4000}`,
       is_deleted: includeDeleted && i % 2 === 0,
+    });
+  }
+
+  return mocks;
+}
+
+/**
+ * @description Função para criar quantos mocks quiser do model Message COM RELAÇÕES
+ * @param amount Quantidade de registros mockados a serem gerados
+ * @param includeDeleted Se devem ser gerados inclusive mocks com is_deleted = true
+ * @returns Lista de mensagens mockadas com relações
+ */
+export function createNumerousMocksWithRelations(
+  amount,
+  includeDeleted = false,
+) {
+  const mocks = [];
+  for (let i = 0; i < amount; i++) {
+    const userId = `${i + 10}`;
+    const channelId = `${(i + 1) * 4000}`;
+    mocks.push({
+      ...mockDbMessageValue,
+      id: i + 2,
+      user_id: userId,
+      platform_id: `${(i + 1) * 1000}`,
+      channel_id: channelId,
+      is_deleted: includeDeleted && i % 2 === 0,
+      user: createMockDbUser({ id: i + 2, platform_id: userId }),
+      channel: createMockDbChannel({ id: i + 2, platform_id: channelId }),
+      message_reaction: [],
     });
   }
 
