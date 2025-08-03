@@ -15,47 +15,7 @@ export class MessageEntity {
     public readonly createdAt?: Date | null,
   ) {}
 
-  // Método mantido para compatibilidade com código existente
-  // Cria MessageEntity com IDs primitivos (será usado temporariamente)
-  public static fromPersistence(message: Message): MessageEntity {
-    // Para manter compatibilidade, criamos entidades simples com apenas os IDs
-    // Isso será substituído quando o repositório for atualizado
-    const channelEntity = new ChannelEntity(
-      0, // id temporário
-      message.channel_id,
-      "temp-channel", // nome temporário
-      "temp-url", // url temporária
-      new Date(), // data temporária
-    );
-
-    const userEntity = new UserEntity(
-      0, // id temporário
-      message.user_id,
-      "temp-user", // username temporário
-      false, // bot temporário
-      1, // status temporário
-      null, // globalName
-      null, // joinedAt
-      null, // platformCreatedAt
-      null, // createAt
-      null, // updateAt
-      null, // lastActive
-      null, // email
-    );
-
-    return new MessageEntity(
-      channelEntity,
-      userEntity,
-      [], // messageReactions vazio por enquanto
-      message.platform_id,
-      message.platform_created_at,
-      message.is_deleted,
-      message.id,
-      message.created_at,
-    );
-  }
-
-  // Novo método para criar MessageEntity com relacionamentos completos
+  // Método para criar MessageEntity com relacionamentos completos
   public static fromPersistenceWithRelations(
     message: Message & {
       user: User;

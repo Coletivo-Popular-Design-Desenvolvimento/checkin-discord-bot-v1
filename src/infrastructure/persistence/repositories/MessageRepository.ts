@@ -288,12 +288,6 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  private toDomain(message: Message): MessageEntity {
-    // Usando o método fromPersistence para compatibilidade temporária
-    // Será atualizado para usar fromPersistenceWithRelations
-    return MessageEntity.fromPersistence(message);
-  }
-
   private toDomainWithRelations(
     message: Message & {
       user: User;

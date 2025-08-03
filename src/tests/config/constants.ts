@@ -476,7 +476,14 @@ export function createMockMessageEntity(
   overrides: Partial<MessageEntity> = {},
 ): MessageEntity {
   const dbMessage = createMockDbMessage();
-  const baseEntity = MessageEntity.fromPersistence(dbMessage);
+  const dbUser = createMockDbUser();
+  const dbChannel = createMockDbChannel();
+
+  const baseEntity = MessageEntity.fromPersistenceWithRelations({
+    ...dbMessage,
+    user: dbUser,
+    channel: dbChannel,
+  });
 
   // Se não há overrides específicos, retorna a entidade base
   if (Object.keys(overrides).length === 0) {
