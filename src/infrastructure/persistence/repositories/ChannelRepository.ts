@@ -42,26 +42,26 @@ export class ChannelRepository implements IChannelRepository {
               id: messageReaction.id,
             })),
           },
+          user_channel: channel.user?.length
+            ? {
+                create: channel.user.map((user) => ({
+                  user: { connect: { platform_id: user.platformId } },
+                })),
+              }
+            : undefined,
         },
-        include: { message: true, message_reaction: true },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: {
+            include: { user: true },
+          },
+        },
       });
-
-      if (channel.user?.length) {
-        await Promise.all(
-          channel.user.map((user) =>
-            this.client.userChannel.create({
-              data: {
-                user: { connect: { platform_id: user.platformId } },
-                channel: { connect: { id: result.id } },
-              },
-            }),
-          ),
-        );
-      }
 
       return ChannelEntity.fromPersistence(
         result,
-        [],
+        result.user_channel?.map((uc) => uc.user) || [],
         result.message,
         result.message_reaction,
       );
@@ -77,11 +77,11 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   async createMany(channel: Omit<ChannelEntity, "id">[]): Promise<number> {
-    try {
-      // createMany do Prisma não suporta inclusão de relacionamentos, por isso as associações precisam ser gerenciadas manualmente.
+    let errors = 0;
 
-      const creations = await Promise.all(
-        channel.map(async (ch) => {
+    await Promise.all(
+      channel.map(async (ch) => {
+        try {
           const createdChannel = await this.client.channel.create({
             data: {
               ...this.toPersistence(ch),
@@ -99,28 +99,38 @@ export class ChannelRepository implements IChannelRepository {
           });
 
           if (ch.user.length > 0) {
-            await this.client.userChannel.createMany({
-              data: ch.user.map((user) => ({
-                user_id: user.platformId,
-                channel_id: createdChannel.platform_id,
-              })),
-              skipDuplicates: true,
-            });
+            try {
+              await this.client.userChannel.createMany({
+                data: ch.user.map((user) => ({
+                  user_id: user.platformId,
+                  channel_id: createdChannel.platform_id,
+                })),
+                skipDuplicates: true,
+              });
+            } catch (userError) {
+              this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.REPOSITORY,
+                LoggerContextEntity.CHANNEL,
+                `createMany userChannel | ${userError.message}`,
+              );
+            }
           }
           return createdChannel;
-        }),
-      );
+        } catch (error) {
+          errors++;
+          this.logger.logToConsole(
+            LoggerContextStatus.ERROR,
+            LoggerContext.REPOSITORY,
+            LoggerContextEntity.CHANNEL,
+            `createMany | ${error.message}`,
+          );
+          return null;
+        }
+      }),
+    );
 
-      return creations.length;
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.CHANNEL,
-        `createMany | ${error.message}`,
-      );
-      return 0;
-    }
+    return channel.length - errors;
   }
 
   /**

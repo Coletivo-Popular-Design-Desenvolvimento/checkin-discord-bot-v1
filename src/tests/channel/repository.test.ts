@@ -183,16 +183,18 @@ describe("ChannelRepository", () => {
           message_reaction: {
             connect: [],
           },
+          user_channel: {
+            create: channelData.user.map((user) => ({
+              user: { connect: { platform_id: user.platformId } },
+            })),
+          },
         },
         include: {
           message: true,
           message_reaction: true,
-        },
-      });
-      expect(prismaMock.userChannel.create).toHaveBeenCalledWith({
-        data: {
-          user: { connect: { platform_id: mockUserEntity.platformId } },
-          channel: { connect: { id: dbChannelData.id } },
+          user_channel: {
+            include: { user: true },
+          },
         },
       });
 
