@@ -5,6 +5,7 @@ import { PrismaService } from "../../infrastructure/persistence/prisma/prismaSer
 import { MessageRepository } from "../../infrastructure/persistence/repositories/MessageRepository";
 import {
   createNumerousMocks,
+  createMockMessageEntity,
   messageDbModel,
   mockDbMessageValue,
   mockMessageUpdateValue,
@@ -241,11 +242,12 @@ describe("MessageRepository", () => {
 
   describe("create methods suite", () => {
     const today = new Date();
-    const messageToCreate: Omit<MessageEntity, "id"> = {
-      ...mockMessageValue,
+
+    // Criamos uma entidade de teste completa
+    const messageToCreate = createMockMessageEntity({
       platformCreatedAt: today,
       createdAt: today,
-    };
+    });
 
     describe("create", () => {
       it("should insert into db a new message", async () => {

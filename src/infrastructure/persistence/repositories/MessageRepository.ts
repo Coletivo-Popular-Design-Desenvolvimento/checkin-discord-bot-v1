@@ -248,15 +248,9 @@ export class MessageRepository implements IMessageRepository {
   }
 
   private toDomain(message: Message): MessageEntity {
-    return new MessageEntity(
-      message.channel_id,
-      message.platform_id,
-      message.platform_created_at,
-      message.is_deleted,
-      message.user_id,
-      message.id,
-      message.created_at,
-    );
+    // Usando o método fromPersistence para compatibilidade temporária
+    // Será atualizado para usar fromPersistenceWithRelations
+    return MessageEntity.fromPersistence(message);
   }
 
   private toPersistence(message: Partial<MessageEntity>) {

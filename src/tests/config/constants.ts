@@ -406,21 +406,34 @@ export function createMockMessageReactionEntity(
 }
 
 /**
- * Factory para criar MessageEntity de teste (versão atual - será atualizada na Fase 2)
+ * Factory para criar MessageEntity de teste
  */
 export function createMockMessageEntity(
   overrides: Partial<MessageEntity> = {},
 ): MessageEntity {
   const dbMessage = createMockDbMessage();
-  const messageEntity = MessageEntity.fromPersistence(dbMessage);
+  const baseEntity = MessageEntity.fromPersistence(dbMessage);
+
+  // Se não há overrides específicos, retorna a entidade base
+  if (Object.keys(overrides).length === 0) {
+    return baseEntity;
+  }
+
+  // Para overrides, criar com entidades personalizadas se necessário
+  const channel = overrides.channel ?? baseEntity.channel;
+  const user = overrides.user ?? baseEntity.user;
+  const messageReactions =
+    overrides.messageReactions ?? baseEntity.messageReactions;
+
   return new MessageEntity(
-    overrides.channelId ?? messageEntity.channelId,
-    overrides.platformId ?? messageEntity.platformId,
-    overrides.platformCreatedAt ?? messageEntity.platformCreatedAt,
-    overrides.isDeleted ?? messageEntity.isDeleted,
-    overrides.userId ?? messageEntity.userId,
-    overrides.id ?? messageEntity.id,
-    overrides.createdAt ?? messageEntity.createdAt,
+    channel,
+    user,
+    messageReactions,
+    overrides.platformId ?? baseEntity.platformId,
+    overrides.platformCreatedAt ?? baseEntity.platformCreatedAt,
+    overrides.isDeleted ?? baseEntity.isDeleted,
+    overrides.id ?? baseEntity.id,
+    overrides.createdAt ?? baseEntity.createdAt,
   );
 }
 
