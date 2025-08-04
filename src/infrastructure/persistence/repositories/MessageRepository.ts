@@ -296,7 +296,7 @@ export class MessageRepository implements IMessageRepository {
     },
   ): MessageEntity {
     // Usando o novo método com relacionamentos completos
-    return MessageEntity.fromPersistenceWithRelations(message);
+    return MessageEntity.fromPersistence(message);
   }
 
   private toPersistence(message: Partial<MessageEntity>) {

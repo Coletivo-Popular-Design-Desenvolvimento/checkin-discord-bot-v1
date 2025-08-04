@@ -479,7 +479,7 @@ export function createMockMessageEntity(
   const dbUser = createMockDbUser();
   const dbChannel = createMockDbChannel();
 
-  const baseEntity = MessageEntity.fromPersistenceWithRelations({
+  const baseEntity = MessageEntity.fromPersistence({
     ...dbMessage,
     user: dbUser,
     channel: dbChannel,

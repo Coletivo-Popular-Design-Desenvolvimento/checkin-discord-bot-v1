@@ -70,7 +70,7 @@ const mockFullMessageReaction = {
 
 // Mocks das Entidades de Domínio (simulando o retorno das factories)
 const mockUserEntity = UserEntity.fromPersistence(mockDbUser);
-const mockMessageEntity = MessageEntity.fromPersistenceWithRelations({
+const mockMessageEntity = MessageEntity.fromPersistence({
   ...mockDbMessage,
   user: mockDbUser,
   channel: mockDbChannel,
@@ -102,7 +102,7 @@ describe("MessageReactionRepository", () => {
     // Mock das factories para isolar o teste do repositório
     jest.spyOn(UserEntity, "fromPersistence").mockReturnValue(mockUserEntity);
     jest
-      .spyOn(MessageEntity, "fromPersistenceWithRelations")
+      .spyOn(MessageEntity, "fromPersistence")
       .mockReturnValue(mockMessageEntity);
     jest
       .spyOn(ChannelEntity, "fromPersistence")

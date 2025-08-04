@@ -16,23 +16,27 @@ export class MessageEntity {
   ) {}
 
   // Método para criar MessageEntity com relacionamentos completos
-  public static fromPersistenceWithRelations(
+  public static fromPersistence(
     message: Message & {
       user: User;
       channel: Channel;
-      message_reaction?: MessageReaction[];
+      messageReaction?: MessageReaction[];
     },
   ): MessageEntity {
     const userEntity = UserEntity.fromPersistence(message.user);
     const channelEntity = ChannelEntity.fromPersistence(message.channel);
 
-    // Evita referência circular - MessageReactions serão adicionados posteriormente se necessário
-    const messageReactions: MessageReactionEntity[] = [];
+    // ! TODO: usar o método fromPersistence para MessageReactionEntity que tá lá no branch da feat/channel
+    // const messageReaction = message.messageReaction
+    //   ? message.messageReaction.map((mr) =>
+    //       MessageReactionEntity.fromPersistence(mr),
+    //     )
+    //   : [];
 
     return new MessageEntity(
       channelEntity,
       userEntity,
-      messageReactions,
+      [],
       message.platform_id,
       message.platform_created_at,
       message.is_deleted,
