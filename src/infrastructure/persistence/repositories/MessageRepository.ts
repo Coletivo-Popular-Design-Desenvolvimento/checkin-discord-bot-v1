@@ -43,7 +43,7 @@ export class MessageRepository implements IMessageRepository {
           message_reaction: true,
         },
       });
-      return this.toDomainWithRelations(result);
+      return this.toDomain(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -116,7 +116,7 @@ export class MessageRepository implements IMessageRepository {
         },
       });
 
-      return result ? this.toDomainWithRelations(result) : null;
+      return result ? this.toDomain(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -150,7 +150,7 @@ export class MessageRepository implements IMessageRepository {
         },
       });
 
-      return messages.map((message) => this.toDomainWithRelations(message));
+      return messages.map((message) => this.toDomain(message));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -179,7 +179,7 @@ export class MessageRepository implements IMessageRepository {
         },
       });
 
-      return message ? this.toDomainWithRelations(message) : null;
+      return message ? this.toDomain(message) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -212,7 +212,7 @@ export class MessageRepository implements IMessageRepository {
           message_reaction: true,
         },
       });
-      return results.map((result) => this.toDomainWithRelations(result));
+      return results.map((result) => this.toDomain(result));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -250,7 +250,7 @@ export class MessageRepository implements IMessageRepository {
           message_reaction: true,
         },
       });
-      return results.map((result) => this.toDomainWithRelations(result));
+      return results.map((result) => this.toDomain(result));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -277,7 +277,7 @@ export class MessageRepository implements IMessageRepository {
         },
       });
 
-      return result ? this.toDomainWithRelations(result) : null;
+      return result ? this.toDomain(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -288,23 +288,22 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  private toDomainWithRelations(
+  private toDomain(
     message: Message & {
       user: User;
       channel: Channel;
       message_reaction?: MessageReaction[];
     },
   ): MessageEntity {
-    // Usando o novo método com relacionamentos completos
     return MessageEntity.fromPersistence(message);
   }
 
   private toPersistence(message: Partial<MessageEntity>) {
     return {
       platform_id: message.platformId,
-      channel_id: message.channelId, // Usa getter para compatibilidade
+      channel_id: message.channel?.platformId || message.channelId, // Prioriza entidade, fallback getter
       is_deleted: message.isDeleted,
-      user_id: message.userId, // Usa getter para compatibilidade
+      user_id: message.user?.platformId || message.userId, // Prioriza entidade, fallback getter
       platform_created_at: message.platformCreatedAt,
       created_at: message.createdAt,
     };

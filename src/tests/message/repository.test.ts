@@ -1,4 +1,6 @@
 import { MessageEntity } from "../../domain/entities/Message";
+import { ChannelEntity } from "../../domain/entities/Channel";
+import { UserEntity } from "../../domain/entities/User";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
 import { LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
 import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
@@ -360,11 +362,41 @@ describe("MessageRepository", () => {
     });
 
     describe("createMany", () => {
-      const otherMessageToCreate: Omit<MessageEntity, "id"> = {
-        ...messageToCreate,
-        channelId: "3",
-        userId: "2",
-      };
+      // Criamos entidades com channel e user diferentes usando factories
+      const otherChannel = new ChannelEntity(
+        2,
+        "3", // platformId diferente
+        "other-channel",
+        "https://discord.com/channels/123/3",
+        new Date("2023-01-01"),
+      );
+
+      const otherUser = new UserEntity(
+        2,
+        "2", // platformId diferente
+        "other-user",
+        false,
+        1,
+        "Other User",
+        new Date("2023-01-01"),
+        new Date("2023-01-01"),
+        new Date("2023-01-01"),
+        new Date("2023-01-01"),
+        new Date("2023-01-01"),
+        "other@test.com",
+      );
+
+      const otherMessageToCreate = new MessageEntity(
+        otherChannel,
+        otherUser,
+        [],
+        "other-message-456",
+        today,
+        false,
+        undefined,
+        today,
+      );
+
       const messagesToCreate = [messageToCreate, otherMessageToCreate];
 
       it("should insert into db new messages", async () => {
