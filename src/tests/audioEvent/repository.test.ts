@@ -65,8 +65,6 @@ describe("AudioEventRepository", () => {
         new AudioEventEntity(
           mockDbAudioEventCreatedValue.id,
           mockDbAudioEventCreatedValue.platform_id,
-          ChannelEntity.fromPersistence(mockDbAudioEventCreatedValue.channel),
-          UserEntity.fromPersistence(mockDbAudioEventCreatedValue.creator),
           mockDbAudioEventCreatedValue.name,
           mockDbAudioEventCreatedValue.status_id,
           mockDbAudioEventCreatedValue.start_at,
@@ -75,6 +73,8 @@ describe("AudioEventRepository", () => {
           mockDbAudioEventCreatedValue.created_at,
           mockDbAudioEventCreatedValue.description,
           mockDbAudioEventCreatedValue.image,
+          ChannelEntity.fromPersistence(mockDbAudioEventCreatedValue.channel),
+          UserEntity.fromPersistence(mockDbAudioEventCreatedValue.creator),
         ),
       );
     });
