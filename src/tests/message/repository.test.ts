@@ -76,7 +76,7 @@ describe("MessageRepository", () => {
 
   describe("findByChannelId", () => {
     it("should return a list of active messages by channel id", async () => {
-      const channelId = mockMessageValue.channelId;
+      const channelId = "654341"; // usando diretamente o valor
 
       prismaMock.message.findMany.mockResolvedValue([
         mockDbMessageValueWithRelations,
@@ -97,13 +97,13 @@ describe("MessageRepository", () => {
       expect(messages).toHaveLength(1);
       expect(messages[0]).toHaveProperty("id", 1);
       expect(messages[0]).toHaveProperty(
-        "channelId",
-        mockMessageValue.channelId,
+        "channel",
+        expect.objectContaining({ platformId: "654341" }),
       );
     });
 
     it("should return a list of all messages by channel id", async () => {
-      const channelId = mockMessageValue.channelId;
+      const channelId = "654341"; // usando diretamente o valor
 
       prismaMock.message.findMany.mockResolvedValue([
         mockDbMessageValueWithRelations,
@@ -124,8 +124,8 @@ describe("MessageRepository", () => {
       expect(messages).toHaveLength(1);
       expect(messages[0]).toHaveProperty("id", 1);
       expect(messages[0]).toHaveProperty(
-        "channelId",
-        mockMessageValue.channelId,
+        "channel",
+        expect.objectContaining({ platformId: "654341" }),
       );
     });
 
@@ -245,7 +245,7 @@ describe("MessageRepository", () => {
 
   describe("findByUserId", () => {
     it("should return a list of active messages by user id", async () => {
-      const userId = mockMessageValue.userId;
+      const userId = "1"; // usando diretamente o valor
 
       prismaMock.message.findMany.mockResolvedValue([
         mockDbMessageValueWithRelations,
@@ -265,11 +265,14 @@ describe("MessageRepository", () => {
 
       expect(messages).toHaveLength(1);
       expect(messages[0]).toHaveProperty("id", 1);
-      expect(messages[0]).toHaveProperty("userId", mockMessageValue.userId);
+      expect(messages[0]).toHaveProperty(
+        "user",
+        expect.objectContaining({ platformId: "1" }),
+      );
     });
 
     it("should return a list of all messages by user id", async () => {
-      const userId = mockMessageValue.userId;
+      const userId = "1"; // usando diretamente o valor
 
       prismaMock.message.findMany.mockResolvedValue([
         mockDbMessageValueWithRelations,
@@ -289,7 +292,10 @@ describe("MessageRepository", () => {
 
       expect(messages).toHaveLength(1);
       expect(messages[0]).toHaveProperty("id", 1);
-      expect(messages[0]).toHaveProperty("userId", mockMessageValue.userId);
+      expect(messages[0]).toHaveProperty(
+        "user",
+        expect.objectContaining({ platformId: "1" }),
+      );
     });
 
     it("should return empty array when no message is found", async () => {
@@ -333,9 +339,9 @@ describe("MessageRepository", () => {
         expect(prismaMock.message.create).toHaveBeenCalledTimes(1);
         expect(prismaMock.message.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
-            channel_id: messageToCreate.channelId,
+            channel_id: messageToCreate.channel.platformId,
             platform_id: messageToCreate.platformId,
-            user_id: messageToCreate.userId,
+            user_id: messageToCreate.user.platformId,
           }),
           include: {
             user: true,
@@ -412,9 +418,9 @@ describe("MessageRepository", () => {
           data: expect.arrayContaining(
             messagesToCreate.map((msg) => {
               return {
-                channel_id: msg.channelId,
+                channel_id: msg.channel.platformId,
                 platform_id: msg.platformId,
-                user_id: msg.userId,
+                user_id: msg.user.platformId,
                 created_at: expect.anything(),
                 platform_created_at: expect.anything(),
                 is_deleted: false,
@@ -497,8 +503,8 @@ describe("MessageRepository", () => {
         mockDbMessageValueWithRelations.platform_id,
       );
       expect(response[0]).toHaveProperty(
-        "userId",
-        mockDbMessageValueWithRelations.user_id,
+        "user",
+        expect.objectContaining({ platformId: "1" }),
       );
     });
 
@@ -523,7 +529,10 @@ describe("MessageRepository", () => {
 
       expect(response).toHaveLength(limit);
       expect(response[0]).toHaveProperty("platformId", "1000");
-      expect(response[0]).toHaveProperty("userId", "10");
+      expect(response[0]).toHaveProperty(
+        "user",
+        expect.objectContaining({ platformId: "10" }),
+      );
     });
 
     it("should bring all messages, including soft deleted", async () => {
@@ -631,20 +640,22 @@ describe("MessageRepository", () => {
         mockMessageUpdateValueWithRelations,
       );
 
+      // Criamos uma entidade completa para update
+      const messageEntityToUpdate = createMockMessageEntity({
+        isDeleted: true,
+      });
+
       const updatedMessage = await messageRepository.updateById(
         mockMessageValue.id,
-        {
-          ...mockMessageValue,
-          isDeleted: true,
-        },
+        messageEntityToUpdate,
       );
 
       expect(prismaMock.message.update).toHaveBeenCalledTimes(1);
       expect(prismaMock.message.update).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          channel_id: "654341",
-          platform_id: "1234567890",
-          user_id: "1",
+          channel_id: messageEntityToUpdate.channel.platformId,
+          platform_id: messageEntityToUpdate.platformId,
+          user_id: messageEntityToUpdate.user.platformId,
           is_deleted: true,
         }),
         where: { id: mockMessageValue.id },
@@ -665,10 +676,15 @@ describe("MessageRepository", () => {
 
       const spy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-      const response = await messageRepository.updateById(mockMessageValue.id, {
-        ...mockMessageValue,
+      // Criamos uma entidade completa para o teste de erro
+      const messageEntityToUpdate = createMockMessageEntity({
         isDeleted: true,
       });
+
+      const response = await messageRepository.updateById(
+        mockMessageValue.id,
+        messageEntityToUpdate,
+      );
 
       expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
 

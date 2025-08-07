@@ -301,9 +301,9 @@ export class MessageRepository implements IMessageRepository {
   private toPersistence(message: Partial<MessageEntity>) {
     return {
       platform_id: message.platformId,
-      channel_id: message.channel?.platformId || message.channelId, // Prioriza entidade, fallback getter
+      channel_id: message.channel?.platformId,
       is_deleted: message.isDeleted,
-      user_id: message.user?.platformId || message.userId, // Prioriza entidade, fallback getter
+      user_id: message.user?.platformId,
       platform_created_at: message.platformCreatedAt,
       created_at: message.createdAt,
     };

@@ -44,14 +44,4 @@ export class MessageEntity {
       message.created_at,
     );
   }
-
-  // Getter para compatibilidade com código que espera channelId
-  public get channelId(): string {
-    return this.channel.platformId;
-  }
-
-  // Getter para compatibilidade com código que espera userId
-  public get userId(): string {
-    return this.user.platformId;
-  }
 }
