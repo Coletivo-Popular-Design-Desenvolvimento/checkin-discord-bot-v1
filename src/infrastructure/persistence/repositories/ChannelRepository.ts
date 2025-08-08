@@ -72,7 +72,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
-      throw error;
+      return null;
     }
   }
 
@@ -264,7 +264,7 @@ export class ChannelRepository implements IChannelRepository {
         where: { id },
         data: this.toPersistence(channel),
       });
-      return result ? ChannelEntity.fromPersistence(result) : null;
+      return ChannelEntity.fromPersistence(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
