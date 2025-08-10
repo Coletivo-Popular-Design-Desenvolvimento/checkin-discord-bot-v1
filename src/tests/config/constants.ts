@@ -133,6 +133,13 @@ export const mockDbChannelValue = {
   created_at: new Date(),
   name: "channelName",
   url: "channelUrl",
+  user_channel: [
+    {
+      user: mockDBUserValue,
+    },
+  ],
+  message: [mockDbMessageValue],
+  message_reaction: [],
 };
 
 export const mockChannelEntityValue = {
@@ -141,6 +148,9 @@ export const mockChannelEntityValue = {
   name: "channelName",
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
+  user: [mockUserValue],
+  message: [mockMessageValue],
+  messageReaction: [],
 };
 
 export const mockChannelUpdatePayload = {

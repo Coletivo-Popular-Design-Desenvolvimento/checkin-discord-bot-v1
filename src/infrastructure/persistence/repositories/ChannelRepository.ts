@@ -1,4 +1,4 @@
-import { PrismaClient, Channel } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
 import {
   LoggerContext,
@@ -30,9 +30,41 @@ export class ChannelRepository implements IChannelRepository {
   async create(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity> {
     try {
       const result = await this.client.channel.create({
-        data: this.toPersistence(channel),
+        data: {
+          ...this.toPersistence(channel),
+          message: {
+            connect: channel.message.map((message) => ({
+              platform_id: message.platformId,
+            })),
+          },
+          message_reaction: {
+            connect: channel.messageReaction.map((messageReaction) => ({
+              id: messageReaction.id,
+            })),
+          },
+          user_channel: channel.user?.length
+            ? {
+                create: channel.user.map((user) => ({
+                  user: { connect: { platform_id: user.platformId } },
+                })),
+              }
+            : undefined,
+        },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: {
+            include: { user: true },
+          },
+        },
       });
-      return this.toDomain(result);
+
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user_channel?.map((uc) => uc.user) || [],
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -40,24 +72,65 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
+      return null;
     }
   }
 
   async createMany(channel: Omit<ChannelEntity, "id">[]): Promise<number> {
-    try {
-      const result = await this.client.channel.createMany({
-        data: channel.map((channel) => this.toPersistence(channel)),
-        skipDuplicates: true,
-      });
-      return result.count;
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.CHANNEL,
-        `createMany | ${error.message}`,
-      );
-    }
+    let errors = 0;
+
+    await Promise.all(
+      channel.map(async (ch) => {
+        try {
+          const createdChannel = await this.client.channel.create({
+            data: {
+              ...this.toPersistence(ch),
+              message: {
+                connect: ch.message.map((message) => ({
+                  platform_id: message.platformId,
+                })),
+              },
+              message_reaction: {
+                connect: ch.messageReaction.map((reaction) => ({
+                  id: reaction.id,
+                })),
+              },
+            },
+          });
+
+          if (ch.user.length > 0) {
+            try {
+              await this.client.userChannel.createMany({
+                data: ch.user.map((user) => ({
+                  user_id: user.platformId,
+                  channel_id: createdChannel.platform_id,
+                })),
+                skipDuplicates: true,
+              });
+            } catch (userError) {
+              this.logger.logToConsole(
+                LoggerContextStatus.ERROR,
+                LoggerContext.REPOSITORY,
+                LoggerContextEntity.CHANNEL,
+                `createMany userChannel | ${userError.message}`,
+              );
+            }
+          }
+          return createdChannel;
+        } catch (error) {
+          errors++;
+          this.logger.logToConsole(
+            LoggerContextStatus.ERROR,
+            LoggerContext.REPOSITORY,
+            LoggerContextEntity.CHANNEL,
+            `createMany | ${error.message}`,
+          );
+          return null;
+        }
+      }),
+    );
+
+    return channel.length - errors;
   }
 
   /**
@@ -72,8 +145,23 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           id,
         },
+        include: {
+          user_channel: {
+            include: { user: true },
+          },
+          message: true,
+          message_reaction: true,
+        },
       });
-      return result ? this.toDomain(result) : null;
+
+      if (!result) return null;
+
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user_channel.map((uc) => uc.user),
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -81,6 +169,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `findById | ${error.message}`,
       );
+      return null;
     }
   }
 
@@ -96,8 +185,21 @@ export class ChannelRepository implements IChannelRepository {
         where: {
           platform_id: id,
         },
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
-      return result ? this.toDomain(result) : null;
+
+      if (!result) return null;
+
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user_channel.map((uc) => uc.user),
+        result.message,
+        result.message_reaction,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -105,6 +207,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `findByPlatformId | ${error.message}`,
       );
+      return null;
     }
   }
 
@@ -119,8 +222,21 @@ export class ChannelRepository implements IChannelRepository {
       const results = await this.client.channel.findMany({
         take: limit,
         where: {},
+        include: {
+          user_channel: { include: { user: true } },
+          message: true,
+          message_reaction: true,
+        },
       });
-      return results.map((result) => this.toDomain(result));
+
+      return results.map((result) =>
+        ChannelEntity.fromPersistence(
+          result,
+          result.user_channel.map((uc) => uc.user),
+          result.message,
+          result.message_reaction,
+        ),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -128,6 +244,7 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
       );
+      return [];
     }
   }
 
@@ -147,7 +264,7 @@ export class ChannelRepository implements IChannelRepository {
         where: { id },
         data: this.toPersistence(channel),
       });
-      return result ? this.toDomain(result) : null;
+      return ChannelEntity.fromPersistence(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -178,15 +295,6 @@ export class ChannelRepository implements IChannelRepository {
         `deleteById | ${error.message}`,
       );
     }
-  }
-  private toDomain(channel: Channel): ChannelEntity {
-    return new ChannelEntity(
-      channel.id,
-      channel.platform_id,
-      channel.name,
-      channel.url,
-      channel.created_at,
-    );
   }
 
   private toPersistence(channel: Partial<ChannelEntity>) {
