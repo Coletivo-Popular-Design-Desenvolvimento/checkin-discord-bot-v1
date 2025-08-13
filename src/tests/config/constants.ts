@@ -167,11 +167,13 @@ export const mockDbChannelUpdatedValue = {
 // Audio event repository const mocks.
 export const mockDate = new Date("2023-01-01T00:00:00.000Z");
 
-export const mockDbAudioEventValue: PrismaAudioEvent = {
+export const mockDbAudioEventValue = {
   id: 1,
   platform_id: "1234567890",
   channel_id: "101",
+  channel: mockDbChannelValue,
   creator_id: "202",
+  creator: mockDBUserValue,
   name: "Test Event",
   description: "This is a test event.",
   status_id: "1",
@@ -182,19 +184,10 @@ export const mockDbAudioEventValue: PrismaAudioEvent = {
   created_at: mockDate,
 };
 
-export const mockAudioEventEntityValue = new AudioEventEntity(
-  mockDbAudioEventValue.id,
-  mockDbAudioEventValue.platform_id,
-  mockDbAudioEventValue.channel_id,
-  mockDbAudioEventValue.creator_id,
-  mockDbAudioEventValue.name,
-  mockDbAudioEventValue.status_id,
-  mockDbAudioEventValue.start_at,
-  mockDbAudioEventValue.end_at,
-  mockDbAudioEventValue.user_count,
-  mockDbAudioEventValue.created_at,
-  mockDbAudioEventValue.description,
-  mockDbAudioEventValue.image,
+export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
+  mockDbAudioEventValue,
+  mockDbChannelValue,
+  mockDBUserValue
 );
 
 export const mockAudioEventCreatePayload: Omit<
@@ -202,8 +195,8 @@ export const mockAudioEventCreatePayload: Omit<
   "id" | "createdAt"
 > = {
   platformId: "1234567890",
-  channelId: "102",
-  creatorId: "203",
+  channel: mockChannelEntityValue,
+  creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",
   statusId: "2",
@@ -213,11 +206,13 @@ export const mockAudioEventCreatePayload: Omit<
   image: "http://example.com/new_image.png",
 };
 
-export const mockDbAudioEventCreatedValue: PrismaAudioEvent = {
+export const mockDbAudioEventCreatedValue = {
   id: 2,
   platform_id: mockAudioEventCreatePayload.platformId,
-  channel_id: mockAudioEventCreatePayload.channelId,
-  creator_id: mockAudioEventCreatePayload.creatorId,
+  channel_id: mockDbChannelValue.platform_id,
+  channel: mockDbChannelValue,
+  creator: mockDBUserValue,
+  creator_id: mockDBUserValue.platform_id,
   name: mockAudioEventCreatePayload.name!,
   description: mockAudioEventCreatePayload.description!,
   status_id: mockAudioEventCreatePayload.statusId,
