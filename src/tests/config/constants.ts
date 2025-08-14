@@ -1,6 +1,7 @@
 import { UserStatus } from "@type/UserStatusEnum";
 import { AudioEvent as PrismaAudioEvent } from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
+import { MessageEntity } from "@domain/entities/Message";
 
 export type naturalizeUser = {
   id: number;
@@ -91,6 +92,7 @@ export const mockMessageValue = {
   isDeleted: false,
   discordCreatedAt: undefined,
   createdAt: undefined,
+  platformCreatedAt: undefined,
 };
 
 export const mockMessageUpdateValue = {
@@ -149,7 +151,7 @@ export const mockChannelEntityValue = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [mockMessageValue],
+  message: [mockMessageValue as MessageEntity],
   messageReaction: [],
 };
 
@@ -187,7 +189,7 @@ export const mockDbAudioEventValue = {
 export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
   mockDbAudioEventValue,
   mockDbChannelValue,
-  mockDBUserValue
+  mockDBUserValue,
 );
 
 export const mockAudioEventCreatePayload: Omit<
