@@ -237,7 +237,7 @@ export const mockChannelEntityValue: ChannelEntity = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [],
+  message: [mockMessageValue as MessageEntity],
   messageReaction: [],
 };
 
