@@ -1,0 +1,49 @@
+name: ci
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mariadb
+        env:
+          MARIADB_ROOT_PASSWORD: mariadb
+          MARIADB_DATABASE: checkindb
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 5
+          --health-start-period 30s
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar tipos
+        run: npm run build
+
+      - name: Executar linter
+        run: npm run lint
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Validar schema
+        run: npx prisma format --check
+
+      - name: Validar alterações pendentes ao schema
+        run: |
+          npx prisma generate
+          git diff --exit-code src/infrastructure/persistence/prisma/models/dbml/
+
+      - name: Executar migrações
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: mysql://root:mariadb@localhost:3306/checkindb

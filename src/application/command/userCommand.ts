@@ -1,20 +1,20 @@
 // orquestra os useCases command de user.
 
 import { Client, GuildMember, Message, PartialGuildMember } from "discord.js";
-import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
+import { IDiscordService } from "@services/IDiscordService";
 import {
   CreateUserInput,
   ICreateUser,
-} from "../../domain/interfaces/useCases/user/ICreateUser";
-import { IUpdateUser } from "../../domain/interfaces/useCases/user/IUpdateUser";
-import { UserStatus } from "../../domain/types/UserStatusEnum";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+} from "@interfaces/useCases/user/ICreateUser";
+import { IUpdateUser } from "@interfaces/useCases/user/IUpdateUser";
+import { UserStatus } from "@type/UserStatusEnum";
+import { ILoggerService } from "@services/ILogger";
 import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../../domain/types/LoggerContextEnum";
-import { IUserCommand } from "../../domain/interfaces/commands/IUserCommand";
+} from "@type/LoggerContextEnum";
+import { IUserCommand } from "@interfaces/commands/IUserCommand";
 
 export class UserCommand implements IUserCommand {
   constructor(
@@ -26,7 +26,7 @@ export class UserCommand implements IUserCommand {
     >,
     private readonly logger: ILoggerService,
     private readonly createUser: ICreateUser,
-    private readonly updateUser: IUpdateUser
+    private readonly updateUser: IUpdateUser,
   ) {
     this.executeNewUser();
     this.executeAllUsers();
@@ -42,7 +42,7 @@ export class UserCommand implements IUserCommand {
         LoggerContextStatus.ERROR,
         LoggerContext.COMMAND,
         LoggerContextEntity.USER,
-        `executeNewUser | ${error.message}`
+        `executeNewUser | ${error.message}`,
       );
     }
   }
@@ -55,7 +55,7 @@ export class UserCommand implements IUserCommand {
         const guild = await this.discordService.client.guilds.fetch(guildId);
         const members = await guild.members.fetch();
         this.createUser.executeMany(
-          members.map((member) => UserCommand.toUserEntity(member))
+          members.map((member) => UserCommand.toUserEntity(member)),
         );
       });
     } catch (error) {
@@ -63,7 +63,7 @@ export class UserCommand implements IUserCommand {
         LoggerContextStatus.ERROR,
         LoggerContext.COMMAND,
         LoggerContextEntity.USER,
-        `executeAllUsers | ${error.message}`
+        `executeAllUsers | ${error.message}`,
       );
     }
   }
@@ -77,19 +77,19 @@ export class UserCommand implements IUserCommand {
         LoggerContextStatus.ERROR,
         LoggerContext.COMMAND,
         LoggerContextEntity.USER,
-        `executeUserLeave | ${error.message}`
+        `executeUserLeave | ${error.message}`,
       );
     }
   }
 
   static toUserEntity(discordUser: GuildMember): CreateUserInput {
     return {
-      discordId: discordUser.id,
+      platformId: discordUser.id,
       username: discordUser.user.username,
       globalName: discordUser.user.globalName,
       bot: discordUser.user.bot,
       status: UserStatus.ACTIVE,
-      discordCreatedAt: discordUser.user.createdTimestamp
+      platformCreatedAt: discordUser.user.createdTimestamp
         ? new Date(discordUser.user.createdTimestamp)
         : undefined,
       joinedAt: discordUser.joinedTimestamp

@@ -1,5 +1,5 @@
-import { GenericOutputDto } from "../../../dtos/GenericOutputDto";
-import { UserEntity } from "../../../entities/User";
+import { GenericOutputDto } from "@dtos/GenericOutputDto";
+import { UserEntity } from "@entities/User";
 
 export interface IFindUser {
   execute(id: number | string): Promise<GenericOutputDto<UserEntity>>;

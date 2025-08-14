@@ -1,25 +1,39 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "target": "es6",
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "outDir": "dist",
-        "skipLibCheck": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "rootDir": "src",
+    "paths": {
+      "@application/*": ["application/*"],
+      "@contexts/*": ["contexts/*"],
+      "@domain/*": ["domain/*"],
+      "@dtos/*": ["domain/dtos/*"],
+      "@entities/*": ["domain/entities/*"],
+      "@interfaces/*": ["domain/interfaces/*"],
+      "@repositories/*": ["domain/interfaces/repositories/*"],
+      "@services/*": ["domain/interfaces/services/*"],
+      "@useCases/*": ["domain/useCases/*"],
+      "@type/*": ["domain/types/*"],
+      "@infra/repositories/*": ["infrastructure/persistence/repositories/*"],
+      "@infra/*": ["infrastructure/*"],
+      "@discord/*": ["infrastructure/discord/*"],
+      "@tests/*":["tests/*"]
     },
-    "lib": [
-        "es2015"
-    ],
-    "include": ["src/**/**/*"],
-    "exclude": [
-        "**/*.test.ts",
-        "**/*.spec.ts",
-        "**/tests/**",
-        "**/__tests__/**",
-        "**/__mocks__/**"
-      ]
-
+    "baseUrl": "./src"
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true,
+    "files": true
+  },
+  "lib": ["es2015"],
+  "include": ["src/**/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,13 +1,16 @@
-import { UserStatus } from "../../domain/types/UserStatusEnum";
+import { UserStatus } from "@type/UserStatusEnum";
+import { AudioEvent as PrismaAudioEvent } from "@prisma/client";
+import { AudioEventEntity } from "@domain/entities/AudioEvent";
+import { MessageEntity } from "@domain/entities/Message";
 
 export type naturalizeUser = {
   id: number;
-  discord_id: string;
+  platform_id: string;
   username: string;
   status: number;
   global_name: string | null;
   joined_at: Date | null;
-  discord_created_at: Date | null;
+  platform_created_at: Date | null;
   create_at: Date | null;
   update_at: Date | null;
   last_active: Date | null;
@@ -17,13 +20,13 @@ export type naturalizeUser = {
 
 export const mockDBUserValue = {
   id: 1,
-  discord_id: "1234567890",
+  platform_id: "1234567890",
   username: "John Doe",
   bot: false,
   status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
-  discord_created_at: undefined,
+  platform_created_at: undefined,
   create_at: undefined,
   update_at: undefined,
   last_active: undefined,
@@ -32,13 +35,13 @@ export const mockDBUserValue = {
 
 export const mockUserUpdateValue = {
   id: 1,
-  discord_id: "1234567890",
+  platform_id: "1234567890",
   username: "Jane Doe",
   bot: false,
   status: UserStatus.ACTIVE,
   global_name: undefined,
   joined_at: undefined,
-  discord_created_at: undefined,
+  platform_created_at: undefined,
   created_at: undefined,
   update_at: undefined,
   last_active: undefined,
@@ -47,7 +50,7 @@ export const mockUserUpdateValue = {
 
 export const mockUserValue = {
   id: 1,
-  discordId: "1234567890",
+  platformId: "1234567890",
   username: "John Doe",
   bot: false,
   status: UserStatus.ACTIVE,
@@ -57,4 +60,192 @@ export const mockUserValue = {
   updateAt: undefined,
   lastActive: undefined,
   email: undefined,
+};
+
+//MessageRepository tests consts
+
+export type messageDbModel = {
+  id: number;
+  channel_id: string;
+  platform_id: string;
+  user_id: string;
+  is_deleted: boolean;
+  platform_created_at: Date;
+  created_at: Date;
+};
+
+export const mockDbMessageValue = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: false,
+  platform_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
+
+export const mockMessageValue = {
+  id: 1,
+  platformId: "1234567890",
+  channelId: "654341",
+  userId: "1",
+  isDeleted: false,
+  discordCreatedAt: undefined,
+  createdAt: undefined,
+  platformCreatedAt: undefined,
+};
+
+export const mockMessageUpdateValue = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: true,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+} as unknown as messageDbModel;
+
+/**
+ * @description Função para criar quantos mocks quiser do model Message
+ * @param amount Quantidade de registros mockados a serem gerados
+ * @param includeDeleted Se devem ser gerados inclusive mocks com is_deleted = true
+ * @returns {messageDbModel[]} Lista de mensagens mockadas
+ */
+export function createNumerousMocks(amount, includeDeleted = false) {
+  const mocks: messageDbModel[] = [];
+  for (let i = 0; i < amount; i++) {
+    mocks.push({
+      ...mockDbMessageValue,
+      id: i + 2,
+      user_id: `${i + 10}`,
+      platform_id: `${(i + 1) * 1000}`,
+      channel_id: `${(i + 1) * 4000}`,
+      is_deleted: includeDeleted && i % 2 === 0,
+    });
+  }
+
+  return mocks;
+}
+
+//ChannelRepository tests consts
+
+export const mockDbChannelValue = {
+  id: 1,
+  platform_id: "discordId",
+  created_at: new Date(),
+  name: "channelName",
+  url: "channelUrl",
+  user_channel: [
+    {
+      user: mockDBUserValue,
+    },
+  ],
+  message: [mockDbMessageValue],
+  message_reaction: [],
+};
+
+export const mockChannelEntityValue = {
+  id: 1,
+  platformId: "discordId",
+  name: "channelName",
+  url: "channelUrl",
+  createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
+  user: [mockUserValue],
+  message: [mockMessageValue as MessageEntity],
+  messageReaction: [],
+};
+
+export const mockChannelUpdatePayload = {
+  name: "updatedChannelName",
+  url: "updatedChannelUrl",
+};
+
+export const mockDbChannelUpdatedValue = {
+  ...mockDbChannelValue,
+  name: mockChannelUpdatePayload.name,
+  url: mockChannelUpdatePayload.url,
+};
+
+// Audio event repository const mocks.
+export const mockDate = new Date("2023-01-01T00:00:00.000Z");
+
+export const mockDbAudioEventValue = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "101",
+  channel: mockDbChannelValue,
+  creator_id: "202",
+  creator: mockDBUserValue,
+  name: "Test Event",
+  description: "This is a test event.",
+  status_id: "1",
+  start_at: mockDate,
+  end_at: new Date("2023-01-01T01:00:00.000Z"),
+  user_count: 0,
+  image: "http://example.com/image.png",
+  created_at: mockDate,
+};
+
+export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
+  mockDbAudioEventValue,
+  mockDbChannelValue,
+  mockDBUserValue,
+);
+
+export const mockAudioEventCreatePayload: Omit<
+  AudioEventEntity,
+  "id" | "createdAt"
+> = {
+  platformId: "1234567890",
+  channel: mockChannelEntityValue,
+  creator: mockUserValue,
+  name: "New Event",
+  description: "A brand new event",
+  statusId: "2",
+  startAt: new Date("2023-02-01T10:00:00.000Z"),
+  endAt: new Date("2023-02-01T11:00:00.000Z"),
+  userCount: 5,
+  image: "http://example.com/new_image.png",
+};
+
+export const mockDbAudioEventCreatedValue = {
+  id: 2,
+  platform_id: mockAudioEventCreatePayload.platformId,
+  channel_id: mockDbChannelValue.platform_id,
+  channel: mockDbChannelValue,
+  creator: mockDBUserValue,
+  creator_id: mockDBUserValue.platform_id,
+  name: mockAudioEventCreatePayload.name!,
+  description: mockAudioEventCreatePayload.description!,
+  status_id: mockAudioEventCreatePayload.statusId,
+  start_at: mockAudioEventCreatePayload.startAt,
+  end_at: mockAudioEventCreatePayload.endAt,
+  user_count: mockAudioEventCreatePayload.userCount,
+  image: mockAudioEventCreatePayload.image!,
+  created_at: new Date("2023-02-01T09:00:00.000Z"), // Simulating DB generated
+};
+
+export const mockAudioEventUpdatePayload: Partial<
+  Omit<AudioEventEntity, "id" | "createdAt" | "channelId" | "creatorId">
+> = {
+  name: "Updated Event Name",
+  statusId: "3",
+  userCount: 10,
+};
+
+export const mockDbAudioEventUpdatedValue: PrismaAudioEvent = {
+  ...mockDbAudioEventValue,
+  name: mockAudioEventUpdatePayload.name!,
+  status_id: mockAudioEventUpdatePayload.statusId!,
+  user_count: mockAudioEventUpdatePayload.userCount!,
+};
+
+//RoleRepository tests consts
+export const mockDBRoleValue = {
+  id: 1,
+  platform_id: "1",
+  name: "dev",
+  created_at: new Date("2025-01-01"),
+  platform_created_at: new Date("2025-01-01"),
+  user_role: [{ user: mockDBUserValue }],
 };

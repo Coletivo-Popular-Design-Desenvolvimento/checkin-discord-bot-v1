@@ -1,20 +1,23 @@
 import { PrismaClient, User } from "@prisma/client";
-import { IUserRepository } from "../../../domain/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaService } from "../prisma/prismaService";
-import { UserEntity } from "../../../domain/entities/User";
-import { UserStatus } from "../../../domain/types/UserStatusEnum";
+import { UserEntity } from "@entities/User";
+import { UserStatus } from "@type/UserStatusEnum";
 import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../../../domain/types/LoggerContextEnum";
-import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
+} from "@type/LoggerContextEnum";
+import { ILoggerService } from "@services/ILogger";
 
 export class UserRepository implements IUserRepository {
   private client: PrismaClient;
   private logger: ILoggerService;
 
-  constructor(private prisma: PrismaService, logger: ILoggerService) {
+  constructor(
+    private prisma: PrismaService,
+    logger: ILoggerService,
+  ) {
     this.client = this.prisma.getClient();
     this.logger = logger;
   }
@@ -36,7 +39,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `create | ${error.message}`
+        `create | ${error.message}`,
       );
     }
   }
@@ -53,7 +56,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `createMany | ${error.message}`
+        `createMany | ${error.message}`,
       );
     }
   }
@@ -66,7 +69,7 @@ export class UserRepository implements IUserRepository {
    */
   async findById(
     id: number,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.findUnique({
@@ -85,7 +88,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `findById | ${error.message}`
+        `findById | ${error.message}`,
       );
     }
   }
@@ -96,14 +99,14 @@ export class UserRepository implements IUserRepository {
    * @param {string} id O id do Discord do usuario a ser buscado.
    * @returns {Promise<UserEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
    */
-  async findByDiscordId(
+  async findByPlatformId(
     id: string,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.findUnique({
         where: {
-          discord_id: id,
+          platform_id: id,
           status: {
             in: includeInactive
               ? [UserStatus.ACTIVE, UserStatus.INACTIVE]
@@ -117,7 +120,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `findByDiscordId | ${error.message}`
+        `findByPlatformId | ${error.message}`,
       );
     }
   }
@@ -130,7 +133,7 @@ export class UserRepository implements IUserRepository {
    */
   async listAll(
     limit?: number,
-    includeInactive?: boolean
+    includeInactive?: boolean,
   ): Promise<UserEntity[]> {
     try {
       const results = await this.client.user.findMany({
@@ -149,7 +152,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `create | ${error.message}`
+        `create | ${error.message}`,
       );
     }
   }
@@ -163,7 +166,7 @@ export class UserRepository implements IUserRepository {
    */
   async updateById(
     id: number,
-    user: Partial<UserEntity>
+    user: Partial<UserEntity>,
   ): Promise<UserEntity | null> {
     try {
       const result = await this.client.user.update({
@@ -176,7 +179,7 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `updateById | ${error.message}`
+        `updateById | ${error.message}`,
       );
     }
   }
@@ -198,36 +201,36 @@ export class UserRepository implements IUserRepository {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `deleteById | ${error.message}`
+        `deleteById | ${error.message}`,
       );
     }
   }
   private toDomain(user: User): UserEntity {
     return new UserEntity(
       user.id,
-      user.discord_id,
+      user.platform_id,
       user.username,
       user.bot,
       user.status,
       user.global_name,
       user.joined_at,
-      user.discord_created_at,
+      user.platform_created_at,
       user.create_at,
       user.update_at,
       user.last_active,
-      user.email
+      user.email,
     );
   }
 
   private toPersistence(user: Partial<UserEntity>) {
     return {
-      discord_id: user.discordId,
+      platform_id: user.platformId,
       username: user.username,
       bot: user.bot,
       status: user.status,
       global_name: user.globalName,
       joined_at: user.joinedAt,
-      discord_created_at: user.discordCreatedAt,
+      platform_created_at: user.platformCreatedAt,
       update_at: user.updateAt,
       last_active: user.lastActive,
       email: user.email,

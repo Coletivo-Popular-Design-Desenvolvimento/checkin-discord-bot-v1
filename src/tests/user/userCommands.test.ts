@@ -1,7 +1,7 @@
-import { UserCommand } from "../../application/command/userCommand";
-import { IDiscordService } from "../../domain/interfaces/services/IDiscordService";
-import { ICreateUser } from "../../domain/interfaces/useCases/user/ICreateUser";
-import { IUpdateUser } from "../../domain/interfaces/useCases/user/IUpdateUser";
+import { UserCommand } from "@application/command/userCommand";
+import { IDiscordService } from "@services/IDiscordService";
+import { ICreateUser } from "@interfaces/useCases/user/ICreateUser";
+import { IUpdateUser } from "@interfaces/useCases/user/IUpdateUser";
 import {
   Client,
   Collection,
@@ -10,9 +10,9 @@ import {
   Message,
   PartialGuildMember,
 } from "discord.js";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+import { ILoggerService } from "@services/ILogger";
 
-jest.mock("../../domain/interfaces/services/ILogger");
+jest.mock("@services/ILogger");
 
 describe("UserCommand", () => {
   let discordService: jest.Mocked<
@@ -53,7 +53,7 @@ describe("UserCommand", () => {
       discordService,
       {} as ILoggerService,
       createUser,
-      updateUser
+      updateUser,
     );
   });
 
@@ -70,14 +70,14 @@ describe("UserCommand", () => {
     } as GuildMember;
     const handler = jest.fn();
     (discordService.onNewUser as jest.Mock).mockImplementation(
-      (cb) => handler.mockImplementation(cb) // Capture the callback for later execution
+      (cb) => handler.mockImplementation(cb), // Capture the callback for later execution
     );
 
     await userCommand.executeNewUser();
     handler(mockMember); // Simulate a user joining
 
     expect(createUser.execute).toHaveBeenCalledWith(
-      UserCommand.toUserEntity(mockMember)
+      UserCommand.toUserEntity(mockMember),
     );
   });
 
@@ -110,7 +110,7 @@ describe("UserCommand", () => {
           new Collection([
             ["123", mockMember1],
             ["456", mockMember2],
-          ])
+          ]),
         ),
       },
     } as unknown as Guild;
@@ -127,7 +127,7 @@ describe("UserCommand", () => {
     const members = await guild.members.fetch();
 
     expect(createUser.executeMany).toHaveBeenCalledWith(
-      members.map((member) => UserCommand.toUserEntity(member))
+      members.map((member) => UserCommand.toUserEntity(member)),
     );
   });
 
@@ -135,7 +135,7 @@ describe("UserCommand", () => {
     const mockMember = { id: "123" } as GuildMember;
     const handler = jest.fn();
     (discordService.onUserLeave as jest.Mock).mockImplementation(
-      (cb) => handler.mockImplementation(cb) // Capture the callback
+      (cb) => handler.mockImplementation(cb), // Capture the callback
     );
 
     await userCommand.executeUserLeave();

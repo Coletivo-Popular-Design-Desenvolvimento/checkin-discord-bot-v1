@@ -1,19 +1,19 @@
-import { GenericOutputDto } from "../../dtos/GenericOutputDto";
-import { UserEntity } from "../../entities/User";
-import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { ILoggerService } from "../../interfaces/services/ILogger";
-import { IFindUser } from "../../interfaces/useCases/user/IFindUser";
-import { ErrorMessages } from "../../types/ErrorMessages";
+import { GenericOutputDto } from "@dtos/GenericOutputDto";
+import { UserEntity } from "@entities/User";
+import { IUserRepository } from "@repositories/IUserRepository";
+import { ILoggerService } from "@services/ILogger";
+import { IFindUser } from "@interfaces/useCases/user/IFindUser";
+import { ErrorMessages } from "@type/ErrorMessages";
 import {
   LoggerContext,
   LoggerContextEntity,
   LoggerContextStatus,
-} from "../../types/LoggerContextEnum";
+} from "@type/LoggerContextEnum";
 
 export class FindUser implements IFindUser {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly logger: ILoggerService
+    private readonly logger: ILoggerService,
   ) {}
 
   async execute(id: number | string): Promise<GenericOutputDto<UserEntity>> {
@@ -21,7 +21,7 @@ export class FindUser implements IFindUser {
       let user: UserEntity;
 
       if (typeof id === "string") {
-        user = await this.userRepository.findByDiscordId(id);
+        user = await this.userRepository.findByPlatformId(id);
       } else if (typeof id === "number") {
         user = await this.userRepository.findById(id);
       }
@@ -43,7 +43,7 @@ export class FindUser implements IFindUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `FindUser.execute | ${error.message}`
+        `FindUser.execute | ${error.message}`,
       );
       return {
         data: null,
@@ -55,7 +55,7 @@ export class FindUser implements IFindUser {
   }
 
   async executeFindAll(
-    limit?: number
+    limit?: number,
   ): Promise<GenericOutputDto<UserEntity[]>> {
     try {
       const users = await this.userRepository.listAll(limit);
@@ -68,7 +68,7 @@ export class FindUser implements IFindUser {
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
         LoggerContextEntity.USER,
-        `executeFindAll.execute | ${error.message}`
+        `executeFindAll.execute | ${error.message}`,
       );
       return {
         data: null,
