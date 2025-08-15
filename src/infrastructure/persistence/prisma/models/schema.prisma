@@ -90,13 +90,20 @@ model EventStatus {
   @@map("event_status")
 }
 
+enum EventType {
+  JOINED
+  LEFT
+}
+
 model userEvent {
+  id       Int        @id @default(autoincrement())
   event_id String
   user_id  String
+  type     EventType
+  at       DateTime   @default(now())
   event    AudioEvent @relation(fields: [event_id], references: [platform_id])
   user     User       @relation(fields: [user_id], references: [platform_id])
 
-  @@id([user_id, event_id])
   @@index([event_id], map: "user_event_event_id_fkey")
   @@map("user_event")
 }
