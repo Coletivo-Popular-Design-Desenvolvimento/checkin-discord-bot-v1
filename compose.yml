@@ -1,16 +1,17 @@
+version: "3.9"
+
 services:
   db:
     image: mariadb:latest
     restart: always
     environment:
-      MYSQL_DATABASE: '${DB_DATABASE}'
-      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-      TZ: 'UTC'
-
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      TZ: "UTC"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -20,36 +21,32 @@ services:
     image: phpmyadmin/phpmyadmin
     ports:
       - "8090:80"
-    links:
-      - db
     environment:
-      - PMA_HOST=db
-      - UPLOAD_LIMIT=300M
+      PMA_HOST: db
+      UPLOAD_LIMIT: 300M
     depends_on:
       db:
         condition: service_healthy
-    profiles:
-      - dev
+    profiles: ["dev"]
 
   app:
     build:
       context: .
-
       dockerfile: ./Containerfile
     container_name: node_app
     restart: always
     ports:
       - "${PORT}:3000"
+    env_file:
+      - .env
     volumes:
-      - ./.env:/opt/checkin-app/.env  # Monta o .env da root.
+      - ./.env:/opt/checkin-app/.env
     depends_on:
       db:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm start"
-    profiles:
-      - prod
-      - homol
+    profiles: ["dev", "prod", "homol"]
 
 volumes:
   db_data:

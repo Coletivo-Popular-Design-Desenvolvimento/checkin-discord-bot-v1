@@ -187,7 +187,7 @@ export const mockDbAudioEventValue = {
 export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
   mockDbAudioEventValue,
   mockDbChannelValue,
-  mockDBUserValue
+  mockDBUserValue,
 );
 
 export const mockAudioEventCreatePayload: Omit<
@@ -195,7 +195,7 @@ export const mockAudioEventCreatePayload: Omit<
   "id" | "createdAt"
 > = {
   platformId: "1234567890",
-  channel: mockChannelEntityValue,
+  channel: mockChannelEntityValue as never,
   creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",
