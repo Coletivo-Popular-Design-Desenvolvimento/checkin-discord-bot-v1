@@ -17,26 +17,12 @@ services:
       retries: 10
       start_period: 30s
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - "8090:80"
-    environment:
-      PMA_HOST: db
-      UPLOAD_LIMIT: 300M
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles: ["dev"]
-
   app:
     build:
       context: .
       dockerfile: ./Containerfile
     container_name: node_app
     restart: always
-    ports:
-      - "${PORT}:3000"
     env_file:
       - .env
     volumes:
@@ -46,7 +32,7 @@ services:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm start"
-    profiles: ["dev", "prod", "homol"]
+    profiles: ["prod", "homol"]
 
 volumes:
   db_data:
