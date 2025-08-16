@@ -21,7 +21,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     command: >
-      sh -c "npx prisma generate && npx prisma migrate dev && npx nodemon --exec ts-node ./src/index.ts"
+      sh -c "npx prisma migrate dev && npx nodemon --exec ts-node ./src/index.ts"
     volumes:
       - .:/opt/checkin-app
       - /opt/checkin-app/node_modules

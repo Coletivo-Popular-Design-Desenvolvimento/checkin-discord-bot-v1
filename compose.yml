@@ -32,7 +32,7 @@ services:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm start"
-    profiles: ["prod", "homol"]
+    profiles: ["dev", "homol", "prod"]
 
 volumes:
   db_data:
