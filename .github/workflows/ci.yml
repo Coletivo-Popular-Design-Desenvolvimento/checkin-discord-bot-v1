@@ -2,13 +2,15 @@ name: ci
 on: [push]
 jobs:
   build:
+    env:
+      NODE_ENV: test
     runs-on: ubuntu-latest
     services:
       mysql:
         image: mariadb
         env:
           MARIADB_ROOT_PASSWORD: mariadb
-          MARIADB_DATABASE: checkindb
+          MARIADB_DATABASE: checkindb_test
         options: >-
           --health-cmd "healthcheck.sh --connect --innodb_initialized"
           --health-interval 30s
