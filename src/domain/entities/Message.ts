@@ -5,8 +5,8 @@ import { MessageReactionEntity } from "./MessageReaction";
 
 export class MessageEntity {
   constructor(
-    public readonly channel: ChannelEntity,
-    public readonly user: UserEntity,
+    public readonly channel: ChannelEntity | null,
+    public readonly user: UserEntity | null,
     public readonly messageReactions: MessageReactionEntity[],
     public readonly platformId: string,
     public readonly platformCreatedAt: Date,
@@ -15,27 +15,18 @@ export class MessageEntity {
     public readonly createdAt?: Date | null,
   ) {}
 
-  // Método para criar MessageEntity com relacionamentos completos
   public static fromPersistence(
-    message: Message & {
-      user: User;
-      channel: Channel;
-      messageReaction?: MessageReaction[];
-    },
+    message: Message,
+    user?: User,
+    channel?: Channel,
+    messageReactions?: MessageReaction[],
   ): MessageEntity {
-    const userEntity = UserEntity.fromPersistence(message.user);
-    const channelEntity = ChannelEntity.fromPersistence(message.channel);
-
-    const messageReaction = message.messageReaction
-      ? message.messageReaction.map((mr) =>
-          MessageReactionEntity.fromPersistence(mr),
-        )
-      : [];
-
     return new MessageEntity(
-      channelEntity,
-      userEntity,
-      messageReaction,
+      channel && ChannelEntity.fromPersistence(channel),
+      user && UserEntity.fromPersistence(user),
+      (messageReactions || []).map((mr) =>
+        MessageReactionEntity.fromPersistence(mr),
+      ),
       message.platform_id,
       message.platform_created_at,
       message.is_deleted,

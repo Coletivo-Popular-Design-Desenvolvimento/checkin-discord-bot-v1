@@ -295,7 +295,12 @@ export class MessageRepository implements IMessageRepository {
       message_reaction?: MessageReaction[];
     },
   ): MessageEntity {
-    return MessageEntity.fromPersistence(message);
+    return MessageEntity.fromPersistence(
+      message,
+      message.user,
+      message.channel,
+      message.message_reaction,
+    );
   }
 
   private toPersistence(message: Partial<MessageEntity>) {

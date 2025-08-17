@@ -223,7 +223,7 @@ export const mockChannelEntityValue = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [mockMessageValue],
+  message: [],
   messageReaction: [],
 };
 
@@ -261,7 +261,7 @@ export const mockDbAudioEventValue = {
 export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
   mockDbAudioEventValue,
   mockDbChannelValue,
-  mockDBUserValue
+  mockDBUserValue,
 );
 
 export const mockAudioEventCreatePayload: Omit<
@@ -484,11 +484,11 @@ export function createMockMessageEntity(
   const dbUser = createMockDbUser();
   const dbChannel = createMockDbChannel();
 
-  const baseEntity = MessageEntity.fromPersistence({
-    ...dbMessage,
-    user: dbUser,
-    channel: dbChannel,
-  });
+  const baseEntity = MessageEntity.fromPersistence(
+    dbMessage,
+    dbUser,
+    dbChannel,
+  );
 
   // Se não há overrides específicos, retorna a entidade base
   if (Object.keys(overrides).length === 0) {
