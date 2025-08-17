@@ -34,7 +34,7 @@ jobs:
       - name: Executar linter
         run: npm run lint
 
-      - name: Executar testes
+      - name: Executar migrations e testes
         run: npm test
 
       - name: Validar schema
@@ -44,8 +44,3 @@ jobs:
         run: |
           npx prisma generate
           git diff --exit-code src/infrastructure/persistence/prisma/models/dbml/
-
-      - name: Executar migrações
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: mysql://root:mariadb@localhost:3306/checkindb
