@@ -26,17 +26,16 @@ export class MessageEntity {
     const userEntity = UserEntity.fromPersistence(message.user);
     const channelEntity = ChannelEntity.fromPersistence(message.channel);
 
-    // ! TODO: usar o método fromPersistence para MessageReactionEntity que tá lá no branch da feat/channel
-    // const messageReaction = message.messageReaction
-    //   ? message.messageReaction.map((mr) =>
-    //       MessageReactionEntity.fromPersistence(mr),
-    //     )
-    //   : [];
+    const messageReaction = message.messageReaction
+      ? message.messageReaction.map((mr) =>
+          MessageReactionEntity.fromPersistence(mr),
+        )
+      : [];
 
     return new MessageEntity(
       channelEntity,
       userEntity,
-      [],
+      messageReaction,
       message.platform_id,
       message.platform_created_at,
       message.is_deleted,
