@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "@quramy/jest-prisma": "^1.8.1",
+    "@quramy/jest-prisma-node": "^1.8.1",
     "@types/jest": "^29.5.14",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.26.0",
