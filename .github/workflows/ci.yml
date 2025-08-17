@@ -9,7 +9,7 @@ jobs:
       mysql:
         image: mariadb
         env:
-          MARIADB_ROOT_PASSWORD: mariadb
+          MARIADB_ROOT_PASSWORD: Coletivo1917
           MARIADB_DATABASE: checkindb_test
         options: >-
           --health-cmd "healthcheck.sh --connect --innodb_initialized"
