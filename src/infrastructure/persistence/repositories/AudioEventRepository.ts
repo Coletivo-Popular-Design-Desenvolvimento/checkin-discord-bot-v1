@@ -1,4 +1,4 @@
-import { PrismaClient, AudioEvent as PrismaAudioEvent } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
 import {
   IAudioEventRepository,
@@ -28,30 +28,13 @@ export class AudioEventRepository implements IAudioEventRepository {
     );
   }
 
-  private toDomain(prismaEvent: PrismaAudioEvent): AudioEventEntity {
-    return new AudioEventEntity(
-      prismaEvent.id,
-      prismaEvent.platform_id,
-      prismaEvent.channel_id,
-      prismaEvent.creator_id,
-      prismaEvent.name,
-      prismaEvent.status_id,
-      prismaEvent.start_at,
-      prismaEvent.end_at,
-      prismaEvent.user_count,
-      prismaEvent.created_at,
-      prismaEvent.description,
-      prismaEvent.image,
-    );
-  }
-
   private toPersistence(
     eventData: Partial<Omit<AudioEventEntity, "id" | "createdAt">>,
   ) {
     return {
       platform_id: eventData.platformId,
-      channel_id: eventData.channelId,
-      creator_id: eventData.creatorId,
+      channel_id: eventData.channel?.platformId,
+      creator_id: eventData.creator?.platformId,
       name: eventData.name,
       status_id: eventData.statusId,
       start_at: eventData.startAt,
@@ -68,8 +51,9 @@ export class AudioEventRepository implements IAudioEventRepository {
     try {
       const result = await this.client.audioEvent.create({
         data: this.toPersistence(eventData),
+        include: { channel: true, creator: true },
       });
-      return this.toDomain(result);
+      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -105,8 +89,11 @@ export class AudioEventRepository implements IAudioEventRepository {
     try {
       const result = await this.client.audioEvent.findUnique({
         where: { id },
+        include: { channel: true, creator: true },
       });
-      return result ? this.toDomain(result) : null;
+      return result
+        ? AudioEventEntity.fromPersistence(result, result.channel, result.creator)
+        : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -133,8 +120,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         take: params?.limit,
         where: whereClause,
         orderBy: { start_at: "desc" },
+        include: { channel: true, creator: true },
       });
-      return results.map((result) => this.toDomain(result));
+      return results.map((result) =>
+        AudioEventEntity.fromPersistence(result, result.channel, result.creator),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -166,8 +156,9 @@ export class AudioEventRepository implements IAudioEventRepository {
       const result = await this.client.audioEvent.update({
         where: { id },
         data: this.toPersistence(eventData),
+        include: { channel: true, creator: true },
       });
-      return this.toDomain(result);
+      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
