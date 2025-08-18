@@ -96,13 +96,13 @@ enum EventType {
 }
 
 model UserEvent {
-  id       Int        @id @default(autoincrement())
-  event_id String
-  user_id  String
-  type     EventType
-  at       DateTime   @default(now())
-  event    AudioEvent @relation(fields: [event_id], references: [platform_id])
-  user     User       @relation(fields: [user_id], references: [platform_id])
+  id         Int        @id @default(autoincrement())
+  event_id   String
+  user_id    String
+  event_type EventType
+  created_at DateTime   @default(now())
+  event      AudioEvent @relation(fields: [event_id], references: [platform_id])
+  user       User       @relation(fields: [user_id], references: [platform_id])
 
   @@index([event_id], map: "user_event_event_id_fkey")
   @@map("user_event")

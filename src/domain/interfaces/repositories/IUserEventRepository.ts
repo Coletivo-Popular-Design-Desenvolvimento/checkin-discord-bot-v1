@@ -3,7 +3,7 @@ import { UserEventEntity } from "../../entities/UserEvent";
 
 export interface UserEventListAllInput {
   limit?: number;
-  type?: EventType;
+  eventType?: EventType;
   eventId?: string;
   userId?: string;
 }
@@ -17,6 +17,6 @@ export interface IUserEventRepository {
   listAll(params?: UserEventListAllInput): Promise<UserEventEntity[]>;
   findByEventId(eventId: string): Promise<UserEventEntity[]>;
   findByUserId(userId: string): Promise<UserEventEntity[]>;
-  findByType(type: EventType): Promise<UserEventEntity[]>;
+  findByEventType(eventType: EventType): Promise<UserEventEntity[]>;
   deleteById(id: number): Promise<boolean>;
 }

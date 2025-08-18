@@ -248,8 +248,8 @@ export const mockDbUserEventValue = {
   user_id: mockDBUserValue.platform_id,
   event: mockDbAudioEventValue,
   event_id: mockDbAudioEventValue.platform_id,
-  at: mockDate,
-  type: EventType.JOINED,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
 };
 
 export const mockUserEventEntityValue = UserEventEntity.fromPersistence(
@@ -261,8 +261,8 @@ export const mockUserEventEntityValue = UserEventEntity.fromPersistence(
 export const mockUserEventCreatePayload: Omit<UserEventEntity, "id"> = {
   user: mockUserValue,
   event: mockAudioEventEntityValue,
-  at: mockDate,
-  type: EventType.JOINED,
+  eventType: EventType.JOINED,
+  createdAt: mockDate,
 };
 
 export const mockDbUserEventCreatedValue = {
@@ -271,8 +271,8 @@ export const mockDbUserEventCreatedValue = {
   user_id: mockDBUserValue.platform_id,
   event: mockDbAudioEventValue,
   event_id: mockDbAudioEventValue.platform_id,
-  at: mockDate,
-  type: EventType.JOINED,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
 };
 
 //RoleRepository tests consts

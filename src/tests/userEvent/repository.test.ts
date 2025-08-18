@@ -49,16 +49,16 @@ describe("UserEventRepository", () => {
         data: {
           user_id: mockUserEventCreatePayload.user.platformId,
           event_id: mockUserEventCreatePayload.event.platformId,
-          at: mockUserEventCreatePayload.at,
-          type: mockUserEventCreatePayload.type,
+          created_at: mockUserEventCreatePayload.createdAt,
+          event_type: mockUserEventCreatePayload.eventType,
         },
         include: { user: true, event: true },
       });
       expect(event).toEqual(
         new UserEventEntity(
           mockDbUserEventCreatedValue.id,
-          mockDbUserEventCreatedValue.type,
-          mockDbUserEventCreatedValue.at,
+          mockDbUserEventCreatedValue.event_type,
+          mockDbUserEventCreatedValue.created_at,
           UserEntity.fromPersistence(mockDbUserEventCreatedValue.user),
           AudioEventEntity.fromPersistence(mockDbUserEventCreatedValue.event),
         ),
@@ -84,7 +84,7 @@ describe("UserEventRepository", () => {
     it("should create multiple user events and return the count", async () => {
       const eventsData = [
         mockUserEventCreatePayload,
-        { ...mockUserEventCreatePayload, type: EventType.LEFT },
+        { ...mockUserEventCreatePayload, eventType: EventType.LEFT },
       ];
       prismaMock.userEvent.createMany.mockResolvedValue({ count: 2 });
       const count = await userEventRepository.createMany(eventsData);
@@ -134,7 +134,7 @@ describe("UserEventRepository", () => {
     it("should return a list of user events", async () => {
       const dbEvents = [
         mockDbUserEventValue,
-        { ...mockDbUserEventValue, id: 2, type: EventType.LEFT },
+        { ...mockDbUserEventValue, id: 2, eventType: EventType.LEFT },
       ];
       prismaMock.userEvent.findMany.mockResolvedValue(dbEvents);
       const events = await userEventRepository.listAll();
@@ -143,7 +143,7 @@ describe("UserEventRepository", () => {
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
         where: {},
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
       expect(events).toHaveLength(2);
@@ -156,7 +156,7 @@ describe("UserEventRepository", () => {
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
         where: { event_id: "1" },
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
     });
@@ -167,29 +167,29 @@ describe("UserEventRepository", () => {
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
         where: { user_id: "1234567890" },
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
     });
 
-    it("should filter by type if provided", async () => {
+    it("should filter by event type if provided", async () => {
       prismaMock.userEvent.findMany.mockResolvedValue([mockDbUserEventValue]);
-      await userEventRepository.listAll({ type: EventType.LEFT });
+      await userEventRepository.listAll({ eventType: EventType.LEFT });
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { type: EventType.LEFT },
-        orderBy: { at: "desc" },
+        where: { event_type: EventType.LEFT },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
     });
 
-    it("should limit query when limit is provided", async () => {
+    it("should limit query if provided", async () => {
       prismaMock.userEvent.findMany.mockResolvedValue([mockDbUserEventValue]);
       await userEventRepository.listAll({ limit: 99 });
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: 99,
         where: {},
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
     });
@@ -202,7 +202,7 @@ describe("UserEventRepository", () => {
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
         where: { event_id: "1" },
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
       expect(events[0]).toEqual(mockUserEventEntityValue);
@@ -216,21 +216,23 @@ describe("UserEventRepository", () => {
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
         where: { user_id: "1234567890" },
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
       expect(events[0]).toEqual(mockUserEventEntityValue);
     });
   });
 
-  describe("findByType", () => {
-    it("should return user events by type", async () => {
+  describe("findByEventType", () => {
+    it("should return user events by event type", async () => {
       prismaMock.userEvent.findMany.mockResolvedValue([mockDbUserEventValue]);
-      const events = await userEventRepository.findByType(EventType.JOINED);
+      const events = await userEventRepository.findByEventType(
+        EventType.JOINED,
+      );
       expect(prismaMock.userEvent.findMany).toHaveBeenCalledWith({
         take: undefined,
-        where: { type: EventType.JOINED },
-        orderBy: { at: "desc" },
+        where: { event_type: EventType.JOINED },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
       expect(events[0]).toEqual(mockUserEventEntityValue);

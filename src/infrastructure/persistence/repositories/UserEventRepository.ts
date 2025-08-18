@@ -30,8 +30,8 @@ export class UserEventRepository implements IUserEventRepository {
 
   private toPersistence(eventData: Omit<UserEventEntity, "id">) {
     return {
-      type: eventData.type,
-      at: eventData.at,
+      event_type: eventData.eventType,
+      created_at: eventData.createdAt,
       user_id: eventData.user.platformId,
       event_id: eventData.event.platformId,
     };
@@ -100,18 +100,18 @@ export class UserEventRepository implements IUserEventRepository {
   async listAll(params?: UserEventListAllInput): Promise<UserEventEntity[]> {
     try {
       const whereClause: {
-        type?: EventType;
+        event_type?: EventType;
         event_id?: string;
         user_id?: string;
       } = {};
-      if (params?.type) whereClause.type = params.type;
+      if (params?.eventType) whereClause.event_type = params.eventType;
       if (params?.eventId) whereClause.event_id = params.eventId;
       if (params?.userId) whereClause.user_id = params.userId;
 
       const results = await this.client.userEvent.findMany({
         take: params?.limit,
         where: whereClause,
-        orderBy: { at: "desc" },
+        orderBy: { created_at: "desc" },
         include: { user: true, event: true },
       });
       return results.map((result) =>
@@ -136,8 +136,8 @@ export class UserEventRepository implements IUserEventRepository {
     return this.listAll({ userId });
   }
 
-  async findByType(type: EventType): Promise<UserEventEntity[]> {
-    return this.listAll({ type });
+  async findByEventType(eventType: EventType): Promise<UserEventEntity[]> {
+    return this.listAll({ eventType });
   }
 
   async deleteById(id: number): Promise<boolean> {

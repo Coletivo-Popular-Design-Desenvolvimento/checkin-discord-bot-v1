@@ -74,8 +74,8 @@ Table user_event {
   id Int [pk, increment]
   event_id String [not null]
   user_id String [not null]
-  type EventType [not null]
-  at DateTime [default: `now()`, not null]
+  event_type EventType [not null]
+  created_at DateTime [default: `now()`, not null]
   event audio_event [not null]
   user user [not null]
 }

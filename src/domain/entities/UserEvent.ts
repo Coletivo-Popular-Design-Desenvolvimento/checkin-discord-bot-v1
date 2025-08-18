@@ -5,8 +5,8 @@ import { AudioEventEntity } from "./AudioEvent";
 export class UserEventEntity {
   constructor(
     public readonly id: number,
-    public readonly type: EventType,
-    public readonly at: Date,
+    public readonly eventType: EventType,
+    public readonly createdAt: Date,
     public readonly user: UserEntity,
     public readonly event: AudioEventEntity,
   ) {}
@@ -18,8 +18,8 @@ export class UserEventEntity {
   ): UserEventEntity {
     return new UserEventEntity(
       userEvent.id,
-      userEvent.type,
-      userEvent.at,
+      userEvent.event_type,
+      userEvent.created_at,
       UserEntity.fromPersistence(user),
       AudioEventEntity.fromPersistence(event),
     );
