@@ -11,6 +11,7 @@ export type naturalizeUser = {
   joined_at: Date | null;
   platform_created_at: Date | null;
   create_at: Date | null;
+  created_at: Date | null;
   update_at: Date | null;
   last_active: Date | null;
   bot: boolean;
@@ -91,6 +92,7 @@ export const mockMessageValue = {
   isDeleted: false,
   discordCreatedAt: undefined,
   createdAt: undefined,
+  platformCreatedAt: new Date(),
 };
 
 export const mockMessageUpdateValue = {
@@ -100,6 +102,7 @@ export const mockMessageUpdateValue = {
   user_id: "1",
   is_deleted: true,
   discord_created_at: new Date(),
+  platform_created_at: new Date(),
   created_at: new Date(),
 } as unknown as messageDbModel;
 
@@ -142,7 +145,18 @@ export const mockDbChannelValue = {
   message_reaction: [],
 };
 
-export const mockChannelEntityValue = {
+export type ChannelEntityValue = {
+  id: number;
+  platformId: string;
+  name: string;
+  url: string;
+  createdAt: Date;
+  user: Array<typeof mockUserValue>;
+  message: Array<typeof mockMessageValue>;
+  messageReaction: never[]; // ajusta se tiver mock de reação
+};
+
+export const mockChannelEntityValue: ChannelEntityValue = {
   id: 1,
   platformId: "discordId",
   name: "channelName",
@@ -187,7 +201,7 @@ export const mockDbAudioEventValue = {
 export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
   mockDbAudioEventValue,
   mockDbChannelValue,
-  mockDBUserValue
+  mockDBUserValue,
 );
 
 export const mockAudioEventCreatePayload: Omit<
@@ -195,7 +209,7 @@ export const mockAudioEventCreatePayload: Omit<
   "id" | "createdAt"
 > = {
   platformId: "1234567890",
-  channel: mockChannelEntityValue,
+  channel: mockChannelEntityValue as ChannelEntityValue,
   creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",
