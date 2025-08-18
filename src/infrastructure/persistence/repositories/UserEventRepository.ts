@@ -142,7 +142,7 @@ export class UserEventRepository implements IUserEventRepository {
 
   async deleteById(id: number): Promise<boolean> {
     try {
-      await this.client.audioEvent.delete({
+      await this.client.userEvent.delete({
         where: { id },
       });
       return true;
