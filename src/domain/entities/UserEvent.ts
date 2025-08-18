@@ -14,14 +14,14 @@ export class UserEventEntity {
   public static fromPersistence(
     userEvent: UserEvent,
     user: User,
-    audioEvent: AudioEvent,
+    event: AudioEvent,
   ): UserEventEntity {
     return new UserEventEntity(
       userEvent.id,
       userEvent.type,
       userEvent.at,
       UserEntity.fromPersistence(user),
-      AudioEventEntity.fromPersistence(audioEvent),
+      AudioEventEntity.fromPersistence(event),
     );
   }
 }
