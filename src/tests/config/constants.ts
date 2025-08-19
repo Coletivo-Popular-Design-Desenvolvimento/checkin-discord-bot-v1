@@ -1,6 +1,16 @@
 import { UserStatus } from "@type/UserStatusEnum";
-import { AudioEvent as PrismaAudioEvent } from "@prisma/client";
+import {
+  AudioEvent as PrismaAudioEvent,
+  User,
+  Message,
+  Channel,
+  MessageReaction,
+} from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
+import { UserEntity } from "@domain/entities/User";
+import { MessageEntity } from "@domain/entities/Message";
+import { ChannelEntity } from "@domain/entities/Channel";
+import { MessageReactionEntity } from "@domain/entities/MessageReaction";
 
 export type naturalizeUser = {
   id: number;
@@ -84,6 +94,23 @@ export const mockDbMessageValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
+export const mockDbMessageValueWithRelations = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: false,
+  platform_created_at: new Date(),
+  created_at: new Date(),
+  user: createMockDbUser({ id: 1, platform_id: "1" }),
+  channel: createMockDbChannel({ id: 1, platform_id: "654341" }),
+  message_reaction: [],
+} as unknown as messageDbModel & {
+  user: User;
+  channel: Channel;
+  message_reaction: MessageReaction[];
+};
+
 export const mockMessageValue = {
   id: 1,
   platformId: "1234567890",
@@ -106,6 +133,23 @@ export const mockMessageUpdateValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
+export const mockMessageUpdateValueWithRelations = {
+  id: 1,
+  platform_id: "1234567890",
+  channel_id: "654341",
+  user_id: "1",
+  is_deleted: true,
+  discord_created_at: new Date(),
+  created_at: new Date(),
+  user: createMockDbUser({ id: 1, platform_id: "1" }),
+  channel: createMockDbChannel({ id: 1, platform_id: "654341" }),
+  message_reaction: [],
+} as unknown as messageDbModel & {
+  user: User;
+  channel: Channel;
+  message_reaction: MessageReaction[];
+};
+
 /**
  * @description Função para criar quantos mocks quiser do model Message
  * @param amount Quantidade de registros mockados a serem gerados
@@ -122,6 +166,36 @@ export function createNumerousMocks(amount, includeDeleted = false) {
       platform_id: `${(i + 1) * 1000}`,
       channel_id: `${(i + 1) * 4000}`,
       is_deleted: includeDeleted && i % 2 === 0,
+    });
+  }
+
+  return mocks;
+}
+
+/**
+ * @description Função para criar quantos mocks quiser do model Message COM RELAÇÕES
+ * @param amount Quantidade de registros mockados a serem gerados
+ * @param includeDeleted Se devem ser gerados inclusive mocks com is_deleted = true
+ * @returns Lista de mensagens mockadas com relações
+ */
+export function createNumerousMocksWithRelations(
+  amount,
+  includeDeleted = false,
+) {
+  const mocks = [];
+  for (let i = 0; i < amount; i++) {
+    const userId = `${i + 10}`;
+    const channelId = `${(i + 1) * 4000}`;
+    mocks.push({
+      ...mockDbMessageValue,
+      id: i + 2,
+      user_id: userId,
+      platform_id: `${(i + 1) * 1000}`,
+      channel_id: channelId,
+      is_deleted: includeDeleted && i % 2 === 0,
+      user: createMockDbUser({ id: i + 2, platform_id: userId }),
+      channel: createMockDbChannel({ id: i + 2, platform_id: channelId }),
+      message_reaction: [],
     });
   }
 
@@ -163,7 +237,7 @@ export const mockChannelEntityValue: ChannelEntityValue = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [mockMessageValue],
+  message: [],
   messageReaction: [],
 };
 
@@ -261,3 +335,206 @@ export const mockDBRoleValue = {
   platform_created_at: new Date("2025-01-01"),
   user_role: [{ user: mockDBUserValue }],
 };
+
+/**
+ * Factory para criar um User do Prisma com dados completos
+ */
+export function createMockDbUser(overrides: Partial<User> = {}): User {
+  return {
+    id: 1,
+    platform_id: "user123",
+    username: "TestUser",
+    global_name: "Test User Global",
+    joined_at: new Date("2023-01-01"),
+    platform_created_at: new Date("2023-01-01"),
+    update_at: new Date("2023-01-01"),
+    last_active: new Date("2023-01-01"),
+    create_at: new Date("2023-01-01"),
+    bot: false,
+    email: "test@test.com",
+    status: UserStatus.ACTIVE,
+    ...overrides,
+  } as User;
+}
+
+/**
+ * Factory para criar um Channel do Prisma com dados completos
+ */
+export function createMockDbChannel(overrides: Partial<Channel> = {}): Channel {
+  return {
+    id: 1,
+    platform_id: "channel789",
+    name: "test-channel",
+    url: "https://discord.com/channels/123/789",
+    created_at: new Date("2023-01-01"),
+    ...overrides,
+  } as Channel;
+}
+
+/**
+ * Factory para criar um Message do Prisma com dados completos
+ */
+export function createMockDbMessage(overrides: Partial<Message> = {}): Message {
+  return {
+    id: 1,
+    platform_id: "message456",
+    channel_id: "channel789",
+    is_deleted: false,
+    user_id: "user123",
+    platform_created_at: new Date("2023-01-01"),
+    created_at: new Date("2023-01-01"),
+    ...overrides,
+  } as Message;
+}
+
+/**
+ * Factory para criar um MessageReaction do Prisma com dados completos
+ */
+export function createMockDbMessageReaction(
+  overrides: Partial<MessageReaction> = {},
+): MessageReaction {
+  return {
+    id: 1,
+    user_id: "user123",
+    message_id: "message456",
+    channel_id: "channel789",
+    ...overrides,
+  } as MessageReaction;
+}
+
+/**
+ * Factory para criar um Message com relacionamentos (como retornado pelo Prisma include)
+ */
+export function createMockDbMessageWithRelations(
+  messageOverrides: Partial<Message> = {},
+  userOverrides: Partial<User> = {},
+  channelOverrides: Partial<Channel> = {},
+  messageReactionsOverrides: Partial<MessageReaction>[] = [],
+) {
+  const user = createMockDbUser(userOverrides);
+  const channel = createMockDbChannel(channelOverrides);
+  const message = createMockDbMessage(messageOverrides);
+
+  const messageReactions =
+    messageReactionsOverrides.length > 0
+      ? messageReactionsOverrides.map((override) =>
+          createMockDbMessageReaction(override),
+        )
+      : [createMockDbMessageReaction()];
+
+  return {
+    ...message,
+    user,
+    channel,
+    message_reaction: messageReactions,
+  };
+}
+
+/**
+ * Factory para criar UserEntity de teste
+ */
+export function createMockUserEntity(
+  overrides: Partial<UserEntity> = {},
+): UserEntity {
+  const dbUser = createMockDbUser();
+  const userEntity = UserEntity.fromPersistence(dbUser);
+  return new UserEntity(
+    overrides.id ?? userEntity.id,
+    overrides.platformId ?? userEntity.platformId,
+    overrides.username ?? userEntity.username,
+    overrides.bot ?? userEntity.bot,
+    overrides.status ?? userEntity.status,
+    overrides.globalName ?? userEntity.globalName,
+    overrides.joinedAt ?? userEntity.joinedAt,
+    overrides.platformCreatedAt ?? userEntity.platformCreatedAt,
+    overrides.createAt ?? userEntity.createAt,
+    overrides.updateAt ?? userEntity.updateAt,
+    overrides.lastActive ?? userEntity.lastActive,
+    overrides.email ?? userEntity.email,
+  );
+}
+
+/**
+ * Factory para criar ChannelEntity de teste
+ */
+export function createMockChannelEntity(
+  overrides: Partial<ChannelEntity> = {},
+): ChannelEntity {
+  const dbChannel = createMockDbChannel();
+  const channelEntity = ChannelEntity.fromPersistence(dbChannel);
+  return new ChannelEntity(
+    overrides.id ?? channelEntity.id,
+    overrides.platformId ?? channelEntity.platformId,
+    overrides.name ?? channelEntity.name,
+    overrides.url ?? channelEntity.url,
+    overrides.createdAt ?? channelEntity.createdAt,
+  );
+}
+
+/**
+ * Factory para criar MessageReactionEntity de teste
+ */
+export function createMockMessageReactionEntity(
+  userEntity?: UserEntity,
+  messageEntity?: MessageEntity,
+  channelEntity?: ChannelEntity,
+  id: number = 1,
+): MessageReactionEntity {
+  return new MessageReactionEntity(
+    id,
+    userEntity ?? createMockUserEntity(),
+    messageEntity ?? createMockMessageEntity(),
+    channelEntity ?? createMockChannelEntity(),
+  );
+}
+
+/**
+ * Factory para criar MessageEntity de teste
+ */
+export function createMockMessageEntity(
+  overrides: Partial<MessageEntity> = {},
+): MessageEntity {
+  const dbMessage = createMockDbMessage();
+  const dbUser = createMockDbUser();
+  const dbChannel = createMockDbChannel();
+
+  const baseEntity = MessageEntity.fromPersistence(
+    dbMessage,
+    dbUser,
+    dbChannel,
+  );
+
+  // Se não há overrides específicos, retorna a entidade base
+  if (Object.keys(overrides).length === 0) {
+    return baseEntity;
+  }
+
+  // Para overrides, criar com entidades personalizadas se necessário
+  const channel = overrides.channel ?? baseEntity.channel;
+  const user = overrides.user ?? baseEntity.user;
+  const messageReactions =
+    overrides.messageReactions ?? baseEntity.messageReactions;
+
+  return new MessageEntity(
+    channel,
+    user,
+    messageReactions,
+    overrides.platformId ?? baseEntity.platformId,
+    overrides.platformCreatedAt ?? baseEntity.platformCreatedAt,
+    overrides.isDeleted ?? baseEntity.isDeleted,
+    overrides.id ?? baseEntity.id,
+    overrides.createdAt ?? baseEntity.createdAt,
+  );
+}
+
+// Mocks pré-configurados para compatibilidade com testes existentes
+export const mockDbUserForRelations = createMockDbUser();
+export const mockDbChannelForRelations = createMockDbChannel();
+export const mockDbMessageForRelations = createMockDbMessage();
+export const mockDbMessageReactionForRelations = createMockDbMessageReaction();
+
+export const mockUserEntityForRelations = createMockUserEntity();
+export const mockChannelEntityForRelations = createMockChannelEntity();
+export const mockMessageEntityForRelations = createMockMessageEntity();
+export const mockMessageReactionEntityForRelations =
+  createMockMessageReactionEntity();
