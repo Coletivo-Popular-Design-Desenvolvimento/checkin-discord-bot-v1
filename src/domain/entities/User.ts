@@ -1,5 +1,6 @@
 import { UserStatus } from "@type/UserStatusEnum";
-import { User } from "@prisma/client";
+import { Message, User } from "@prisma/client";
+import { MessageEntity } from "./Message";
 
 export class UserEntity {
   // Deveria ser User, mas o discord ja tem User, é MUITO chato ficar importando a coisa errada toda hora.
@@ -16,9 +17,10 @@ export class UserEntity {
     public readonly updateAt?: Date | null,
     public readonly lastActive?: Date | null,
     public readonly email?: string | null,
+    public readonly messages?: MessageEntity[],
   ) {}
 
-  public static fromPersistence(user: User): UserEntity {
+  public static fromPersistence(user: User, messages?: Message[]): UserEntity {
     return new UserEntity(
       user.id,
       user.platform_id,
@@ -32,6 +34,7 @@ export class UserEntity {
       user.update_at,
       user.last_active,
       user.email,
+      messages?.map(MessageEntity.fromPersistence),
     );
   }
 }

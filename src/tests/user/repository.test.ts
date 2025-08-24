@@ -3,17 +3,33 @@ import { ILoggerService } from "@services/ILogger";
 import { UserStatus } from "@type/UserStatusEnum";
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { UserRepository } from "@infra/repositories/UserRepository";
-import { mockUserValue } from "../config/constants";
+import { mockUserValue, createMockDBUser } from "../config/constants";
+import { MessageRepository } from "@infra/repositories/MessageRepository";
+import { ChannelRepository } from "@infra/repositories/ChannelRepository";
+import { ChannelEntity } from "@domain/entities/Channel";
+import { MessageEntity } from "@domain/entities/Message";
 
 describe("UserRepository", () => {
   let userRepository: UserRepository;
+  let messageRepository: MessageRepository;
+  let channelRepository: ChannelRepository;
   const mockLogger: ILoggerService = {
     logToConsole: jest.fn(),
     logToDatabase: jest.fn(),
   };
 
-  beforeAll(() => {
+  beforeEach(() => {
     userRepository = new UserRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+
+    messageRepository = new MessageRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+
+    channelRepository = new ChannelRepository(
       new PrismaService(jestPrisma.client),
       mockLogger,
     );
@@ -149,6 +165,75 @@ describe("UserRepository", () => {
       await userRepository.deleteById(id);
 
       expect(spy).toHaveBeenCalledWith("ERROR");
+    });
+  });
+
+  describe("listAll", () => {
+    it("returns all active users", async () => {
+      await userRepository.createMany(
+        Array.from({ length: 10 }, createMockDBUser),
+      );
+
+      const result = await userRepository.listAll();
+
+      expect(result).toHaveLength(10);
+    });
+
+    it("includes inactive users", async () => {
+      await userRepository.createMany(
+        Array.from({ length: 7 }, () =>
+          createMockDBUser({ status: UserStatus.ACTIVE }),
+        ),
+      );
+
+      await userRepository.createMany(
+        Array.from({ length: 3 }, () =>
+          createMockDBUser({ status: UserStatus.ACTIVE }),
+        ),
+      );
+
+      const result = await userRepository.listAll(10, true);
+
+      expect(result).toHaveLength(10);
+    });
+
+    it("sets limit clause", async () => {
+      await userRepository.createMany(
+        Array.from({ length: 10 }, createMockDBUser),
+      );
+
+      const result = await userRepository.listAll(5);
+
+      expect(result).toHaveLength(5);
+    });
+
+    it("inludes associations", async () => {
+      const user = await userRepository.create(mockUserValue);
+
+      await channelRepository.create({
+        platformId: "123",
+        name: "test",
+        url: "test",
+        createdAt: new Date(),
+        user: [user],
+        message: [
+          new MessageEntity(
+            null,
+            user,
+            [],
+            "456",
+            new Date(),
+            false,
+            null,
+            new Date(),
+          ),
+        ],
+      });
+
+      const [result] = await userRepository.listAll();
+
+      expect(result.messages).toHaveLength(1);
+      expect(result.channels).toHaveLength(1);
     });
   });
 });

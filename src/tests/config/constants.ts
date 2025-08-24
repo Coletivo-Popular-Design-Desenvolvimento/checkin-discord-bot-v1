@@ -43,6 +43,11 @@ export const mockDBUserValue = {
   email: undefined,
 } as unknown as naturalizeUser;
 
+export const createMockDBUser = (params: Partial<User> = {}): User => ({
+  ...mockDBUserValue,
+  ...params,
+});
+
 export const mockUserUpdateValue = {
   id: 1,
   platform_id: "1234567890",
