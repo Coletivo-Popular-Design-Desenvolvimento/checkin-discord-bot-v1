@@ -9,5 +9,6 @@ export interface IDiscordService<
   onMessage(handler: (message: M) => void): void;
   onNewUser(handler: (member: U) => void): void;
   onUserLeave(handler: (member: U | P) => void): void;
+  onVoiceEvent(handler: (event: any) => void): void;
   registerEvents(): void;
 }

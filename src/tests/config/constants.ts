@@ -283,7 +283,13 @@ export const mockAudioEventCreatePayload: Omit<
   "id" | "createdAt"
 > = {
   platformId: "1234567890",
-  channel: mockChannelEntityValue as ChannelEntityValue,
+  channel: {
+    id: 1,
+    platformId: "discordId",
+    name: "channelName",
+    url: "channelUrl",
+    createdAt: new Date(),
+  } as any,
   creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",

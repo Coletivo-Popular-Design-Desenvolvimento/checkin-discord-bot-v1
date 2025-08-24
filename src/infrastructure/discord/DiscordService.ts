@@ -18,6 +18,7 @@ export class DiscordService
   private onUserLeaveHandlers: ((
     member: GuildMember | PartialGuildMember,
   ) => void)[] = [];
+  private onVoiceEventHandlers: ((event: any) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
@@ -43,6 +44,18 @@ export class DiscordService
     this.client.on(Events.GuildMemberRemove, (member) => {
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
+
+    this.client.on(Events.GuildScheduledEventUpdate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventCreate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventDelete, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -59,5 +72,9 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onVoiceEvent(handler: (event: any) => void): void {
+    this.onVoiceEventHandlers.push(handler);
   }
 }
