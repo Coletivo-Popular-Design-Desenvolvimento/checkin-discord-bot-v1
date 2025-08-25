@@ -91,7 +91,6 @@ export const mockMessageValue: MessageEntity = {
   channelId: "654341",
   userId: "1",
   isDeleted: false,
-  platformCreatedAt: undefined,
   createdAt: undefined,
   platformCreatedAt: undefined,
 };
@@ -152,7 +151,7 @@ export const mockChannelEntityValue = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [mockMessageValue as MessageEntity],
+  message: [mockMessageValue],
   messageReaction: [],
 };
 
