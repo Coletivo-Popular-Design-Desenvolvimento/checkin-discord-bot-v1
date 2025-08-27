@@ -28,7 +28,7 @@ model User {
   message             Message[]
   message_reaction    MessageReaction[]
   user_channel        UserChannel[]
-  user_events         UserEvent[]
+  user_event          UserEvent[]
   user_role           UserRole[]
 
   @@map("user")
@@ -72,7 +72,7 @@ model AudioEvent {
   channel     Channel     @relation(fields: [channel_id], references: [platform_id])
   creator     User        @relation(fields: [creator_id], references: [platform_id])
   status      EventStatus @relation(fields: [status_id], references: [platform_id])
-  user_events UserEvent[]
+  user_event  UserEvent[]
 
   @@index([channel_id], map: "audio_event_channel_id_fkey")
   @@index([creator_id], map: "audio_event_creator_id_fkey")

@@ -19,7 +19,7 @@ Table user {
   message message [not null]
   message_reaction message_reaction [not null]
   user_channel user_channel [not null]
-  user_events user_event [not null]
+  user_event user_event [not null]
   user_role user_role [not null]
 }
 
@@ -59,7 +59,7 @@ Table audio_event {
   channel channel [not null]
   creator user [not null]
   status event_status [not null]
-  user_events user_event [not null]
+  user_event user_event [not null]
 }
 
 Table event_status {
