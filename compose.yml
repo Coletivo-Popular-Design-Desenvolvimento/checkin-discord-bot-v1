@@ -5,10 +5,10 @@ services:
     image: mariadb:latest
     restart: always
     environment:
-      MYSQL_DATABASE: "${DB_DATABASE}"
       MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
       TZ: "UTC"
     volumes:
+      - ./docker:/docker-entrypoint-initdb.d
       - db_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
