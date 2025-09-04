@@ -1,7 +1,8 @@
 import { UserStatus } from "@type/UserStatusEnum";
-import { AudioEvent as PrismaAudioEvent } from "@prisma/client";
+import { AudioEvent as PrismaAudioEvent, EventType } from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
-import { MessageEntity } from "@domain/entities/Message";
+import { UserEventEntity } from "@domain/entities/UserEvent";
+import { MessageEntity } from "@entities/Message";
 
 export type naturalizeUser = {
   id: number;
@@ -84,13 +85,12 @@ export const mockDbMessageValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
-export const mockMessageValue = {
+export const mockMessageValue: MessageEntity = {
   id: 1,
   platformId: "1234567890",
   channelId: "654341",
   userId: "1",
   isDeleted: false,
-  discordCreatedAt: undefined,
   createdAt: undefined,
   platformCreatedAt: undefined,
 };
@@ -151,7 +151,7 @@ export const mockChannelEntityValue = {
   url: "channelUrl",
   createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
   user: [mockUserValue],
-  message: [mockMessageValue as MessageEntity],
+  message: [mockMessageValue],
   messageReaction: [],
 };
 
@@ -238,6 +238,40 @@ export const mockDbAudioEventUpdatedValue: PrismaAudioEvent = {
   name: mockAudioEventUpdatePayload.name!,
   status_id: mockAudioEventUpdatePayload.statusId!,
   user_count: mockAudioEventUpdatePayload.userCount!,
+};
+
+// User event repository const mocks.
+export const mockDbUserEventValue = {
+  id: 1,
+  user: mockDBUserValue,
+  user_id: mockDBUserValue.platform_id,
+  event: mockDbAudioEventValue,
+  event_id: mockDbAudioEventValue.platform_id,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
+};
+
+export const mockUserEventEntityValue = UserEventEntity.fromPersistence(
+  mockDbUserEventValue,
+  mockDBUserValue,
+  mockDbAudioEventValue,
+);
+
+export const mockUserEventCreatePayload: Omit<UserEventEntity, "id"> = {
+  user: mockUserValue,
+  event: mockAudioEventEntityValue,
+  eventType: EventType.JOINED,
+  createdAt: mockDate,
+};
+
+export const mockDbUserEventCreatedValue = {
+  id: 2,
+  user: mockDBUserValue,
+  user_id: mockDBUserValue.platform_id,
+  event: mockDbAudioEventValue,
+  event_id: mockDbAudioEventValue.platform_id,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
 };
 
 //RoleRepository tests consts
