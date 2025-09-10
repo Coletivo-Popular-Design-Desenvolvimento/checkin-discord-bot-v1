@@ -5,6 +5,7 @@ import {
   GuildMember,
   Message,
   PartialGuildMember,
+  VoiceState,
 } from "discord.js";
 import { DiscordService } from "@discord/DiscordService";
 import { IDiscordService } from "@services/IDiscordService";
@@ -35,7 +36,8 @@ export function initializeDiscord(): {
     Message,
     GuildMember,
     PartialGuildMember,
-    Client
+    Client,
+    VoiceState
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
