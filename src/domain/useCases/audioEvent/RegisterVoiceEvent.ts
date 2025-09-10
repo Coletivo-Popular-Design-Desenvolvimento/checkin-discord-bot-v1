@@ -12,6 +12,18 @@ import {
   RegisterVoiceEventInput,
   IRegisterVoiceEvent,
 } from "@interfaces/useCases/audioEvent/IRegisterVoiceEvent";
+import { ChannelEntity } from "@entities/Channel";
+import { UserEntity } from "@entities/User";
+import { UserStatus } from "@type/UserStatusEnum";
+
+// Função para criar entidades temporárias com apenas platformId
+const createChannelEntity = (platformId: string): ChannelEntity => {
+  return new ChannelEntity(0, platformId, "", "", new Date());
+};
+
+const createUserEntity = (platformId: string): UserEntity => {
+  return new UserEntity(0, platformId, "", false, UserStatus.ACTIVE);
+};
 
 export class RegisterVoiceEvent implements IRegisterVoiceEvent {
   constructor(
@@ -19,7 +31,9 @@ export class RegisterVoiceEvent implements IRegisterVoiceEvent {
     private readonly logger: ILoggerService,
   ) {}
 
-  async execute(input: RegisterVoiceEventInput): Promise<GenericOutputDto<AudioEventEntity>> {
+  async execute(
+    input: RegisterVoiceEventInput,
+  ): Promise<GenericOutputDto<AudioEventEntity>> {
     try {
       const newEvent = await this.audioEventRepository.create({
         platformId: input.platformId,
@@ -28,8 +42,8 @@ export class RegisterVoiceEvent implements IRegisterVoiceEvent {
         startAt: input.startAt,
         endAt: input.endAt,
         userCount: input.userCount,
-        channel: { platformId: input.channelId } as any,
-        creator: { platformId: input.creatorId } as any,
+        channel: createChannelEntity(input.channelId),
+        creator: createUserEntity(input.creatorId),
         description: input.description,
         image: input.image,
       });

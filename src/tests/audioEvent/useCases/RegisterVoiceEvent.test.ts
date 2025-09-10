@@ -92,8 +92,19 @@ describe("RegisterVoiceEvent", () => {
         startAt: input.startAt,
         endAt: undefined,
         userCount: input.userCount,
-        channel: { platformId: input.channelId } as any,
-        creator: { platformId: input.creatorId } as any,
+        channel: expect.objectContaining({
+          platformId: input.channelId,
+          id: 0,
+          name: "",
+          url: "",
+        }),
+        creator: expect.objectContaining({
+          platformId: input.creatorId,
+          id: 0,
+          username: "",
+          bot: false,
+          status: UserStatus.ACTIVE,
+        }),
         description: input.description,
         image: undefined,
       });

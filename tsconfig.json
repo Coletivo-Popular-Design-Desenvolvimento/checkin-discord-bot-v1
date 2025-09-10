@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["@types/jest", "@quramy/jest-prisma-node"],
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es6",
@@ -24,7 +25,7 @@
       "@infra/repositories/*": ["infrastructure/persistence/repositories/*"],
       "@infra/*": ["infrastructure/*"],
       "@discord/*": ["infrastructure/discord/*"],
-      "@tests/*":["tests/*"]
+      "@tests/*": ["tests/*"]
     },
     "baseUrl": "./src"
   },

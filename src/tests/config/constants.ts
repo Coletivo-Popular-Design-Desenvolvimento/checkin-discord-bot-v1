@@ -230,7 +230,7 @@ export type ChannelEntityValue = {
   messageReaction: never[]; // ajusta se tiver mock de reação
 };
 
-export const mockChannelEntityValue: ChannelEntityValue = {
+export const mockChannelEntityValue: ChannelEntity = {
   id: 1,
   platformId: "discordId",
   name: "channelName",
@@ -289,7 +289,7 @@ export const mockAudioEventCreatePayload: Omit<
     name: "channelName",
     url: "channelUrl",
     createdAt: new Date(),
-  } as any,
+  } as ChannelEntity,
   creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",

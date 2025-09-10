@@ -6,6 +6,7 @@ import { AudioEventEntity } from "@entities/AudioEvent";
 import { ChannelEntity } from "@entities/Channel";
 import { UserEntity } from "@entities/User";
 import { UserStatus } from "@type/UserStatusEnum";
+import { DiscordEventStatus } from "@type/DiscordEventTypes";
 
 describe("VoiceEventService", () => {
   let voiceEventService: VoiceEventService;
@@ -70,6 +71,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
+        status: "ACTIVE" as DiscordEventStatus,
         scheduledStartAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -109,6 +111,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
+        status: "ACTIVE" as DiscordEventStatus,
         scheduledStartAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -137,6 +140,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
+        status: "COMPLETED" as DiscordEventStatus,
         scheduledEndAt: new Date(),
         userCount: 3,
       };
@@ -166,6 +170,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
+        status: "COMPLETED" as DiscordEventStatus,
         scheduledEndAt: new Date(),
         userCount: 3,
       };
@@ -192,7 +197,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
-        status: "ACTIVE",
+        status: "ACTIVE" as DiscordEventStatus,
         scheduledStartAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -213,7 +218,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
-        status: "COMPLETED",
+        status: "COMPLETED" as DiscordEventStatus,
         scheduledEndAt: new Date(),
         userCount: 3,
       };
@@ -232,7 +237,7 @@ describe("VoiceEventService", () => {
       const mockEvent = {
         id: "event123",
         name: "Test Voice Event",
-        status: "SCHEDULED",
+        status: "SCHEDULED" as DiscordEventStatus,
         scheduledStartAt: new Date(),
       };
 

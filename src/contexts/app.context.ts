@@ -29,7 +29,10 @@ export function initializeApp() {
 
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
-  const { voiceEventService } = initializeVoiceEventUseCases(audioEventRepository, logger);
+  const { voiceEventService } = initializeVoiceEventUseCases(
+    audioEventRepository,
+    logger,
+  );
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(

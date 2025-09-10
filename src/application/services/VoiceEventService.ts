@@ -1,7 +1,12 @@
 import { ILoggerService } from "@services/ILogger";
 import { IRegisterVoiceEvent } from "@interfaces/useCases/audioEvent/IRegisterVoiceEvent";
 import { IFinalizeVoiceEvent } from "@interfaces/useCases/audioEvent/IFinalizeVoiceEvent";
-import { LoggerContextStatus, LoggerContext, LoggerContextEntity } from "@type/LoggerContextEnum";
+import {
+  LoggerContextStatus,
+  LoggerContext,
+  LoggerContextEntity,
+} from "@type/LoggerContextEnum";
+import { DiscordGuildScheduledEvent } from "@type/DiscordEventTypes";
 
 export class VoiceEventService {
   constructor(
@@ -10,7 +15,9 @@ export class VoiceEventService {
     private readonly logger: ILoggerService,
   ) {}
 
-  async handleVoiceEventStarted(event: any): Promise<void> {
+  async handleVoiceEventStarted(
+    event: DiscordGuildScheduledEvent,
+  ): Promise<void> {
     try {
       this.logger.logToConsole(
         LoggerContextStatus.SUCCESS,
@@ -56,7 +63,9 @@ export class VoiceEventService {
     }
   }
 
-  async handleVoiceEventEnded(event: any): Promise<void> {
+  async handleVoiceEventEnded(
+    event: DiscordGuildScheduledEvent,
+  ): Promise<void> {
     try {
       this.logger.logToConsole(
         LoggerContextStatus.SUCCESS,
@@ -99,13 +108,18 @@ export class VoiceEventService {
   /**
    * Processa eventos de voz do Discord e determina se deve registrar ou finalizar
    */
-  async processVoiceEvent(discordEvent: any): Promise<void> {
+  async processVoiceEvent(
+    discordEvent: DiscordGuildScheduledEvent,
+  ): Promise<void> {
     try {
       // Verificar se o evento foi iniciado ou finalizado
       if (discordEvent.status === "ACTIVE" && !discordEvent.scheduledEndAt) {
         // Evento iniciado
         await this.handleVoiceEventStarted(discordEvent);
-      } else if (discordEvent.status === "COMPLETED" || discordEvent.scheduledEndAt) {
+      } else if (
+        discordEvent.status === "COMPLETED" ||
+        discordEvent.scheduledEndAt
+      ) {
         // Evento finalizado
         await this.handleVoiceEventEnded(discordEvent);
       } else {

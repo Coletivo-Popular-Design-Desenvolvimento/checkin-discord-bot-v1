@@ -10,9 +10,15 @@ export function initializeVoiceEventUseCases(
 ): {
   voiceEventService: VoiceEventService;
 } {
-  const registerVoiceEvent = new RegisterVoiceEvent(audioEventRepository, logger);
-  const finalizeVoiceEvent = new FinalizeVoiceEvent(audioEventRepository, logger);
-  
+  const registerVoiceEvent = new RegisterVoiceEvent(
+    audioEventRepository,
+    logger,
+  );
+  const finalizeVoiceEvent = new FinalizeVoiceEvent(
+    audioEventRepository,
+    logger,
+  );
+
   const voiceEventService = new VoiceEventService(
     registerVoiceEvent,
     finalizeVoiceEvent,
