@@ -4,6 +4,7 @@ import {
   Message,
   GuildMember,
   PartialGuildMember,
+  VoiceState,
 } from "discord.js";
 import { IDiscordService } from "@services/IDiscordService";
 
@@ -17,6 +18,10 @@ export class DiscordService
   private onNewUserHandlers: ((member: GuildMember) => void)[] = [];
   private onUserLeaveHandlers: ((
     member: GuildMember | PartialGuildMember,
+  ) => void)[] = [];
+  private onVoiceEventUserChangeHandlers: ((
+    oldState: VoiceState,
+    newState: VoiceState,
   ) => void)[] = [];
 
   constructor(client: Client) {
@@ -43,6 +48,12 @@ export class DiscordService
     this.client.on(Events.GuildMemberRemove, (member) => {
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
+
+    this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+      this.onVoiceEventUserChangeHandlers.forEach((fn) =>
+        fn(oldState, newState),
+      );
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -59,5 +70,11 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onVoiceEventUserChange(
+    handler: (oldState: VoiceState, newState: VoiceState) => void,
+  ): void {
+    this.onVoiceEventUserChangeHandlers.push(handler);
   }
 }
