@@ -14,7 +14,8 @@
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
     "db:migrate-reset": "npx prisma migrate reset",
-    "test": "jest",
+    "pretest": "dotenv -c $NODE_ENV -- npx prisma migrate dev",
+    "test": "dotenv -c $NODE_ENV -- jest",
     "lint": "eslint && prettier \"src/{application,contexts,domain,infraestructure,tests}/*.ts\" --check",
     "prepare": "husky"
   },
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@quramy/jest-prisma-node": "^1.8.1",
     "@types/jest": "^29.5.14",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.26.0",
