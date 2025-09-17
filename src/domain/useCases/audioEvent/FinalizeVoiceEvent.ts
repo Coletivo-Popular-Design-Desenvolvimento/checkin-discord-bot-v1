@@ -19,14 +19,14 @@ export class FinalizeVoiceEvent implements IFinalizeVoiceEvent {
     private readonly logger: ILoggerService,
   ) {}
 
-  async execute(input: FinalizeVoiceEventInput): Promise<GenericOutputDto<AudioEventEntity>> {
+  async execute(
+    input: FinalizeVoiceEventInput,
+  ): Promise<GenericOutputDto<AudioEventEntity>> {
     try {
-      const events = await this.audioEventRepository.listAll({
-        limit: 100,
-      });
+      const eventToUpdate = await this.audioEventRepository.findByPlatformId(
+        input.platformId,
+      );
 
-      const eventToUpdate = events.find(event => event.platformId === input.platformId);
-      
       if (!eventToUpdate) {
         return {
           data: null,
@@ -35,11 +35,14 @@ export class FinalizeVoiceEvent implements IFinalizeVoiceEvent {
         };
       }
 
-      const updatedEvent = await this.audioEventRepository.updateById(eventToUpdate.id, {
-        endAt: input.endAt,
-        userCount: input.userCount,
-        statusId: "completed",
-      });
+      const updatedEvent = await this.audioEventRepository.updateById(
+        eventToUpdate.id,
+        {
+          endAt: input.endAt,
+          userCount: input.userCount,
+          statusId: "completed",
+        },
+      );
 
       if (!updatedEvent) {
         return {

@@ -14,7 +14,14 @@ import {
 } from "@type/DiscordEventTypes";
 
 export class DiscordService
-  implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
+  implements
+    IDiscordService<
+      Message,
+      GuildMember,
+      PartialGuildMember,
+      Client,
+      DiscordGuildScheduledEvent
+    >
 {
   public readonly client: Client;
   // Use estas funções para registar um handler que você queira executar quando o evento ocorrer

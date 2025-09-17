@@ -47,6 +47,7 @@ describe("RegisterVoiceEvent", () => {
       create: jest.fn(),
       createMany: jest.fn(),
       findById: jest.fn(),
+      findByPlatformId: jest.fn(),
       listAll: jest.fn(),
       findByChannelId: jest.fn(),
       findByCreatorId: jest.fn(),

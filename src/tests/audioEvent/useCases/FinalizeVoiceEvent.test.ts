@@ -62,6 +62,7 @@ describe("FinalizeVoiceEvent", () => {
       create: jest.fn(),
       createMany: jest.fn(),
       findById: jest.fn(),
+      findByPlatformId: jest.fn(),
       listAll: jest.fn(),
       findByChannelId: jest.fn(),
       findByCreatorId: jest.fn(),
@@ -89,14 +90,20 @@ describe("FinalizeVoiceEvent", () => {
         userCount: 3,
       };
 
-      mockAudioEventRepository.listAll.mockResolvedValue([mockAudioEvent]);
-      mockAudioEventRepository.updateById.mockResolvedValue(mockFinalizedAudioEvent);
+      mockAudioEventRepository.findByPlatformId.mockResolvedValue(
+        mockAudioEvent,
+      );
+      mockAudioEventRepository.updateById.mockResolvedValue(
+        mockFinalizedAudioEvent,
+      );
 
       const result = await finalizeVoiceEvent.execute(input);
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockFinalizedAudioEvent);
-      expect(mockAudioEventRepository.listAll).toHaveBeenCalledWith({ limit: 100 });
+      expect(mockAudioEventRepository.findByPlatformId).toHaveBeenCalledWith(
+        input.platformId,
+      );
       expect(mockAudioEventRepository.updateById).toHaveBeenCalledWith(1, {
         endAt: input.endAt,
         userCount: input.userCount,
@@ -117,7 +124,7 @@ describe("FinalizeVoiceEvent", () => {
         userCount: 3,
       };
 
-      mockAudioEventRepository.listAll.mockResolvedValue([]);
+      mockAudioEventRepository.findByPlatformId.mockResolvedValue(null);
 
       const result = await finalizeVoiceEvent.execute(input);
 
@@ -133,7 +140,9 @@ describe("FinalizeVoiceEvent", () => {
         userCount: 3,
       };
 
-      mockAudioEventRepository.listAll.mockResolvedValue([mockAudioEvent]);
+      mockAudioEventRepository.findByPlatformId.mockResolvedValue(
+        mockAudioEvent,
+      );
       mockAudioEventRepository.updateById.mockResolvedValue(null);
 
       const result = await finalizeVoiceEvent.execute(input);
@@ -151,7 +160,7 @@ describe("FinalizeVoiceEvent", () => {
       };
 
       const error = new Error("Database connection failed");
-      mockAudioEventRepository.listAll.mockRejectedValue(error);
+      mockAudioEventRepository.findByPlatformId.mockRejectedValue(error);
 
       const result = await finalizeVoiceEvent.execute(input);
 
@@ -174,7 +183,7 @@ describe("FinalizeVoiceEvent", () => {
       };
 
       const error = "Unknown error type";
-      mockAudioEventRepository.listAll.mockRejectedValue(error);
+      mockAudioEventRepository.findByPlatformId.mockRejectedValue(error);
 
       const result = await finalizeVoiceEvent.execute(input);
 

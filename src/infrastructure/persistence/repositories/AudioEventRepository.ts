@@ -53,7 +53,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         data: this.toPersistence(eventData),
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
+      return AudioEventEntity.fromPersistence(
+        result,
+        result.channel,
+        result.creator,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -92,7 +96,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(result, result.channel, result.creator)
+        ? AudioEventEntity.fromPersistence(
+            result,
+            result.channel,
+            result.creator,
+          )
         : null;
     } catch (error) {
       this.logger.logToConsole(
@@ -100,6 +108,30 @@ export class AudioEventRepository implements IAudioEventRepository {
         LoggerContext.REPOSITORY,
         LoggerContextEntity.AUDIO_EVENT,
         `findById | ${error.message}`,
+      );
+      return null;
+    }
+  }
+
+  async findByPlatformId(platformId: string): Promise<AudioEventEntity | null> {
+    try {
+      const result = await this.client.audioEvent.findFirst({
+        where: { platform_id: platformId },
+        include: { channel: true, creator: true },
+      });
+      return result
+        ? AudioEventEntity.fromPersistence(
+            result,
+            result.channel,
+            result.creator,
+          )
+        : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.AUDIO_EVENT,
+        `findByPlatformId | ${error.message}`,
       );
       return null;
     }
@@ -123,7 +155,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return results.map((result) =>
-        AudioEventEntity.fromPersistence(result, result.channel, result.creator),
+        AudioEventEntity.fromPersistence(
+          result,
+          result.channel,
+          result.creator,
+        ),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -158,7 +194,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         data: this.toPersistence(eventData),
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
+      return AudioEventEntity.fromPersistence(
+        result,
+        result.channel,
+        result.creator,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
