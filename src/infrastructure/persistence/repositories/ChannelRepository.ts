@@ -22,10 +22,10 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Cria um novo usuario no banco de dados.
+   * Cria um novo canal no banco de dados.
    *
-   * @param {Omit<ChannelEntity, "id">} channel Os dados do usuario a ser criado.
-   * @returns {Promise<ChannelEntity>} O usuario criado.
+   * @param {Omit<ChannelEntity, "id">} channel Os dados do canal a ser criado.
+   * @returns {Promise<ChannelEntity>} O canal criado.
    */
   async create(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity> {
     try {
@@ -33,12 +33,12 @@ export class ChannelRepository implements IChannelRepository {
         data: {
           ...this.toPersistence(channel),
           message: {
-            connect: channel.message.map((message) => ({
+            connect: channel?.message.map((message) => ({
               platform_id: message.platformId,
             })),
           },
           message_reaction: {
-            connect: channel.messageReaction.map((messageReaction) => ({
+            connect: channel?.messageReaction.map((messageReaction) => ({
               id: messageReaction.id,
             })),
           },
@@ -71,6 +71,36 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
+      );
+      return null;
+    }
+  }
+
+  public async createMinimal(
+    channel: Omit<ChannelEntity, "id">,
+  ): Promise<ChannelEntity> {
+    try {
+      const persistenceChannel = this.toPersistence(channel);
+      const result = await this.client.channel.create({
+        data: { ...persistenceChannel },
+        include: {
+          message: false,
+          message_reaction: false,
+          user_channel: {
+            include: { user: true },
+          },
+        },
+      });
+      return ChannelEntity.fromPersistence(
+        result,
+        result.user_channel?.map((uc) => uc.user) || [],
+      );
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.CHANNEL,
+        `createMinimal | ${error.message}`,
       );
       return null;
     }
@@ -134,10 +164,10 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Retorna um usuario pelo id.
+   * Retorna um canal pelo id.
    *
-   * @param {number} id O id do usuario a ser buscado.
-   * @returns {Promise<ChannelEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
+   * @param {number} id O id do canal a ser buscado.
+   * @returns {Promise<ChannelEntity | null>} O canal encontrado. Se o canal nao existir, retorna null.
    */
   async findById(id: number): Promise<ChannelEntity | null> {
     try {
@@ -174,10 +204,10 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Retorna um usuario pelo id do Discord.
+   * Retorna um canal pelo id do Discord.
    *
-   * @param {string} id O id do Discord do usuario a ser buscado.
-   * @returns {Promise<ChannelEntity | null>} O usuario encontrado. Se o usuario nao existir, retorna null.
+   * @param {string} id O id do Discord do canal a ser buscado.
+   * @returns {Promise<ChannelEntity | null>} O canal encontrado. Se o canal nao existir, retorna null.
    */
   async findByPlatformId(id: string): Promise<ChannelEntity | null> {
     try {
@@ -212,10 +242,10 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Retorna uma lista de usuarios.
+   * Retorna uma lista de canais.
    *
-   * @param {number} [limit] O limite de usuarios a serem retornados.
-   * @returns {Promise<ChannelEntity[]>} A lista de usuarios.
+   * @param {number} [limit] O limite de canais a serem retornados.
+   * @returns {Promise<ChannelEntity[]>} A lista de canais.
    */
   async listAll(limit?: number): Promise<ChannelEntity[]> {
     try {
@@ -249,11 +279,11 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Atualiza um usuario pelo id.
+   * Atualiza um canal pelo id.
    *
-   * @param {number} id O id do usuario a ser atualizado.
-   * @param {ChannelEntity} channel Os dados do usuario a ser atualizado.
-   * @returns {Promise<ChannelEntity | null>} O usuario atualizado. Se o usuario nao existir, retorna null.
+   * @param {number} id O id do canal a ser atualizado.
+   * @param {ChannelEntity} channel Os dados do canal a ser atualizado.
+   * @returns {Promise<ChannelEntity | null>} O canal atualizado. Se o canal nao existir, retorna null.
    */
   async updateById(
     id: number,
@@ -276,10 +306,10 @@ export class ChannelRepository implements IChannelRepository {
   }
 
   /**
-   * Deleta um usuario pelo id.
+   * Deleta um canal pelo id.
    *
-   * @param {number} id O id do usuario a ser deletado.
-   * @returns {Promise<boolean>} True se o usuario foi deletado, false caso contrario.
+   * @param {number} id O id do canal a ser deletado.
+   * @returns {Promise<boolean>} True se o canal foi deletado, false caso contrario.
    */
   async deleteById(id: number): Promise<boolean> {
     try {
