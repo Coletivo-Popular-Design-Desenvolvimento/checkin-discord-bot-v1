@@ -121,7 +121,7 @@ export class DiscordService
   }
 
   public onVoiceEvent(
-    handler: (event: DiscordGuildScheduledEvent) => void,
+    handler: (event: GuildScheduledEvent | PartialGuildScheduledEvent) => void,
   ): void {
     this.onVoiceEventHandlers.push(handler);
   }
