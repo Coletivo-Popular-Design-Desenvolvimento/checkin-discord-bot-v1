@@ -25,7 +25,7 @@ export class VoiceEventCommand {
       unknown,
       unknown,
       Client,
-      GuildScheduledEvent | PartialGuildScheduledEvent
+      unknown
     >,
     private readonly logger: ILoggerService,
     private readonly registerVoiceEvent: IRegisterVoiceEvent,
@@ -37,7 +37,11 @@ export class VoiceEventCommand {
   async executeVoiceEvent(): Promise<void> {
     try {
       this.discordService.onVoiceEvent(async (event) => {
-        const convertedEvent = VoiceEventCommand.convertDiscordEvent(event);
+        const discordEvent = event as
+          | GuildScheduledEvent
+          | PartialGuildScheduledEvent;
+        const convertedEvent =
+          VoiceEventCommand.convertDiscordEvent(discordEvent);
         await this.processVoiceEvent(convertedEvent);
       });
     } catch (error) {
