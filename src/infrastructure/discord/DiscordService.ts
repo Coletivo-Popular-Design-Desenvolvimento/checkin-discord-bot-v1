@@ -43,7 +43,7 @@ export class DiscordService
     event: GuildScheduledEvent | PartialGuildScheduledEvent,
   ): DiscordGuildScheduledEvent {
     // Mapear status do Discord para nosso tipo customizado
-    const statusMap: Record<string, DiscordEventStatus> = {
+    const statusMap = <const>{
       "1": "SCHEDULED",
       "2": "ACTIVE",
       "3": "COMPLETED",
