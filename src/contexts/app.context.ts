@@ -3,6 +3,7 @@ import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeDiscord } from "./discord.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { UserCommand } from "@application/command/userCommand";
+import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
 import {
   LoggerContextStatus,
@@ -29,10 +30,8 @@ export function initializeApp() {
 
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
-  const { voiceEventService } = initializeVoiceEventUseCases(
-    audioEventRepository,
-    logger,
-  );
+  const { registerVoiceEvent, finalizeVoiceEvent } =
+    initializeVoiceEventUseCases(audioEventRepository, logger);
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -42,10 +41,12 @@ export function initializeApp() {
     userUseCases.updateUserCase,
   );
 
-  // Registrar o handler para eventos de voz
-  discordService.onVoiceEvent((event) => {
-    voiceEventService.processVoiceEvent(event);
-  });
+  new VoiceEventCommand(
+    discordService,
+    logger,
+    registerVoiceEvent,
+    finalizeVoiceEvent,
+  );
 
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();

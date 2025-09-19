@@ -1,5 +1,3 @@
-import { DiscordGuildScheduledEvent } from "@type/DiscordEventTypes";
-
 export interface IDiscordService<
   M = unknown,
   U = unknown,

@@ -8,10 +8,6 @@ import {
   PartialGuildScheduledEvent,
 } from "discord.js";
 import { IDiscordService } from "@services/IDiscordService";
-import {
-  DiscordGuildScheduledEvent,
-  DiscordEventStatus,
-} from "@type/DiscordEventTypes";
 
 export class DiscordService
   implements
@@ -20,7 +16,7 @@ export class DiscordService
       GuildMember,
       PartialGuildMember,
       Client,
-      DiscordGuildScheduledEvent
+      GuildScheduledEvent | PartialGuildScheduledEvent
     >
 {
   public readonly client: Client;
@@ -32,36 +28,11 @@ export class DiscordService
     member: GuildMember | PartialGuildMember,
   ) => void)[] = [];
   private onVoiceEventHandlers: ((
-    event: DiscordGuildScheduledEvent,
+    event: GuildScheduledEvent | PartialGuildScheduledEvent,
   ) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
-  }
-
-  private convertDiscordEvent(
-    event: GuildScheduledEvent | PartialGuildScheduledEvent,
-  ): DiscordGuildScheduledEvent {
-    // Mapear status do Discord para nosso tipo customizado
-    const statusMap = <const>{
-      "1": "SCHEDULED",
-      "2": "ACTIVE",
-      "3": "COMPLETED",
-      "4": "CANCELED",
-    };
-
-    return {
-      id: event.id,
-      name: event.name,
-      status: statusMap[event.status.toString()] || "SCHEDULED",
-      scheduledStartAt: event.scheduledStartAt,
-      scheduledEndAt: event.scheduledEndAt,
-      userCount: event.userCount,
-      channelId: event.channelId,
-      creatorId: event.creatorId,
-      description: event.description,
-      image: event.coverImageURL ? event.coverImageURL() : undefined,
-    };
   }
 
   public registerEvents() {
@@ -86,21 +57,15 @@ export class DiscordService
     });
 
     this.client.on(Events.GuildScheduledEventUpdate, (event) => {
-      this.onVoiceEventHandlers.forEach((fn) =>
-        fn(this.convertDiscordEvent(event)),
-      );
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventCreate, (event) => {
-      this.onVoiceEventHandlers.forEach((fn) =>
-        fn(this.convertDiscordEvent(event)),
-      );
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventDelete, (event) => {
-      this.onVoiceEventHandlers.forEach((fn) =>
-        fn(this.convertDiscordEvent(event)),
-      );
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
   }
 

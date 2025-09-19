@@ -9,6 +9,8 @@ export function initializeVoiceEventUseCases(
   logger: ILoggerService,
 ): {
   voiceEventService: VoiceEventService;
+  registerVoiceEvent: RegisterVoiceEvent;
+  finalizeVoiceEvent: FinalizeVoiceEvent;
 } {
   const registerVoiceEvent = new RegisterVoiceEvent(
     audioEventRepository,
@@ -25,5 +27,5 @@ export function initializeVoiceEventUseCases(
     logger,
   );
 
-  return { voiceEventService };
+  return { voiceEventService, registerVoiceEvent, finalizeVoiceEvent };
 }
