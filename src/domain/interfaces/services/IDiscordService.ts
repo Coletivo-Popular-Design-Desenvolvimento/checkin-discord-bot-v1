@@ -5,7 +5,7 @@ export interface IDiscordService<
   U = unknown,
   P = unknown,
   T = unknown,
-  E = DiscordGuildScheduledEvent,
+  E = unknown,
 > {
   client: T;
   onDiscordStart(handler: () => void): void;
