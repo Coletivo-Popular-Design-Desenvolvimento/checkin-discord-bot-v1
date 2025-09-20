@@ -81,10 +81,16 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
-        include: { message: true },
+        include: { message: true, message_reaction: true },
       });
 
-      return result ? UserEntity.fromPersistence(result, result.message) : null;
+      return result
+        ? UserEntity.fromPersistence(
+            result,
+            result.message,
+            result.message_reaction,
+          )
+        : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -115,10 +121,19 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
-        include: { message: true },
+        include: {
+          message: true,
+          message_reaction: true,
+        },
       });
 
-      return result ? UserEntity.fromPersistence(result) : null;
+      return result
+        ? UserEntity.fromPersistence(
+            result,
+            result.message,
+            result.message_reaction,
+          )
+        : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -149,11 +164,18 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
-        include: { message: true },
+        include: {
+          message: true,
+          message_reaction: true,
+        },
       });
 
       return results.map((result) =>
-        UserEntity.fromPersistence(result, result.message),
+        UserEntity.fromPersistence(
+          result,
+          result.message,
+          result.message_reaction,
+        ),
       );
     } catch (error) {
       this.logger.logToConsole(
