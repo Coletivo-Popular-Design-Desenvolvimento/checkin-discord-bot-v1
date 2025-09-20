@@ -2,6 +2,7 @@ import { UserStatus } from "@type/UserStatusEnum";
 import * as prisma from "@prisma/client";
 import { MessageEntity } from "./Message";
 import { MessageReactionEntity } from "./MessageReaction";
+import { ChannelEntity } from "./Channel";
 
 export class UserEntity {
   // Deveria ser User, mas o discord ja tem User, é MUITO chato ficar importando a coisa errada toda hora.
@@ -20,12 +21,14 @@ export class UserEntity {
     public readonly email?: string | null,
     public readonly messages?: MessageEntity[],
     public readonly messageReactions?: MessageReactionEntity[],
+    public readonly channels?: ChannelEntity[],
   ) {}
 
   public static fromPersistence(
     user: prisma.User,
     messages?: prisma.Message[],
     reactions?: prisma.MessageReaction[],
+    channels?: prisma.Channel[],
   ): UserEntity {
     return new UserEntity(
       user.id,
@@ -44,6 +47,7 @@ export class UserEntity {
       reactions?.map((reaction) =>
         MessageReactionEntity.fromPersistence(reaction),
       ),
+      channels?.map((channel) => ChannelEntity.fromPersistence(channel)),
     );
   }
 }

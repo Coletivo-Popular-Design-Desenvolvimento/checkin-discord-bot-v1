@@ -81,7 +81,11 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
-        include: { message: true, message_reaction: true },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: { include: { channel: true } },
+        },
       });
 
       return result
@@ -89,6 +93,7 @@ export class UserRepository implements IUserRepository {
             result,
             result.message,
             result.message_reaction,
+            result.user_channel.map((userChannel) => userChannel.channel),
           )
         : null;
     } catch (error) {
@@ -124,6 +129,7 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
+          user_channel: { include: { channel: true } },
         },
       });
 
@@ -132,6 +138,7 @@ export class UserRepository implements IUserRepository {
             result,
             result.message,
             result.message_reaction,
+            result.user_channel.map((userChannel) => userChannel.channel),
           )
         : null;
     } catch (error) {
@@ -167,6 +174,7 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
+          user_channel: { include: { channel: true } },
         },
       });
 
@@ -175,6 +183,7 @@ export class UserRepository implements IUserRepository {
           result,
           result.message,
           result.message_reaction,
+          result.user_channel.map((userChannel) => userChannel.channel),
         ),
       );
     } catch (error) {
