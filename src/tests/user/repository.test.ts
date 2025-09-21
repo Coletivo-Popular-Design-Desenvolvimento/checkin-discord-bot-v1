@@ -210,7 +210,7 @@ describe("UserRepository", () => {
       expect(result).toHaveLength(5);
     });
 
-    it.only("inludes associations", async () => {
+    it("includes associations", async () => {
       const user = await userRepository.create(mockUserValue);
 
       const channel = await channelRepository.create(
