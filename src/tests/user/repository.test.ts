@@ -37,7 +37,7 @@ describe("UserRepository", () => {
       mockLogger,
     );
 
-    mockLogger.logToConsole = jest.fn().mockImplementation((...message) => {
+    mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
       console.error(message); // Simulate logging to console.error
     });
   });
