@@ -4,6 +4,7 @@ import { MessageEntity } from "./Message";
 import { MessageReactionEntity } from "./MessageReaction";
 import { ChannelEntity } from "./Channel";
 import { RoleEntity } from "./Role";
+import { AudioEventEntity } from "./AudioEvent";
 
 export class UserEntity {
   // Deveria ser User, mas o discord ja tem User, é MUITO chato ficar importando a coisa errada toda hora.
@@ -24,6 +25,7 @@ export class UserEntity {
     public readonly messageReactions?: MessageReactionEntity[],
     public readonly channels?: ChannelEntity[],
     public readonly roles?: RoleEntity[],
+    public readonly audioEvents?: AudioEventEntity[],
   ) {}
 
   public static fromPersistence(
@@ -32,6 +34,7 @@ export class UserEntity {
     reactions?: prisma.MessageReaction[],
     channels?: prisma.Channel[],
     roles?: prisma.Role[],
+    audioEvents?: prisma.AudioEvent[],
   ): UserEntity {
     return new UserEntity(
       user.id,
@@ -52,6 +55,7 @@ export class UserEntity {
       ),
       channels?.map((channel) => ChannelEntity.fromPersistence(channel)),
       roles?.map((role) => RoleEntity.fromPersistence(role)),
+      audioEvents?.map((event) => AudioEventEntity.fromPersistence(event)),
     );
   }
 }

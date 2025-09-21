@@ -86,6 +86,7 @@ export class UserRepository implements IUserRepository {
           message_reaction: true,
           user_channel: { include: { channel: true } },
           user_role: { include: { role: true } },
+          audio_event: true,
         },
       });
 
@@ -96,6 +97,7 @@ export class UserRepository implements IUserRepository {
             result.message_reaction,
             result.user_channel.map((userChannel) => userChannel.channel),
             result.user_role.map((userRole) => userRole.role),
+            result.audio_event,
           )
         : null;
     } catch (error) {
@@ -133,6 +135,7 @@ export class UserRepository implements IUserRepository {
           message_reaction: true,
           user_channel: { include: { channel: true } },
           user_role: { include: { role: true } },
+          audio_event: true,
         },
       });
 
@@ -143,6 +146,7 @@ export class UserRepository implements IUserRepository {
             result.message_reaction,
             result.user_channel.map((userChannel) => userChannel.channel),
             result.user_role.map((userRole) => userRole.role),
+            result.audio_event,
           )
         : null;
     } catch (error) {
@@ -180,6 +184,7 @@ export class UserRepository implements IUserRepository {
           message_reaction: true,
           user_channel: { include: { channel: true } },
           user_role: { include: { role: true } },
+          audio_event: true,
         },
       });
 
@@ -190,6 +195,7 @@ export class UserRepository implements IUserRepository {
           result.message_reaction,
           result.user_channel.map((userChannel) => userChannel.channel),
           result.user_role.map((userRole) => userRole.role),
+          result.audio_event,
         ),
       );
     } catch (error) {
