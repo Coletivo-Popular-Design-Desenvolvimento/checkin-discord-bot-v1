@@ -3,10 +3,14 @@ import { ILoggerService } from "@services/ILogger";
 import { UserStatus } from "@type/UserStatusEnum";
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { UserRepository } from "@infra/repositories/UserRepository";
-import { mockUserValue, createMockDBUser } from "../config/constants";
+import {
+  mockUserValue,
+  createMockUserEntity,
+  createMockMessageEntity,
+  createMockChannelEntity,
+} from "../config/constants";
 import { MessageRepository } from "@infra/repositories/MessageRepository";
 import { ChannelRepository } from "@infra/repositories/ChannelRepository";
-import { MessageEntity } from "@domain/entities/Message";
 
 describe("UserRepository", () => {
   let userRepository: UserRepository;
@@ -33,7 +37,7 @@ describe("UserRepository", () => {
       mockLogger,
     );
 
-    mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
+    mockLogger.logToConsole = jest.fn().mockImplementation((...message) => {
       console.error(message); // Simulate logging to console.error
     });
   });
@@ -170,7 +174,7 @@ describe("UserRepository", () => {
   describe("listAll", () => {
     it("returns all active users", async () => {
       await userRepository.createMany(
-        Array.from({ length: 10 }, createMockDBUser),
+        Array.from({ length: 10 }, createMockUserEntity),
       );
 
       const result = await userRepository.listAll();
@@ -181,13 +185,13 @@ describe("UserRepository", () => {
     it("includes inactive users", async () => {
       await userRepository.createMany(
         Array.from({ length: 7 }, () =>
-          createMockDBUser({ status: UserStatus.ACTIVE }),
+          createMockUserEntity({ status: UserStatus.ACTIVE }),
         ),
       );
 
       await userRepository.createMany(
         Array.from({ length: 3 }, () =>
-          createMockDBUser({ status: UserStatus.ACTIVE }),
+          createMockUserEntity({ status: UserStatus.ACTIVE }),
         ),
       );
 
@@ -198,7 +202,7 @@ describe("UserRepository", () => {
 
     it("sets limit clause", async () => {
       await userRepository.createMany(
-        Array.from({ length: 10 }, createMockDBUser),
+        Array.from({ length: 10 }, createMockUserEntity),
       );
 
       const result = await userRepository.listAll(5);
@@ -206,28 +210,16 @@ describe("UserRepository", () => {
       expect(result).toHaveLength(5);
     });
 
-    it("inludes associations", async () => {
+    it.only("inludes associations", async () => {
       const user = await userRepository.create(mockUserValue);
 
-      await channelRepository.create({
-        platformId: "123",
-        name: "test",
-        url: "test",
-        createdAt: new Date(),
-        user: [user],
-        message: [
-          new MessageEntity(
-            null,
-            user,
-            [],
-            "456",
-            new Date(),
-            false,
-            null,
-            new Date(),
-          ),
-        ],
-      });
+      const channel = await channelRepository.create(
+        createMockChannelEntity({ user: [user] }),
+      );
+
+      await messageRepository.create(
+        createMockMessageEntity({ user: user, channel: channel }),
+      );
 
       const [result] = await userRepository.listAll();
 

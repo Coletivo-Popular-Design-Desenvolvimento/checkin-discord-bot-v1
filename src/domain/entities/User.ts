@@ -49,7 +49,7 @@ export class UserEntity {
       user.update_at,
       user.last_active,
       user.email,
-      messages?.map(MessageEntity.fromPersistence),
+      messages?.map((message) => MessageEntity.fromPersistence(message)),
       reactions?.map((reaction) =>
         MessageReactionEntity.fromPersistence(reaction),
       ),
