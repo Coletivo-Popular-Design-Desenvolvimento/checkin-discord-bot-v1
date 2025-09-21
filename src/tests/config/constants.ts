@@ -41,6 +41,11 @@ export const mockDBUserValue = {
   update_at: undefined,
   last_active: undefined,
   email: undefined,
+  message: [],
+  message_reaction: [],
+  user_channel: [],
+  user_role: [],
+  audio_event: [],
 } as unknown as naturalizeUser;
 
 export const createMockDBUser = (params: Partial<User> = {}): User => ({

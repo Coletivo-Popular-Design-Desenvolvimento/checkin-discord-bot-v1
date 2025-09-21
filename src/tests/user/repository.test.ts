@@ -6,7 +6,6 @@ import { UserRepository } from "@infra/repositories/UserRepository";
 import { mockUserValue, createMockDBUser } from "../config/constants";
 import { MessageRepository } from "@infra/repositories/MessageRepository";
 import { ChannelRepository } from "@infra/repositories/ChannelRepository";
-import { ChannelEntity } from "@domain/entities/Channel";
 import { MessageEntity } from "@domain/entities/Message";
 
 describe("UserRepository", () => {
