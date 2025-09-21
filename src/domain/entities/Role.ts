@@ -13,7 +13,7 @@ export class RoleEntity {
 
   public static fromPersistence(
     role: prisma.Role,
-    users: prisma.User[] = [],
+    users?: prisma.User[],
   ): RoleEntity {
     return new RoleEntity(
       role.id,
@@ -21,7 +21,7 @@ export class RoleEntity {
       role.name,
       role.created_at,
       role.platform_created_at,
-      users.map((user) => UserEntity.fromPersistence(user)),
+      users?.map((user) => UserEntity.fromPersistence(user)),
     );
   }
 }
