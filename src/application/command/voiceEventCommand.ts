@@ -102,7 +102,7 @@ export class VoiceEventCommand {
       const input: RegisterVoiceEventInput = {
         platformId: event.id,
         name: event.name,
-        statusId: event.status.toLowerCase(),
+        statusId: VoiceEventCommand.mapStatusToPlatformId(event.status),
         startAt: event.scheduledStartAt || new Date(),
         endAt: event.scheduledEndAt,
         userCount: event.userCount || 0,
@@ -218,5 +218,16 @@ export class VoiceEventCommand {
       description: event.description,
       image: event.coverImageURL ? event.coverImageURL() : undefined,
     };
+  }
+
+  static mapStatusToPlatformId(status: DiscordEventStatus): string {
+    const statusMap = <const>{
+      SCHEDULED: "scheduled",
+      ACTIVE: "active",
+      COMPLETED: "completed",
+      CANCELED: "canceled",
+    };
+
+    return statusMap[status] || "scheduled";
   }
 }
