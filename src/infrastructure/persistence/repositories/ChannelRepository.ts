@@ -33,12 +33,12 @@ export class ChannelRepository implements IChannelRepository {
         data: {
           ...this.toPersistence(channel),
           message: {
-            connect: channel?.message.map((message) => ({
+            connect: channel?.message?.map((message) => ({
               platform_id: message.platformId,
             })),
           },
           message_reaction: {
-            connect: channel?.messageReaction.map((messageReaction) => ({
+            connect: channel?.messageReaction?.map((messageReaction) => ({
               id: messageReaction.id,
             })),
           },
@@ -71,36 +71,6 @@ export class ChannelRepository implements IChannelRepository {
         LoggerContext.REPOSITORY,
         LoggerContextEntity.CHANNEL,
         `create | ${error.message}`,
-      );
-      return null;
-    }
-  }
-
-  public async createMinimal(
-    channel: Omit<ChannelEntity, "id">,
-  ): Promise<ChannelEntity> {
-    try {
-      const persistenceChannel = this.toPersistence(channel);
-      const result = await this.client.channel.create({
-        data: { ...persistenceChannel },
-        include: {
-          message: false,
-          message_reaction: false,
-          user_channel: {
-            include: { user: true },
-          },
-        },
-      });
-      return ChannelEntity.fromPersistence(
-        result,
-        result.user_channel?.map((uc) => uc.user) || [],
-      );
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.CHANNEL,
-        `createMinimal | ${error.message}`,
       );
       return null;
     }

@@ -19,7 +19,6 @@ import {
   GuildMember,
   Message,
   PartialGuildMember,
-  PermissionsBitField,
 } from "discord.js";
 
 export class ChannelCommand implements IChannelCommand {
@@ -93,56 +92,23 @@ export class ChannelCommand implements IChannelCommand {
   }
 
   private async onChannelCreated(channel: GuildChannel): Promise<void> {
-    this.checkIfBotHasChannelPermissions(channel);
     await this.createChannel.execute(
       ChannelCommand.toChannelCreateEntity(channel),
     );
   }
 
-  private async onChannelUpdated(channel: GuildChannel): Promise<void> {
-    this.checkIfBotHasChannelPermissions(channel);
+  private async onChannelUpdated(
+    _oldChannel: GuildChannel,
+    newChannel: GuildChannel,
+  ): Promise<void> {
     await this.updateChannel.execute(
-      channel.id,
-      ChannelCommand.toChannelCreateEntity(channel),
+      newChannel.id,
+      ChannelCommand.toChannelCreateEntity(newChannel),
     );
   }
 
   private async onChannelDeleted(channel: GuildChannel): Promise<void> {
-    this.checkIfBotHasChannelPermissions(channel);
     await this.deleteChannel.execute(channel.id);
-  }
-
-  private checkIfBotHasChannelPermissions(channel: GuildChannel): void {
-    if (!channel.guild) {
-      console.log("❌ Canal não pertence a uma guild");
-      return;
-    }
-
-    const botMember = channel.guild.members.cache.get(
-      this.discordClient.user.id,
-    );
-    if (!botMember) {
-      console.log("❌ Bot member não encontrado na guild do canal");
-      return;
-    }
-
-    const requiredPermissions = [
-      PermissionsBitField.Flags.ViewChannel,
-      PermissionsBitField.Flags.SendMessages,
-      PermissionsBitField.Flags.ManageChannels,
-    ];
-
-    const hasPermissions = requiredPermissions.every((permission) =>
-      channel.permissionsFor(botMember).has(permission),
-    );
-
-    if (!hasPermissions) {
-      console.log("❌ Bot falta permissões no canal:");
-      requiredPermissions.forEach((permission) => {
-        const hasPerm = channel.permissionsFor(botMember).has(permission);
-        console.log(`   ${hasPerm ? "✅" : "❌"} ${permission}`);
-      });
-    }
   }
 
   private static toChannelCreateEntity(

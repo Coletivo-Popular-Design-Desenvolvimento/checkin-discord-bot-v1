@@ -39,6 +39,7 @@ export class UpdateChannel implements IUpdateChannel {
         channel.id,
         data,
       );
+
       return {
         data: { ...updatedChannel },
         success: true,
