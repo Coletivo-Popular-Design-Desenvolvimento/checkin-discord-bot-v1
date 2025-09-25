@@ -22,8 +22,7 @@ export class CreateChannel implements ICreateChannel {
     channel: CreateChannelType,
   ): Promise<GenericOutputDto<ChannelEntity>> {
     try {
-      const createdChannel =
-        await this.channelRepository.createMinimal(channel);
+      const createdChannel = await this.channelRepository.create(channel);
       return {
         data: { ...createdChannel },
         success: true,

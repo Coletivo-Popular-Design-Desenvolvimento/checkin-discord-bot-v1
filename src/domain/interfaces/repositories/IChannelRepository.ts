@@ -1,7 +1,6 @@
 import { ChannelEntity } from "../../entities/Channel";
 
 export interface IChannelRepository {
-  createMinimal(channel: Omit<ChannelEntity, "id">): Promise<ChannelEntity>;
   create(voiceChannel: Omit<ChannelEntity, "id">): Promise<ChannelEntity>;
   createMany(voiceChannels: Omit<ChannelEntity, "id">[]): Promise<number>;
   findById(
