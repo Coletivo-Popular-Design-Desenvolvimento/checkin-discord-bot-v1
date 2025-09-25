@@ -3,8 +3,10 @@ import {
   Events,
   GatewayIntentBits,
   GuildMember,
+  GuildScheduledEvent,
   Message,
   PartialGuildMember,
+  PartialGuildScheduledEvent,
 } from "discord.js";
 import { DiscordService } from "@discord/DiscordService";
 import { IDiscordService } from "@services/IDiscordService";
@@ -47,7 +49,8 @@ export function initializeDiscord(): {
     Message,
     GuildMember,
     PartialGuildMember,
-    Client
+    Client,
+    GuildScheduledEvent | PartialGuildScheduledEvent
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
