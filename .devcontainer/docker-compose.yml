@@ -1,0 +1,34 @@
+services:
+  db:
+    image: mariadb
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - "8090:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      UPLOAD_LIMIT: 300M
+    depends_on:
+      - db
+
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+    volumes:
+      - ../:/workspaces/checkin:cached
+    working_dir: /workspaces/checkin
+    environment:
+      DATABASE_URL: "mysql://root@db/checkin"
+
+volumes:
+  db_data:

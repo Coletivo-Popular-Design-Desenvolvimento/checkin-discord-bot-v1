@@ -23,74 +23,29 @@ Checkin Discord Bot é um bot de autenticação e monitoramento de usuários par
 
 ## ⚙️ Pré‑requisitos
 
-- Node.js v20 ou superior
-- Docker Desktop + WSL2 (caso use Windows)
-- Git instalado
 - Um bot criado no **Discord Developer Portal**
 
 ## 🔢 Instalação
 
-### 1. Clone o projeto
+### 1. Prepare o ambiente de desenvolvimento
 
-```bash
-git clone https://github.com/seu-usuario/checkin-discord-bot-v1.git
-cd checkin-discord-bot-v1
-```
+Estará acessível no menu `Code > Codespaces > + (Create a codespace on main)`, ou neste [link](https://github.com/codespaces/new?repo=Coletivo-Popular-Design-Desenvolvimento%2Fcheckin-discord-bot-v1).
 
-### 2. Instale as dependências do Node.js
+Caso prefira desenvolver localmente, há algumas alternativas:
 
-```bash
-npm install
-```
+- [Se conectar ao codespace no Visual Studio Code](https://docs.github.com/en/codespaces/developing-in-a-codespace/using-github-codespaces-in-visual-studio-code)
+- [Criar o ambiente completo na sua própria máquina](https://code.visualstudio.com/docs/devcontainers/tutorial)
+- [Usar alguma ferramenta compatível com dev containers](https://containers.dev/supporting)
 
 ### 3. Configure o `.env`
 
-Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores conforme seu ambiente:
+Crie um arquivo `.env` na raiz com o seguinte conteúdo:
 
 ```env
 TOKEN_BOT=seu-token-do-bot
-
-DB_HOST=localhost (dev) / db (prod)
-DB_PORT=3306 (dev *ou qualquer outra porta não utilizada na sua máquina, ex: use 3307 caso 3306 já esteja sendo usada por outro cointainer) / 3306 (prod)
-DB_PASSWORD=Coletivo1917
-DB_DATABASE=checkindb
-
-DATABASE_URL="mysql://root:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 ```
 
 > **Nunca** compartilhe seu token publicamente.
-
-## 🐳 Como configurar Docker & WSL2 (Windows)
-
-1. Instalar **Docker Desktop**
-
-   - Acesse: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-   - Baixe e instale normalmente.
-
-2. Instalar **WSL2 (Windows Subsystem for Linux)**
-
-   - No Windows Terminal, rode:
-     ```bash
-     wsl --install
-     ```
-   - Caso já tenha WSL1, atualize para WSL2 com:
-     ```bash
-     wsl --set-default-version 2
-     ```
-   - Siga o tutorial oficial: [Documentação WSL2](https://learn.microsoft.com/pt-br/windows/wsl/install)
-
-3. Configurar o Docker para usar o WSL2
-
-   - Abra o **Docker Desktop**.
-   - Vá em **Settings** > **General** > Marque a opção **Use the WSL 2 based engine**.
-   - Em **Settings** > **Resources** > **WSL Integration**: habilite a distribuição Linux que está usando (ex: Ubuntu).
-
-4. Certificar-se de que o Docker está rodando
-   - Rode:
-     ```bash
-     docker run hello-world
-     ```
-   - Se funcionar e mostrar a versão, está tudo pronto!
 
 ## 🐳 Solicitando acesso ao servidor de teste
 
@@ -109,28 +64,6 @@ Basta executar o comando
 npm run dev
 ```
 
-Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
-
-> ⚠️ **Atenção Usuários Windows:** Se você possui uma instalação local do MariaDB ou MySQL no seu Windows, você poderá encontrar um erro relacionado ao plugin `auth_gssapi_client` ao tentar rodar `npm run dev` (especificamente durante as etapas do Prisma). Isso ocorre porque o Prisma pode tentar usar o cliente de banco de dados instalado globalmente em vez do esperado.
->
-> **Soluções possíveis:**
->
-> 1.  Configure sua instalação local do MariaDB/MySQL para utilizar `mysql_native_password` como plugin de autenticação padrão.
-> 2.  Considere desinstalar a versão local do MariaDB/MySQL do seu Windows se ela não for estritamente necessária para outros projetos, permitindo que o ambiente Docker funcione sem interferências.
-
-Em caso de problemas com versões incompatíveis de migrations, caso esteja disposto(a) a resetar o banco de dados completamente, execute os comandos:
-
-```bash
-docker compose --profile dev up -d
-npm run db:migrate-reset
-```
-
-Isso alinhará as suas migrations com as migrations do projeto. Tome cuidado para sempre que mexer na definição das tabelas, gerar uma nova migration com o comando
-
-```bash
-npm run db:migrate
-```
-
 ## 🚀 Subindo o projeto em produção
 
 Subir os containers:
@@ -138,15 +71,6 @@ Subir os containers:
 ```bash
 docker compose -f compose.yml --profile prod up -d --build
 ```
-
-## 🔧 Comandos úteis
-
-| Ação                | Comando                        |
-| ------------------- | ------------------------------ |
-| Subir containers    | `docker compose up -d --build` |
-| Derrubar containers | `docker compose down`          |
-| Logs do bot         | `docker logs -f node_app`      |
-| Acessar terminal    | `docker exec -it node_app sh`  |
 
 ## 🔖 Como criar o Bot no Discord
 
