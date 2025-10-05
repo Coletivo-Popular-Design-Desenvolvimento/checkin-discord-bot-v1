@@ -6,7 +6,6 @@ import { IDeleteChannel } from "@domain/interfaces/useCases/channel/IDeleteChann
 import { IUpdateChannel } from "@domain/interfaces/useCases/channel/IUpdateChannel";
 import {
   Client,
-  Events,
   GuildChannel,
   GuildMember,
   Message,
@@ -29,11 +28,11 @@ describe("ChannelCommand", () => {
   let discordService: jest.Mocked<DiscordServiceMockType>;
 
   beforeEach(() => {
-    discordService = <jest.Mocked<DiscordServiceMockType>>{
-      client: <Client>(<unknown>{
-        on: jest.fn(),
-      }),
-    };
+    discordService = <jest.Mocked<DiscordServiceMockType>>(<unknown>{
+      onCreateChannel: jest.fn(),
+      onChangeChannel: jest.fn(),
+      onDeleteChannel: jest.fn(),
+    });
     createChannel = {
       execute: jest.fn(),
     } as jest.Mocked<ICreateChannel>;
@@ -60,20 +59,16 @@ describe("ChannelCommand", () => {
       createdAt: new Date(),
     };
 
-    const eventCallbacks = new Map();
-    (discordService.client.on as jest.Mock).mockImplementation(
-      (event, callback) => {
-        eventCallbacks.set(event, callback);
+    const handler = jest.fn();
+    (discordService.onCreateChannel as jest.Mock).mockImplementation(
+      (callback) => {
+        handler.mockImplementation(callback);
       },
     );
 
     await channelCommand.handleCreateChannel();
 
-    const channelCreateCallback = eventCallbacks.get(Events.ChannelCreate);
-    expect(channelCreateCallback).toBeDefined();
-
-    await channelCreateCallback(channelMock);
-
+    handler(channelMock);
     expect(createChannel.execute).toHaveBeenCalledWith(
       ChannelCommand.toChannelCreateEntity(channelMock),
     );
@@ -97,19 +92,16 @@ describe("ChannelCommand", () => {
       createdAt: new Date(),
     };
 
-    const eventCallbacks = new Map();
-    (discordService.client.on as jest.Mock).mockImplementation(
-      (event, callback) => {
-        eventCallbacks.set(event, callback);
+    const handler = jest.fn();
+    (discordService.onChangeChannel as jest.Mock).mockImplementation(
+      (callback) => {
+        handler.mockImplementation(callback);
       },
     );
 
     await channelCommand.handleUpdateChannel();
 
-    const channelUpdateCallback = eventCallbacks.get(Events.ChannelUpdate);
-    expect(channelUpdateCallback).toBeDefined();
-
-    await channelUpdateCallback(oldChannelMock, newChannelMock);
+    handler(oldChannelMock, newChannelMock);
 
     expect(updateChannel.execute).toHaveBeenCalledWith(
       channelIdMock.id,
@@ -122,18 +114,15 @@ describe("ChannelCommand", () => {
       id: "12345",
     } as GuildChannel;
 
-    let deleteCallback: (channel: GuildChannel) => Promise<void>;
-
-    (discordService.client.on as jest.Mock).mockImplementation(
-      (event, callback) => {
-        if (event === Events.ChannelDelete) {
-          deleteCallback = callback;
-        }
+    const handler = jest.fn();
+    (discordService.onDeleteChannel as jest.Mock).mockImplementation(
+      (callback) => {
+        handler.mockImplementation(callback);
       },
     );
 
     await channelCommand.handleDeleteChannel();
-    await deleteCallback!(channelMock);
+    handler(channelMock);
 
     expect(deleteChannel.execute).toHaveBeenCalledWith("12345");
   });

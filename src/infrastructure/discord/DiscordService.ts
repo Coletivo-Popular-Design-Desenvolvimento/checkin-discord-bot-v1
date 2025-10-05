@@ -1,11 +1,12 @@
+import { IDiscordService } from "@services/IDiscordService";
 import {
   Client,
   Events,
-  Message,
+  GuildChannel,
   GuildMember,
+  Message,
   PartialGuildMember,
 } from "discord.js";
-import { IDiscordService } from "@services/IDiscordService";
 
 export class DiscordService
   implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
@@ -18,6 +19,11 @@ export class DiscordService
   private onUserLeaveHandlers: ((
     member: GuildMember | PartialGuildMember,
   ) => void)[] = [];
+  private onNewChannelHandlers: Array<(channel: GuildChannel) => void> = [];
+  private onChangeChannelHandlers: Array<
+    (oldChannel: GuildChannel, newChannel: GuildChannel) => void
+  > = [];
+  private onDeleteChannelHandlers: Array<(channel: GuildChannel) => void> = [];
 
   constructor(client: Client) {
     this.client = client;
@@ -43,6 +49,20 @@ export class DiscordService
     this.client.on(Events.GuildMemberRemove, (member) => {
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
+
+    this.client.on(Events.ChannelCreate, (channel) => {
+      this.onNewChannelHandlers.forEach((fn) => fn(channel));
+    });
+
+    this.client.on(Events.ChannelUpdate, (oldChannel, newChannel) => {
+      this.onChangeChannelHandlers.forEach((fn) =>
+        fn(<GuildChannel>oldChannel, <GuildChannel>newChannel),
+      );
+    });
+
+    this.client.on(Events.ChannelDelete, (channel) => {
+      this.onDeleteChannelHandlers.forEach((fn) => fn(<GuildChannel>channel));
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -59,5 +79,19 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onCreateChannel(handler: (channel: GuildChannel) => void): void {
+    this.onNewChannelHandlers.push(handler);
+  }
+
+  public onChangeChannel(
+    handler: (oldChannel: GuildChannel, newChannel: GuildChannel) => void,
+  ): void {
+    this.onChangeChannelHandlers.push(handler);
+  }
+
+  public onDeleteChannel(handler: (channel: GuildChannel) => void): void {
+    this.onDeleteChannelHandlers.push(handler);
   }
 }

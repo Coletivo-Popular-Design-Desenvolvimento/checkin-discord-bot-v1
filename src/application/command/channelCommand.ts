@@ -14,7 +14,6 @@ import {
 } from "@domain/types/LoggerContextEnum";
 import {
   Client,
-  Events,
   GuildChannel,
   GuildMember,
   Message,
@@ -45,10 +44,7 @@ export class ChannelCommand implements IChannelCommand {
 
   public async handleCreateChannel(): Promise<void> {
     try {
-      this.discordClient.on(
-        Events.ChannelCreate,
-        this.onChannelCreated.bind(this),
-      );
+      this.discordService.onCreateChannel(this.onChannelCreated.bind(this));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -61,10 +57,7 @@ export class ChannelCommand implements IChannelCommand {
 
   public async handleUpdateChannel(): Promise<void> {
     try {
-      this.discordClient.on(
-        Events.ChannelUpdate,
-        this.onChannelUpdated.bind(this),
-      );
+      this.discordService.onChangeChannel(this.onChannelUpdated.bind(this));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -77,10 +70,7 @@ export class ChannelCommand implements IChannelCommand {
 
   public async handleDeleteChannel(): Promise<void> {
     try {
-      this.discordClient.on(
-        Events.ChannelDelete,
-        this.onChannelDeleted.bind(this),
-      );
+      this.discordService.onDeleteChannel(this.onChannelDeleted.bind(this));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
