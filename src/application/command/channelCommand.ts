@@ -111,7 +111,7 @@ export class ChannelCommand implements IChannelCommand {
     await this.deleteChannel.execute(channel.id);
   }
 
-  private static toChannelCreateEntity(
+  public static toChannelCreateEntity(
     discordChannel: GuildChannel,
   ): CreateChannelType {
     return {

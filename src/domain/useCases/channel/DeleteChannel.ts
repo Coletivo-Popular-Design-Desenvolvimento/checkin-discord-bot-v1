@@ -40,7 +40,7 @@ export class DeleteChannel implements IDeleteChannel {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
-        LoggerContextEntity.USER,
+        LoggerContextEntity.CHANNEL,
         `DeleteChannel.execute | ${error.message}`,
       );
       return {

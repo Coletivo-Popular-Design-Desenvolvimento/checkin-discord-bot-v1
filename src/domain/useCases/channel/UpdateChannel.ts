@@ -48,7 +48,7 @@ export class UpdateChannel implements IUpdateChannel {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
-        LoggerContextEntity.USER,
+        LoggerContextEntity.CHANNEL,
         `UpdateChannel.execute | ${error.message}`,
       );
       return {
