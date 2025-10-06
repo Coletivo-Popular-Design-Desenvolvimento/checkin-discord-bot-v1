@@ -1,5 +1,3 @@
-import { GenericOutputDto } from "@domain/dtos/GenericOutputDto";
-import { ChannelEntity } from "@domain/entities/Channel";
 import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
@@ -18,21 +16,20 @@ export class CreateChannel implements ICreateChannel {
     private readonly logger: ILoggerService,
   ) {}
 
-  public async execute(
-    channel: CreateChannelType,
-  ): Promise<GenericOutputDto<ChannelEntity>> {
+  public async execute(channel: CreateChannelType): Promise<void> {
     try {
       const createdChannel = await this.channelRepository.create(channel);
-      return {
-        data: { ...createdChannel },
-        success: true,
-        message: "Channel saved successfully",
-      };
+      this.logger.logToConsole(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Channel ${createdChannel.id} - ${createdChannel.name} saved successfully`,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
-        LoggerContext.COMMAND,
-        LoggerContextEntity.USER,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
         `executeCreateChannel | ${error.message}`,
       );
     }

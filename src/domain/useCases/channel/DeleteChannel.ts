@@ -1,4 +1,3 @@
-import { GenericOutputDto } from "@domain/dtos/GenericOutputDto";
 import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import { ChannelIdType } from "@domain/interfaces/useCases/channel/IChannelId";
@@ -16,7 +15,7 @@ export class DeleteChannel implements IDeleteChannel {
     private readonly logger: ILoggerService,
   ) {}
 
-  public async execute(id: ChannelIdType): Promise<GenericOutputDto<boolean>> {
+  public async execute(id: ChannelIdType): Promise<void> {
     try {
       const channel =
         typeof id === "string"
@@ -24,18 +23,21 @@ export class DeleteChannel implements IDeleteChannel {
           : await this.channelRepository.findById(id);
 
       if (!channel) {
-        return {
-          data: null,
-          success: false,
-          message: `${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
-        };
+        this.logger.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.USECASE,
+          LoggerContextEntity.CHANNEL,
+          `DeleteChannel.execute | ${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
+        );
       }
 
       const isDeleted = await this.channelRepository.deleteById(channel.id);
-      return {
-        data: isDeleted,
-        success: true,
-      };
+      this.logger.logToConsole(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Was channel ${channel.id} - ${channel.name} deleted: ${isDeleted}`,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -43,11 +45,6 @@ export class DeleteChannel implements IDeleteChannel {
         LoggerContextEntity.CHANNEL,
         `DeleteChannel.execute | ${error.message}`,
       );
-      return {
-        data: false,
-        success: false,
-        message: error.message,
-      };
     }
   }
 }

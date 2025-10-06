@@ -1,4 +1,3 @@
-import { GenericOutputDto } from "@domain/dtos/GenericOutputDto";
 import { ChannelEntity } from "@domain/entities/Channel";
 import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepository";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
@@ -20,7 +19,7 @@ export class UpdateChannel implements IUpdateChannel {
   public async execute(
     id: ChannelIdType,
     data: Partial<ChannelEntity>,
-  ): Promise<GenericOutputDto<ChannelEntity>> {
+  ): Promise<void> {
     try {
       const channel =
         typeof id === "string"
@@ -28,11 +27,12 @@ export class UpdateChannel implements IUpdateChannel {
           : await this.channelRepository.findById(id);
 
       if (!channel) {
-        return {
-          data: null,
-          success: false,
-          message: `${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
-        };
+        this.logger.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.USECASE,
+          LoggerContextEntity.CHANNEL,
+          `UpdateChannel.execute | ${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
+        );
       }
 
       const updatedChannel = await this.channelRepository.updateById(
@@ -40,10 +40,12 @@ export class UpdateChannel implements IUpdateChannel {
         data,
       );
 
-      return {
-        data: { ...updatedChannel },
-        success: true,
-      };
+      this.logger.logToConsole(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Channel ${updatedChannel.id} - ${updatedChannel.name} has been updated`,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -51,11 +53,6 @@ export class UpdateChannel implements IUpdateChannel {
         LoggerContextEntity.CHANNEL,
         `UpdateChannel.execute | ${error.message}`,
       );
-      return {
-        data: null,
-        success: false,
-        message: error.message,
-      };
     }
   }
 }

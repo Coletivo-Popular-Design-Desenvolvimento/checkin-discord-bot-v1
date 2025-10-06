@@ -1,5 +1,4 @@
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
-import { ErrorMessages } from "@domain/types/ErrorMessages";
 import {
   LoggerContext,
   LoggerContextEntity,
@@ -52,17 +51,17 @@ describe("Channel useCases", () => {
   describe("createChannel", () => {
     it("should create a new channel", async () => {
       const mockChannel = { ...mockChannelValue, ...mockChannelId };
-      const mockResponse = {
-        success: true,
-        data: mockChannel,
-        message: "Channel saved successfully",
-      };
 
       channelRepository.create.mockResolvedValue(mockChannel);
 
-      const result = await createChannelCase.execute(mockChannelValue);
+      await createChannelCase.execute(mockChannelValue);
 
-      expect(result).toEqual(mockResponse);
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Channel ${mockChannel.id} - ${mockChannel.name} saved successfully`,
+      );
       expect(channelRepository.create).toHaveBeenCalledTimes(1);
       expect(channelRepository.create).toHaveBeenCalledWith({
         ...mockChannelValue,
@@ -79,8 +78,8 @@ describe("Channel useCases", () => {
       expect(result).toBeUndefined();
       expect(loggerMock.logToConsole).toHaveBeenCalledWith(
         LoggerContextStatus.ERROR,
-        LoggerContext.COMMAND,
-        LoggerContextEntity.USER,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
         `executeCreateChannel | ${errorMessage}`,
       );
     });
@@ -104,13 +103,14 @@ describe("Channel useCases", () => {
       channelRepository.findById.mockResolvedValue(mockChannelCompleteData);
       channelRepository.updateById.mockResolvedValue(updatedChannel);
 
-      const result = await updateChannelCase.execute(id, channelChangedData);
+      await updateChannelCase.execute(id, channelChangedData);
 
-      expect(result).toEqual({
-        success: true,
-        data: updatedChannel,
-      });
-
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Channel ${updatedChannel.id} - ${updatedChannel.name} has been updated`,
+      );
       expect(channelRepository.updateById).toHaveBeenCalledTimes(1);
       expect(channelRepository.updateById).toHaveBeenCalledWith(
         id,
@@ -138,16 +138,14 @@ describe("Channel useCases", () => {
       );
       channelRepository.updateById.mockResolvedValue(updatedChannel);
 
-      const result = await updateChannelCase.execute(
-        platformId,
-        channelChangedData,
+      await updateChannelCase.execute(platformId, channelChangedData);
+
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Channel ${updatedChannel.id} - ${updatedChannel.name} has been updated`,
       );
-
-      expect(result).toEqual({
-        success: true,
-        data: updatedChannel,
-      });
-
       expect(channelRepository.updateById).toHaveBeenCalledTimes(1);
       expect(channelRepository.updateById).toHaveBeenCalledWith(
         id,
@@ -164,13 +162,8 @@ describe("Channel useCases", () => {
         createdAt: new Date(),
       };
 
-      const result = await updateChannelCase.execute(id, channelChangedData);
+      await updateChannelCase.execute(id, channelChangedData);
 
-      expect(result).toEqual({
-        success: false,
-        data: null,
-        message: `${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
-      });
       expect(channelRepository.findById).toHaveBeenCalledTimes(1);
       expect(channelRepository.findById).toHaveBeenCalledWith(id);
       expect(channelRepository.updateById).not.toHaveBeenCalledTimes(1);
@@ -188,13 +181,8 @@ describe("Channel useCases", () => {
       channelRepository.findById.mockResolvedValue(mockChannelCompleteData);
       channelRepository.updateById.mockRejectedValue(new Error(errorMessage));
 
-      const result = await updateChannelCase.execute(id, channelChangedData);
+      await updateChannelCase.execute(id, channelChangedData);
 
-      expect(result).toEqual({
-        success: false,
-        data: null,
-        message: errorMessage,
-      });
       expect(loggerMock.logToConsole).toHaveBeenCalledWith(
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,
@@ -210,13 +198,14 @@ describe("Channel useCases", () => {
       channelRepository.findById.mockResolvedValue(mockChannelCompleteData);
       channelRepository.deleteById.mockResolvedValue(true);
 
-      const result = await deleteChannelCase.execute(id);
+      await deleteChannelCase.execute(id);
 
-      expect(result).toEqual({
-        success: true,
-        data: true,
-      });
-
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Was channel ${mockChannelCompleteData.id} - ${mockChannelCompleteData.name} deleted: ${true}`,
+      );
       expect(channelRepository.deleteById).toHaveBeenCalledTimes(1);
       expect(channelRepository.deleteById).toHaveBeenCalledWith(id);
     });
@@ -229,13 +218,14 @@ describe("Channel useCases", () => {
       );
       channelRepository.deleteById.mockResolvedValue(true);
 
-      const result = await deleteChannelCase.execute(platformId);
+      await deleteChannelCase.execute(platformId);
 
-      expect(result).toEqual({
-        success: true,
-        data: true,
-      });
-
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Was channel ${mockChannelCompleteData.id} - ${mockChannelCompleteData.name} deleted: ${true}`,
+      );
       expect(channelRepository.deleteById).toHaveBeenCalledTimes(1);
       expect(channelRepository.deleteById).toHaveBeenCalledWith(
         mockChannelCompleteData.id,
@@ -245,13 +235,8 @@ describe("Channel useCases", () => {
     it("should returns a not found response when channel not found", async () => {
       const id = 1;
 
-      const result = await deleteChannelCase.execute(id);
+      await deleteChannelCase.execute(id);
 
-      expect(result).toEqual({
-        success: false,
-        data: null,
-        message: `${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
-      });
       expect(channelRepository.findById).toHaveBeenCalledTimes(1);
       expect(channelRepository.findById).toHaveBeenCalledWith(id);
       expect(channelRepository.deleteById).not.toHaveBeenCalledTimes(1);
@@ -263,13 +248,8 @@ describe("Channel useCases", () => {
       channelRepository.findById.mockResolvedValue(mockChannelCompleteData);
       channelRepository.deleteById.mockRejectedValue(new Error(errorMessage));
 
-      const result = await deleteChannelCase.execute(id);
+      await deleteChannelCase.execute(id);
 
-      expect(result).toEqual({
-        success: false,
-        data: false,
-        message: errorMessage,
-      });
       expect(loggerMock.logToConsole).toHaveBeenCalledWith(
         LoggerContextStatus.ERROR,
         LoggerContext.USECASE,

@@ -38,10 +38,6 @@ export class ChannelCommand implements IChannelCommand {
     this.handleDeleteChannel();
   }
 
-  private get discordClient(): Client {
-    return this.discordService.client;
-  }
-
   public async handleCreateChannel(): Promise<void> {
     try {
       this.discordService.onCreateChannel(this.onChannelCreated.bind(this));
