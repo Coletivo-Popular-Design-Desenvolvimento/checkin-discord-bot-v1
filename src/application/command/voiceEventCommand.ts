@@ -102,7 +102,7 @@ export class VoiceEventCommand {
       const input: RegisterVoiceEventInput = {
         platformId: event.id,
         name: event.name,
-        statusId: VoiceEventCommand.mapStatusToPlatformId(event.status),
+        status: VoiceEventCommand.mapStatusToPlatformId(event.status),
         startAt: event.scheduledStartAt || new Date(),
         endAt: event.scheduledEndAt,
         userCount: event.userCount || 0,

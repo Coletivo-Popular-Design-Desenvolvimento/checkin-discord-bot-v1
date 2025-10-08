@@ -5,7 +5,7 @@ import { GenericOutputDto } from "@dtos/GenericOutputDto";
 export interface RegisterVoiceEventInput {
   platformId: string;
   name: string;
-  statusId: string;
+  status: string;
   startAt: Date;
   endAt?: Date;
   userCount: number;
@@ -16,5 +16,7 @@ export interface RegisterVoiceEventInput {
 }
 
 export interface IRegisterVoiceEvent {
-  execute(input: RegisterVoiceEventInput): Promise<GenericOutputDto<AudioEventEntity>>;
+  execute(
+    input: RegisterVoiceEventInput,
+  ): Promise<GenericOutputDto<AudioEventEntity>>;
 }

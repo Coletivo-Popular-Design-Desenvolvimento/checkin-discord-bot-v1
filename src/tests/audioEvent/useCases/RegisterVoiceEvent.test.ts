@@ -72,7 +72,7 @@ describe("RegisterVoiceEvent", () => {
       const input = {
         platformId: "event123",
         name: "Test Voice Event",
-        statusId: "active",
+        status: "active",
         startAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -89,7 +89,7 @@ describe("RegisterVoiceEvent", () => {
       expect(mockAudioEventRepository.create).toHaveBeenCalledWith({
         platformId: input.platformId,
         name: input.name,
-        statusId: input.statusId,
+        statusId: input.status,
         startAt: input.startAt,
         endAt: undefined,
         userCount: input.userCount,
@@ -121,7 +121,7 @@ describe("RegisterVoiceEvent", () => {
       const input = {
         platformId: "event123",
         name: "Test Voice Event",
-        statusId: "active",
+        status: "active",
         startAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -141,7 +141,7 @@ describe("RegisterVoiceEvent", () => {
       const input = {
         platformId: "event123",
         name: "Test Voice Event",
-        statusId: "active",
+        status: "active",
         startAt: new Date(),
         userCount: 5,
         channelId: "channel123",
@@ -168,7 +168,7 @@ describe("RegisterVoiceEvent", () => {
       const input = {
         platformId: "event123",
         name: "Test Voice Event",
-        statusId: "active",
+        status: "active",
         startAt: new Date(),
         userCount: 5,
         channelId: "channel123",
