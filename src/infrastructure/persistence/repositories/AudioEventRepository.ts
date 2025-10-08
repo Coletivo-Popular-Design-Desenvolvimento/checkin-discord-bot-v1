@@ -73,8 +73,9 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventsData: Omit<AudioEventEntity, "id" | "createdAt">[],
   ): Promise<number | null> {
     try {
+      const data = eventsData.map((event) => this.toPersistence(event));
       const result = await this.client.audioEvent.createMany({
-        data: eventsData.map((event) => this.toPersistence(event)),
+        data,
         skipDuplicates: true,
       });
       return result.count;

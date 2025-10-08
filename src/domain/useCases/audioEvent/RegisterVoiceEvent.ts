@@ -35,6 +35,21 @@ export class RegisterVoiceEvent implements IRegisterVoiceEvent {
     input: RegisterVoiceEventInput,
   ): Promise<GenericOutputDto<AudioEventEntity>> {
     try {
+      const validStatusIds = ["scheduled", "active", "completed", "canceled"];
+      if (!validStatusIds.includes(input.statusId)) {
+        this.logger.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.USECASE,
+          LoggerContextEntity.AUDIO_EVENT,
+          `Invalid statusId: ${input.statusId}. Must be one of: ${validStatusIds.join(", ")}`,
+        );
+        return {
+          data: null,
+          success: false,
+          message: `Invalid status: ${input.statusId}`,
+        };
+      }
+
       const newEvent = await this.audioEventRepository.create({
         platformId: input.platformId,
         name: input.name,
