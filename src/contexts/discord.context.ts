@@ -3,8 +3,10 @@ import {
   Events,
   GatewayIntentBits,
   GuildMember,
+  GuildScheduledEvent,
   Message,
   PartialGuildMember,
+  PartialGuildScheduledEvent,
 } from "discord.js";
 import { DiscordService } from "@discord/DiscordService";
 import { IDiscordService } from "@services/IDiscordService";
@@ -16,6 +18,18 @@ const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {
   [Events.GuildMemberAdd]: [
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.Guilds,
+  ],
+  [Events.GuildScheduledEventUpdate]: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildScheduledEvents,
+  ],
+  [Events.GuildScheduledEventCreate]: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildScheduledEvents,
+  ],
+  [Events.GuildScheduledEventDelete]: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildScheduledEvents,
   ],
 };
 
@@ -35,7 +49,8 @@ export function initializeDiscord(): {
     Message,
     GuildMember,
     PartialGuildMember,
-    Client
+    Client,
+    GuildScheduledEvent | PartialGuildScheduledEvent
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
