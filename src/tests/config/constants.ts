@@ -41,6 +41,11 @@ export const mockDBUserValue = {
   update_at: undefined,
   last_active: undefined,
   email: undefined,
+  message: [],
+  message_reaction: [],
+  user_channel: [],
+  user_role: [],
+  audio_event: [],
 } as unknown as naturalizeUser;
 
 export const mockUserUpdateValue = {
@@ -230,17 +235,6 @@ export type ChannelEntityValue = {
   messageReaction: never[]; // ajusta se tiver mock de reação
 };
 
-export const mockChannelEntityValue: ChannelEntity = {
-  id: 1,
-  platformId: "discordId",
-  name: "channelName",
-  url: "channelUrl",
-  createdAt: mockDbChannelValue.created_at, // ou new Date() se preferir um novo objeto
-  user: [mockUserValue],
-  message: [],
-  messageReaction: [],
-};
-
 export const mockChannelUpdatePayload = {
   name: "updatedChannelName",
   url: "updatedChannelUrl",
@@ -283,13 +277,7 @@ export const mockAudioEventCreatePayload: Omit<
   "id" | "createdAt"
 > = {
   platformId: "1234567890",
-  channel: {
-    id: 1,
-    platformId: "discordId",
-    name: "channelName",
-    url: "channelUrl",
-    createdAt: new Date(),
-  } as ChannelEntity,
+  channel: createMockChannelEntity(),
   creator: mockUserValue,
   name: "New Event",
   description: "A brand new event",
@@ -348,7 +336,7 @@ export const mockDBRoleValue = {
 export function createMockDbUser(overrides: Partial<User> = {}): User {
   return {
     id: 1,
-    platform_id: "user123",
+    platform_id: crypto.randomUUID(),
     username: "TestUser",
     global_name: "Test User Global",
     joined_at: new Date("2023-01-01"),
@@ -373,6 +361,9 @@ export function createMockDbChannel(overrides: Partial<Channel> = {}): Channel {
     name: "test-channel",
     url: "https://discord.com/channels/123/789",
     created_at: new Date("2023-01-01"),
+    message: [],
+    user_reaction: [],
+    user_channel: [],
     ...overrides,
   } as Channel;
 }
@@ -467,13 +458,16 @@ export function createMockChannelEntity(
   overrides: Partial<ChannelEntity> = {},
 ): ChannelEntity {
   const dbChannel = createMockDbChannel();
-  const channelEntity = ChannelEntity.fromPersistence(dbChannel);
+  const channelEntity = ChannelEntity.fromPersistence(dbChannel, [], [], []);
   return new ChannelEntity(
     overrides.id ?? channelEntity.id,
     overrides.platformId ?? channelEntity.platformId,
     overrides.name ?? channelEntity.name,
     overrides.url ?? channelEntity.url,
     overrides.createdAt ?? channelEntity.createdAt,
+    overrides.user ?? channelEntity.user,
+    overrides.message ?? channelEntity.message,
+    overrides.messageReaction ?? channelEntity.messageReaction,
   );
 }
 
