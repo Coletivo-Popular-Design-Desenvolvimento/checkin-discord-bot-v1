@@ -18,6 +18,8 @@ export interface IAudioEventRepository {
 
   findById(id: number): Promise<AudioEventEntity | null>;
 
+  findByPlatformId(platformId: string): Promise<AudioEventEntity | null>;
+
   listAll(params?: AudioEventListAllInput): Promise<AudioEventEntity[]>;
 
   findByChannelId(channelId: string): Promise<AudioEventEntity[]>;

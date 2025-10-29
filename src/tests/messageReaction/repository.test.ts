@@ -70,7 +70,11 @@ const mockFullMessageReaction = {
 
 // Mocks das Entidades de Domínio (simulando o retorno das factories)
 const mockUserEntity = UserEntity.fromPersistence(mockDbUser);
-const mockMessageEntity = MessageEntity.fromPersistence(mockDbMessage);
+const mockMessageEntity = MessageEntity.fromPersistence(
+  mockDbMessage,
+  mockDbUser,
+  mockDbChannel,
+);
 const mockChannelEntity = ChannelEntity.fromPersistence(mockDbChannel);
 
 // A entidade rica que o repositório deve retornar

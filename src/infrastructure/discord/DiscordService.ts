@@ -4,11 +4,20 @@ import {
   Message,
   GuildMember,
   PartialGuildMember,
+  GuildScheduledEvent,
+  PartialGuildScheduledEvent,
 } from "discord.js";
 import { IDiscordService } from "@services/IDiscordService";
 
 export class DiscordService
-  implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
+  implements
+    IDiscordService<
+      Message,
+      GuildMember,
+      PartialGuildMember,
+      Client,
+      GuildScheduledEvent | PartialGuildScheduledEvent
+    >
 {
   public readonly client: Client;
   // Use estas funções para registar um handler que você queira executar quando o evento ocorrer
@@ -17,6 +26,9 @@ export class DiscordService
   private onNewUserHandlers: ((member: GuildMember) => void)[] = [];
   private onUserLeaveHandlers: ((
     member: GuildMember | PartialGuildMember,
+  ) => void)[] = [];
+  private onVoiceEventHandlers: ((
+    event: GuildScheduledEvent | PartialGuildScheduledEvent,
   ) => void)[] = [];
 
   constructor(client: Client) {
@@ -43,6 +55,18 @@ export class DiscordService
     this.client.on(Events.GuildMemberRemove, (member) => {
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
+
+    this.client.on(Events.GuildScheduledEventUpdate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventCreate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventDelete, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -59,5 +83,11 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onVoiceEvent(
+    handler: (event: GuildScheduledEvent | PartialGuildScheduledEvent) => void,
+  ): void {
+    this.onVoiceEventHandlers.push(handler);
   }
 }
