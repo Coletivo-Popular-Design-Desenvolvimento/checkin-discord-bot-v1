@@ -28,7 +28,9 @@ export class ChannelEntity {
       channel.url,
       channel.created_at,
       userChannel?.map((user) => UserEntity.fromPersistence(user)),
-      message?.map((message) => MessageEntity.fromPersistence(message)),
+      message?.map((message) =>
+        MessageEntity.fromPersistence(message, undefined, channel),
+      ),
       messageReaction?.map((messageReaction) =>
         MessageReactionEntity.fromPersistence(messageReaction),
       ),

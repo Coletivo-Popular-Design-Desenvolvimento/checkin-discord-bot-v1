@@ -1,7 +1,6 @@
-import { Prisma } from "@prisma/client";
+import * as prisma from "@prisma/client";
 import { UserEntity } from "./User";
 
-//
 export class RoleEntity {
   constructor(
     public readonly id: number,
@@ -13,9 +12,8 @@ export class RoleEntity {
   ) {}
 
   public static fromPersistence(
-    role: Prisma.RoleGetPayload<{
-      include: { user_role: { include: { user: true } } };
-    }>,
+    role: prisma.Role,
+    users?: prisma.User[],
   ): RoleEntity {
     return new RoleEntity(
       role.id,
@@ -23,9 +21,7 @@ export class RoleEntity {
       role.name,
       role.created_at,
       role.platform_created_at,
-      role.user_role.map((userRole) =>
-        UserEntity.fromPersistence(userRole.user),
-      ),
+      users?.map((user) => UserEntity.fromPersistence(user)),
     );
   }
 }

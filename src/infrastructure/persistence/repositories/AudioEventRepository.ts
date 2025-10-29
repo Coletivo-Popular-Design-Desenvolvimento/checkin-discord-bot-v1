@@ -49,11 +49,31 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventData: Omit<AudioEventEntity, "id" | "createdAt">,
   ): Promise<AudioEventEntity | null> {
     try {
+      const eventStatus = await this.findOrCreateEventStatus(
+        eventData.statusId,
+      );
+      if (!eventStatus) {
+        this.logger.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.REPOSITORY,
+          LoggerContextEntity.AUDIO_EVENT,
+          `create | EventStatus with platform_id '${eventData.statusId}' not found`,
+        );
+        return null;
+      }
+
       const result = await this.client.audioEvent.create({
-        data: this.toPersistence(eventData),
+        data: {
+          ...this.toPersistence(eventData),
+          status_id: eventStatus.platform_id,
+        },
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
+      return AudioEventEntity.fromPersistence(
+        result,
+        result.channel,
+        result.creator,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -69,8 +89,24 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventsData: Omit<AudioEventEntity, "id" | "createdAt">[],
   ): Promise<number | null> {
     try {
+      for (const eventData of eventsData) {
+        const eventStatus = await this.findOrCreateEventStatus(
+          eventData.statusId,
+        );
+        if (!eventStatus) {
+          this.logger.logToConsole(
+            LoggerContextStatus.ERROR,
+            LoggerContext.REPOSITORY,
+            LoggerContextEntity.AUDIO_EVENT,
+            `createMany | EventStatus with platform_id '${eventData.statusId}' not found`,
+          );
+          return null;
+        }
+      }
+
+      const data = eventsData.map((event) => this.toPersistence(event));
       const result = await this.client.audioEvent.createMany({
-        data: eventsData.map((event) => this.toPersistence(event)),
+        data,
         skipDuplicates: true,
       });
       return result.count;
@@ -92,7 +128,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(result, result.channel, result.creator)
+        ? AudioEventEntity.fromPersistence(
+            result,
+            result.channel,
+            result.creator,
+          )
         : null;
     } catch (error) {
       this.logger.logToConsole(
@@ -100,6 +140,30 @@ export class AudioEventRepository implements IAudioEventRepository {
         LoggerContext.REPOSITORY,
         LoggerContextEntity.AUDIO_EVENT,
         `findById | ${error.message}`,
+      );
+      return null;
+    }
+  }
+
+  async findByPlatformId(platformId: string): Promise<AudioEventEntity | null> {
+    try {
+      const result = await this.client.audioEvent.findFirst({
+        where: { platform_id: platformId },
+        include: { channel: true, creator: true },
+      });
+      return result
+        ? AudioEventEntity.fromPersistence(
+            result,
+            result.channel,
+            result.creator,
+          )
+        : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.AUDIO_EVENT,
+        `findByPlatformId | ${error.message}`,
       );
       return null;
     }
@@ -123,7 +187,11 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return results.map((result) =>
-        AudioEventEntity.fromPersistence(result, result.channel, result.creator),
+        AudioEventEntity.fromPersistence(
+          result,
+          result.channel,
+          result.creator,
+        ),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -153,12 +221,31 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventData: Partial<Omit<AudioEventEntity, "id" | "createdAt">>,
   ): Promise<AudioEventEntity | null> {
     try {
+      if (eventData.statusId) {
+        const eventStatus = await this.findOrCreateEventStatus(
+          eventData.statusId,
+        );
+        if (!eventStatus) {
+          this.logger.logToConsole(
+            LoggerContextStatus.ERROR,
+            LoggerContext.REPOSITORY,
+            LoggerContextEntity.AUDIO_EVENT,
+            `updateById | EventStatus with platform_id '${eventData.statusId}' not found`,
+          );
+          return null;
+        }
+      }
+
       const result = await this.client.audioEvent.update({
         where: { id },
         data: this.toPersistence(eventData),
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(result, result.channel, result.creator);
+      return AudioEventEntity.fromPersistence(
+        result,
+        result.channel,
+        result.creator,
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -184,6 +271,35 @@ export class AudioEventRepository implements IAudioEventRepository {
         `deleteById | ${error.message}`,
       );
       return false;
+    }
+  }
+
+  private async findOrCreateEventStatus(
+    statusName: string,
+  ): Promise<{ platform_id: string } | null> {
+    try {
+      let eventStatus = await this.client.eventStatus.findUnique({
+        where: { platform_id: statusName },
+      });
+
+      if (!eventStatus) {
+        eventStatus = await this.client.eventStatus.create({
+          data: {
+            name: statusName.toUpperCase(),
+            platform_id: statusName,
+          },
+        });
+      }
+
+      return { platform_id: eventStatus.platform_id };
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.AUDIO_EVENT,
+        `findOrCreateEventStatus | ${error.message}`,
+      );
+      return null;
     }
   }
 }

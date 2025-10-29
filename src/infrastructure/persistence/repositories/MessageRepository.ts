@@ -1,4 +1,10 @@
-import { PrismaClient, Message } from "@prisma/client";
+import {
+  PrismaClient,
+  Message,
+  User,
+  Channel,
+  MessageReaction,
+} from "@prisma/client";
 import { MessageEntity } from "../../../domain/entities/Message";
 import { IMessageRepository } from "../../../domain/interfaces/repositories/IMessageRepository";
 import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
@@ -31,6 +37,11 @@ export class MessageRepository implements IMessageRepository {
     try {
       const result = await this.client.message.create({
         data: this.toPersistence(message),
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
       return this.toDomain(result);
     } catch (error) {
@@ -98,6 +109,11 @@ export class MessageRepository implements IMessageRepository {
         where: {
           id,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
       return result ? this.toDomain(result) : null;
@@ -127,6 +143,11 @@ export class MessageRepository implements IMessageRepository {
           channel_id: channelId,
           is_deleted: includeDeleted ? undefined : false,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
       return messages.map((message) => this.toDomain(message));
@@ -150,6 +171,11 @@ export class MessageRepository implements IMessageRepository {
       const message = await this.client.message.findFirst({
         where: {
           platform_id: platformId,
+        },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
         },
       });
 
@@ -179,6 +205,11 @@ export class MessageRepository implements IMessageRepository {
         where: {
           user_id: userId,
           is_deleted: includeDeleted ? undefined : false,
+        },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
         },
       });
       return results.map((result) => this.toDomain(result));
@@ -213,6 +244,11 @@ export class MessageRepository implements IMessageRepository {
         where: {
           is_deleted: includeDeleted ? undefined : false,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
       return results.map((result) => this.toDomain(result));
     } catch (error) {
@@ -234,6 +270,11 @@ export class MessageRepository implements IMessageRepository {
         where: {
           id,
         },
+        include: {
+          user: true,
+          channel: true,
+          message_reaction: true,
+        },
       });
 
       return result ? this.toDomain(result) : null;
@@ -247,24 +288,27 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  private toDomain(message: Message): MessageEntity {
-    return new MessageEntity(
-      message.channel_id,
-      message.platform_id,
-      message.platform_created_at,
-      message.is_deleted,
-      message.user_id,
-      message.id,
-      message.created_at,
+  private toDomain(
+    message: Message & {
+      user: User;
+      channel: Channel;
+      message_reaction?: MessageReaction[];
+    },
+  ): MessageEntity {
+    return MessageEntity.fromPersistence(
+      message,
+      message.user,
+      message.channel,
+      message.message_reaction,
     );
   }
 
   private toPersistence(message: Partial<MessageEntity>) {
     return {
       platform_id: message.platformId,
-      channel_id: message.channelId,
+      channel_id: message.channel?.platformId,
       is_deleted: message.isDeleted,
-      user_id: message.userId,
+      user_id: message.user?.platformId,
       platform_created_at: message.platformCreatedAt,
       created_at: message.createdAt,
     };
