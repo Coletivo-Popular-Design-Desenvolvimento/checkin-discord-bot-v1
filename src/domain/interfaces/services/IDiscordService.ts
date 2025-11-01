@@ -4,12 +4,14 @@ export interface IDiscordService<
   P = unknown,
   T = unknown,
   C = unknown,
+  E = unknown,
 > {
   client: T;
   onDiscordStart(handler: () => void): void;
   onMessage(handler: (message: M) => void): void;
   onNewUser(handler: (member: U) => void): void;
   onUserLeave(handler: (member: U | P) => void): void;
+  onVoiceEvent(handler: (event: E) => void): void;
   registerEvents(): void;
   onCreateChannel(handler: (channel: C) => void): void;
   onChangeChannel(handler: (oldChannel: C, newChannel: C) => void): void;

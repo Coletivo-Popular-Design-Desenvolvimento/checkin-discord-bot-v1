@@ -6,10 +6,20 @@ import {
   GuildMember,
   Message,
   PartialGuildMember,
+  GuildScheduledEvent,
+  PartialGuildScheduledEvent,
 } from "discord.js";
 
 export class DiscordService
-  implements IDiscordService<Message, GuildMember, PartialGuildMember, Client>
+  implements
+    IDiscordService<
+      Message,
+      GuildMember,
+      PartialGuildMember,
+      Client,
+      GuildChannel,
+      GuildScheduledEvent | PartialGuildScheduledEvent
+    >
 {
   public readonly client: Client;
   // Use estas funções para registar um handler que você queira executar quando o evento ocorrer
@@ -24,6 +34,9 @@ export class DiscordService
     (oldChannel: GuildChannel, newChannel: GuildChannel) => void
   > = [];
   private onDeleteChannelHandlers: Array<(channel: GuildChannel) => void> = [];
+  private onVoiceEventHandlers: ((
+    event: GuildScheduledEvent | PartialGuildScheduledEvent,
+  ) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
@@ -63,6 +76,18 @@ export class DiscordService
     this.client.on(Events.ChannelDelete, (channel) => {
       this.onDeleteChannelHandlers.forEach((fn) => fn(<GuildChannel>channel));
     });
+
+    this.client.on(Events.GuildScheduledEventUpdate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventCreate, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.GuildScheduledEventDelete, (event) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -93,5 +118,11 @@ export class DiscordService
 
   public onDeleteChannel(handler: (channel: GuildChannel) => void): void {
     this.onDeleteChannelHandlers.push(handler);
+  }
+
+  public onVoiceEvent(
+    handler: (event: GuildScheduledEvent | PartialGuildScheduledEvent) => void,
+  ): void {
+    this.onVoiceEventHandlers.push(handler);
   }
 }

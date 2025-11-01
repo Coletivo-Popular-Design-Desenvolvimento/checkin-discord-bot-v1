@@ -6,7 +6,7 @@ import {
   LoggerContextEntity,
   LoggerContextStatus,
 } from "@domain/types/LoggerContextEnum";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
 
 export class RoleRepository implements IRoleRepository {
@@ -27,7 +27,11 @@ export class RoleRepository implements IRoleRepository {
         where: { id },
         include: { user_role: { include: { user: true } } },
       });
-      return RoleEntity.fromPersistence(result);
+
+      return RoleEntity.fromPersistence(
+        result,
+        result.user_role.map((userRole) => userRole.user),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -43,7 +47,12 @@ export class RoleRepository implements IRoleRepository {
         where: { user_role: { some: { user: { platform_id: id } } } },
         include: { user_role: { include: { user: true } } },
       });
-      return result.map(RoleEntity.fromPersistence);
+      return result.map((role) =>
+        RoleEntity.fromPersistence(
+          role,
+          role.user_role.map((userRole) => userRole.user),
+        ),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -59,7 +68,10 @@ export class RoleRepository implements IRoleRepository {
         where: { platform_id: id },
         include: { user_role: { include: { user: true } } },
       });
-      return RoleEntity.fromPersistence(result);
+      return RoleEntity.fromPersistence(
+        result,
+        result.user_role.map((userRole) => userRole.user),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -75,7 +87,12 @@ export class RoleRepository implements IRoleRepository {
         take: limit,
         include: { user_role: { include: { user: true } } },
       });
-      return results.map((result) => this.toDomain(result));
+      return results.map((result) =>
+        RoleEntity.fromPersistence(
+          result,
+          result.user_role.map((userRole) => userRole.user),
+        ),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -93,9 +110,8 @@ export class RoleRepository implements IRoleRepository {
       const result = await this.client.role.update({
         where: { id },
         data: this.toPersistence(role),
-        include: { user_role: { include: { user: true } } },
       });
-      return result ? this.toDomain(result) : null;
+      return result ? RoleEntity.fromPersistence(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -121,14 +137,6 @@ export class RoleRepository implements IRoleRepository {
       );
       return false;
     }
-  }
-
-  private toDomain(
-    role: Prisma.RoleGetPayload<{
-      include: { user_role: { include: { user: true } } };
-    }>,
-  ): RoleEntity {
-    return RoleEntity.fromPersistence(role);
   }
 
   private toPersistence(role: Partial<RoleEntity>) {

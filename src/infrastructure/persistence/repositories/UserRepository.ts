@@ -1,4 +1,4 @@
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { IUserRepository } from "@repositories/IUserRepository";
 import { PrismaService } from "../prisma/prismaService";
 import { UserEntity } from "@entities/User";
@@ -33,7 +33,7 @@ export class UserRepository implements IUserRepository {
       const result = await this.client.user.create({
         data: this.toPersistence(user),
       });
-      return this.toDomain(result);
+      return UserEntity.fromPersistence(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -81,8 +81,25 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: { include: { channel: true } },
+          user_role: { include: { role: true } },
+          audio_event: true,
+        },
       });
-      return result ? this.toDomain(result) : null;
+
+      return result
+        ? UserEntity.fromPersistence(
+            result,
+            result.message,
+            result.message_reaction,
+            result.user_channel.map((userChannel) => userChannel.channel),
+            result.user_role.map((userRole) => userRole.role),
+            result.audio_event,
+          )
+        : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -113,8 +130,25 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: { include: { channel: true } },
+          user_role: { include: { role: true } },
+          audio_event: true,
+        },
       });
-      return result ? this.toDomain(result) : null;
+
+      return result
+        ? UserEntity.fromPersistence(
+            result,
+            result.message,
+            result.message_reaction,
+            result.user_channel.map((userChannel) => userChannel.channel),
+            result.user_role.map((userRole) => userRole.role),
+            result.audio_event,
+          )
+        : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -145,14 +179,31 @@ export class UserRepository implements IUserRepository {
               : [UserStatus.ACTIVE],
           },
         },
+        include: {
+          message: true,
+          message_reaction: true,
+          user_channel: { include: { channel: true } },
+          user_role: { include: { role: true } },
+          audio_event: true,
+        },
       });
-      return results.map((result) => this.toDomain(result));
+
+      return results.map((result) =>
+        UserEntity.fromPersistence(
+          result,
+          result.message,
+          result.message_reaction,
+          result.user_channel.map((userChannel) => userChannel.channel),
+          result.user_role.map((userRole) => userRole.role),
+          result.audio_event,
+        ),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
-        `create | ${error.message}`,
+        `listAll | ${error.message}`,
       );
     }
   }
@@ -173,7 +224,7 @@ export class UserRepository implements IUserRepository {
         where: { id },
         data: this.toPersistence(user),
       });
-      return result ? this.toDomain(result) : null;
+      return result ? UserEntity.fromPersistence(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -204,22 +255,6 @@ export class UserRepository implements IUserRepository {
         `deleteById | ${error.message}`,
       );
     }
-  }
-  private toDomain(user: User): UserEntity {
-    return new UserEntity(
-      user.id,
-      user.platform_id,
-      user.username,
-      user.bot,
-      user.status,
-      user.global_name,
-      user.joined_at,
-      user.platform_created_at,
-      user.create_at,
-      user.update_at,
-      user.last_active,
-      user.email,
-    );
   }
 
   private toPersistence(user: Partial<UserEntity>) {
