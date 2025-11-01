@@ -12,10 +12,10 @@ export interface DiscordGuildScheduledEvent {
   image?: string;
 }
 
-export type DiscordEventStatus = 
-  | "ACTIVE" 
-  | "COMPLETED" 
-  | "CANCELED" 
+export type DiscordEventStatus =
+  | "ACTIVE"
+  | "COMPLETED"
+  | "CANCELED"
   | "SCHEDULED";
 
 export interface DiscordVoiceEvent extends DiscordGuildScheduledEvent {

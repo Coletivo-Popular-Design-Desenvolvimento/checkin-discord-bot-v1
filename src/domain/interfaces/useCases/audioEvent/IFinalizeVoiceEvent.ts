@@ -9,5 +9,7 @@ export interface FinalizeVoiceEventInput {
 }
 
 export interface IFinalizeVoiceEvent {
-  execute(input: FinalizeVoiceEventInput): Promise<GenericOutputDto<AudioEventEntity>>;
+  execute(
+    input: FinalizeVoiceEventInput,
+  ): Promise<GenericOutputDto<AudioEventEntity>>;
 }
