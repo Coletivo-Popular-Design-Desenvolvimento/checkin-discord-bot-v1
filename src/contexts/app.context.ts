@@ -1,4 +1,5 @@
 import { ChannelCommand } from "@application/command/channelCommand";
+import { MessageCommand } from "@application/command/messageCommand";
 import { UserCommand } from "@application/command/userCommand";
 import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
@@ -11,14 +12,19 @@ import {
 import { initializeDatabase } from "./database.context";
 import { initializeDiscord } from "./discord.context";
 import { initializeChannelUseCases } from "./useChannelCases.context";
+import { initializeMessageUseCases } from "./useMessageCases.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
-  const { userRepository, channelRepository, audioEventRepository } =
-    initializeDatabase(logger);
+  const {
+    userRepository,
+    audioEventRepository,
+    messageRepository,
+    channelRepository,
+  } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { TOKEN_BOT } = process.env;
 
@@ -35,6 +41,13 @@ export function initializeApp() {
   const userUseCases = initializeUserUseCases(userRepository, logger);
   const { registerVoiceEvent, finalizeVoiceEvent } =
     initializeVoiceEventUseCases(audioEventRepository, logger);
+  const { registerMessage } = initializeMessageUseCases(
+    messageRepository,
+    userRepository,
+    channelRepository,
+    userUseCases.createUserCase,
+    logger,
+  );
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -50,6 +63,8 @@ export function initializeApp() {
     registerVoiceEvent,
     finalizeVoiceEvent,
   );
+
+  new MessageCommand(discordService, logger, registerMessage);
 
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
