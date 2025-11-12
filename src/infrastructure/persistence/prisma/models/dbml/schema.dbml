@@ -18,9 +18,9 @@ Table user {
   audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  user_channel user_channel [not null]
+  channels channel [not null]
   user_event user_event [not null]
-  user_role user_role [not null]
+  roles role [not null]
 }
 
 Table role {
@@ -29,18 +29,7 @@ Table role {
   created_at DateTime [default: `now()`, not null]
   platform_created_at DateTime [not null]
   platform_id String [unique, not null]
-  user_role user_role [not null]
-}
-
-Table user_role {
-  user_id String [not null]
-  roleId String [not null]
-  role role [not null]
-  user user [not null]
-
-  indexes {
-    (user_id, roleId) [pk]
-  }
+  users user [not null]
 }
 
 Table audio_event {
@@ -103,7 +92,7 @@ Table channel {
   audio_event audio_event [not null]
   message message [not null]
   message_reaction message_reaction [not null]
-  user_channel user_channel [not null]
+  users user [not null]
 }
 
 Table message_reaction {
@@ -119,21 +108,6 @@ Table message_reaction {
     (user_id, message_id) [unique]
   }
 }
-
-Table user_channel {
-  user_id String [not null]
-  channel_id String [not null]
-  channel channel [not null]
-  user user [not null]
-
-  indexes {
-    (user_id, channel_id) [pk]
-  }
-}
-
-Ref: user_role.roleId > role.platform_id
-
-Ref: user_role.user_id > user.platform_id
 
 Ref: audio_event.channel_id > channel.platform_id
 
@@ -154,7 +128,3 @@ Ref: message_reaction.channel_id > channel.platform_id
 Ref: message_reaction.message_id > message.platform_id
 
 Ref: message_reaction.user_id > user.platform_id
-
-Ref: user_channel.channel_id > channel.platform_id
-
-Ref: user_channel.user_id > user.platform_id
