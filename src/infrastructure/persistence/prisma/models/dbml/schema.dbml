@@ -109,6 +109,16 @@ Table message_reaction {
   }
 }
 
+Table UserChannel {
+  channelsId Int [ref: > channel.id]
+  usersId Int [ref: > user.id]
+}
+
+Table UserRole {
+  rolesId Int [ref: > role.id]
+  usersId Int [ref: > user.id]
+}
+
 Ref: audio_event.channel_id > channel.platform_id
 
 Ref: audio_event.creator_id > user.platform_id
