@@ -31,7 +31,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { id: mockDBRoleValue.id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
 
       expect(role).toHaveProperty("id", 1);
@@ -41,9 +41,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.user_role.map((userRole) =>
-          UserEntity.fromPersistence(userRole.user),
-        ),
+        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
       );
     });
 
@@ -58,7 +56,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { id: mockDBRoleValue.id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
 
       expect(role).toBeUndefined();
@@ -90,9 +88,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.user_role.map((userRole) =>
-          UserEntity.fromPersistence(userRole.user),
-        ),
+        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
       );
     });
     it("should return null if role not found", async () => {
@@ -115,7 +111,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { platform_id: mockDBRoleValue.platform_id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
       expect(role).toHaveProperty("id", 1);
       expect(role).toHaveProperty("platformId", "1");
@@ -124,9 +120,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.user_role.map((userRole) =>
-          UserEntity.fromPersistence(userRole.user),
-        ),
+        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
       );
     });
     it("should return null if role not found", async () => {
@@ -138,7 +132,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { platform_id: platform_id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
       expect(role).toBeUndefined();
     });
