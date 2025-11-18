@@ -43,8 +43,8 @@ export const mockDBUserValue = {
   email: undefined,
   message: [],
   message_reaction: [],
-  user_channel: [],
-  user_role: [],
+  channels: [],
+  roles: [],
   audio_event: [],
 } as unknown as naturalizeUser;
 
@@ -215,11 +215,7 @@ export const mockDbChannelValue = {
   created_at: new Date(),
   name: "channelName",
   url: "channelUrl",
-  user_channel: [
-    {
-      user: mockDBUserValue,
-    },
-  ],
+  users: [mockDBUserValue],
   message: [mockDbMessageValue],
   message_reaction: [],
 };
@@ -327,7 +323,7 @@ export const mockDBRoleValue = {
   name: "dev",
   created_at: new Date("2025-01-01"),
   platform_created_at: new Date("2025-01-01"),
-  user_role: [{ user: mockDBUserValue }],
+  users: [mockDBUserValue],
 };
 
 /**
@@ -363,7 +359,7 @@ export function createMockDbChannel(overrides: Partial<Channel> = {}): Channel {
     created_at: new Date("2023-01-01"),
     message: [],
     user_reaction: [],
-    user_channel: [],
+    users: [],
     ...overrides,
   } as Channel;
 }

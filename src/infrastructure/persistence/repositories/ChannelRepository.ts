@@ -42,10 +42,10 @@ export class ChannelRepository implements IChannelRepository {
               id: messageReaction.id,
             })),
           },
-          user_channel: channel.user?.length
+          users: channel.user?.length
             ? {
-                create: channel.user.map((user) => ({
-                  user: { connect: { platform_id: user.platformId } },
+                connect: channel.user.map((user) => ({
+                  platform_id: user.platformId,
                 })),
               }
             : undefined,
@@ -53,15 +53,13 @@ export class ChannelRepository implements IChannelRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: {
-            include: { user: true },
-          },
+          users: true,
         },
       });
 
       return ChannelEntity.fromPersistence(
         result,
-        result.user_channel?.map((uc) => uc.user) || [],
+        result.users || [],
         result.message,
         result.message_reaction,
       );
@@ -100,19 +98,22 @@ export class ChannelRepository implements IChannelRepository {
 
           if (ch.user.length > 0) {
             try {
-              await this.client.userChannel.createMany({
-                data: ch.user.map((user) => ({
-                  user_id: user.platformId,
-                  channel_id: createdChannel.platform_id,
-                })),
-                skipDuplicates: true,
+              await this.client.channel.update({
+                where: { id: createdChannel.id },
+                data: {
+                  users: {
+                    connect: ch.user.map((user) => ({
+                      platform_id: user.platformId,
+                    })),
+                  },
+                },
               });
             } catch (userError) {
               this.logger.logToConsole(
                 LoggerContextStatus.ERROR,
                 LoggerContext.REPOSITORY,
                 LoggerContextEntity.CHANNEL,
-                `createMany userChannel | ${userError.message}`,
+                `createMany users | ${userError.message}`,
               );
             }
           }
@@ -146,9 +147,7 @@ export class ChannelRepository implements IChannelRepository {
           id,
         },
         include: {
-          user_channel: {
-            include: { user: true },
-          },
+          users: true,
           message: true,
           message_reaction: true,
         },
@@ -158,7 +157,7 @@ export class ChannelRepository implements IChannelRepository {
 
       return ChannelEntity.fromPersistence(
         result,
-        result.user_channel.map((uc) => uc.user),
+        result.users,
         result.message,
         result.message_reaction,
       );
@@ -186,7 +185,7 @@ export class ChannelRepository implements IChannelRepository {
           platform_id: id,
         },
         include: {
-          user_channel: { include: { user: true } },
+          users: true,
           message: true,
           message_reaction: true,
         },
@@ -196,7 +195,7 @@ export class ChannelRepository implements IChannelRepository {
 
       return ChannelEntity.fromPersistence(
         result,
-        result.user_channel.map((uc) => uc.user),
+        result.users,
         result.message,
         result.message_reaction,
       );
@@ -223,7 +222,7 @@ export class ChannelRepository implements IChannelRepository {
         take: limit,
         where: {},
         include: {
-          user_channel: { include: { user: true } },
+          users: true,
           message: true,
           message_reaction: true,
         },
@@ -232,7 +231,7 @@ export class ChannelRepository implements IChannelRepository {
       return results.map((result) =>
         ChannelEntity.fromPersistence(
           result,
-          result.user_channel.map((uc) => uc.user),
+          result.users,
           result.message,
           result.message_reaction,
         ),
