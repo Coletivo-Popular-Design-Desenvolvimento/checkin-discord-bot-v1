@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && tsc-alias",
     "start": "tsc && tsc-alias && node dist/index.js",
-    "dev": "docker compose -f compose.yml --profile prod up -d --build && docker compose --profile dev up -d --build && docker compose logs -f app",
+    "dev": "docker compose -f compose.yml --profile dev up -d --build && docker compose --profile dev up -d --build && docker compose logs -f app",
     "prod": "docker compose -f compose.yml --profile prod up -d --build",
     "worker": "tsc && pm2 start dist/index.js --no-daemon",
     "heroku-postbuild": "npm install pm2 --save",
