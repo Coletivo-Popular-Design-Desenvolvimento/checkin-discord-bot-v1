@@ -50,9 +50,9 @@ Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores 
 ```env
 TOKEN_BOT=seu-token-do-bot
 
-DB_HOST=localhost (dev) / db (prod)
-DB_PORT=3306 (dev *ou qualquer outra porta não utilizada na sua máquina, ex: use 3307 caso 3306 já esteja sendo usada por outro cointainer) / 3306 (prod)
-DB_PASSWORD=Coletivo1917
+DB_HOST=db
+DB_PORT=3306
+DB_PASSWORD=app_pass
 DB_DATABASE=checkindb
 
 DATABASE_URL="mysql://root:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
@@ -101,12 +101,39 @@ Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
 
 > **Somente após ter acesso autorizado** prossiga para as etapas seguintes.
 
+## 🔖 Como criar o Bot no Discord
+
+1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)
+2. Clique em **New Application**
+3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome**
+4. Na aba Bot, copie o **Token** e adicione no `.env` na variável `TOKEN_BOT`
+5. Em **OAuth2** → **OAuth2 URL Generator**:
+
+   - Marque o campo `bot`
+   - **Bot Permissions** → `Administrator`
+
+6. Copie a URL gerada
+
+```
+https://discord.com/oauth2/authorize?client_id=[CLIENTID]&permissions=8&integration_type=0&scope=bot
+```
+
+7. Autorizar o Bot no seu servidor
+   - Acesse o link gerado em seu navegador.
+   - Escolha o servidor **TPDD - Teste Popular de Desenvolvimento**
+   - Aceite as permissões.
+   - Clique em **Authorize**.
+
 ## 🚀 Subindo o projeto para desenvolvimento local
 
 Basta executar o comando
 
 ```bash
 npm run dev
+```
+ou
+```bash
+yarn dev
 ```
 
 Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
@@ -147,28 +174,6 @@ docker compose -f compose.yml --profile prod up -d --build
 | Derrubar containers | `docker compose down`          |
 | Logs do bot         | `docker logs -f node_app`      |
 | Acessar terminal    | `docker exec -it node_app sh`  |
-
-## 🔖 Como criar o Bot no Discord
-
-1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)
-2. Clique em **New Application**
-3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome**
-4. Copie o **Token** e adicione no `.env`
-5. Em **OAuth2** → **Client information**:
-
-   - **Client ID**: `Copie o id`
-
-6. Gere uma URL de permissão
-
-```
-https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=1759218604441591&scope=bot applications.commands
-```
-
-7. Autorizar o Bot no seu servidor
-   - Acesse o link gerado trocando o clint_id pelo do seu bot criado.
-   - Escolha o servidor **TPDD - Teste Popular de Desenvolvimento**
-   - Aceite as permissões.
-   - Clique em **Authorize**.
 
 ## 📂 Estrutura do Projeto
 
