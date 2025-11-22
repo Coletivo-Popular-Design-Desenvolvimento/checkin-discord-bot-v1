@@ -2,6 +2,7 @@
 
 import {
   Client,
+  GuildChannel,
   GuildScheduledEvent,
   PartialGuildScheduledEvent,
 } from "discord.js";
@@ -25,6 +26,7 @@ export class VoiceEventCommand {
       unknown,
       unknown,
       Client,
+      GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >,
     private readonly logger: ILoggerService,

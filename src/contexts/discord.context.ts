@@ -2,6 +2,7 @@ import {
   Client,
   Events,
   GatewayIntentBits,
+  GuildChannel,
   GuildMember,
   GuildScheduledEvent,
   Message,
@@ -50,6 +51,7 @@ export function initializeDiscord(): {
     GuildMember,
     PartialGuildMember,
     Client,
+    GuildChannel,
     GuildScheduledEvent | PartialGuildScheduledEvent
   >;
 } {

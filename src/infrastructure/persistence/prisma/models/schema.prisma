@@ -28,33 +28,22 @@ model User {
   audio_event         AudioEvent[]
   message             Message[]
   message_reaction    MessageReaction[]
-  user_channel        UserChannel[]
-  user_event          UserEvent[]
-  user_role           UserRole[]
+  channels            Channel[]         @relation("UserChannel")
+  user_event          userEvent[]
+  roles               Role[]            @relation("UserRole")
 
   @@map("user")
 }
 
 model Role {
-  id                  Int        @id @default(autoincrement())
+  id                  Int      @id @default(autoincrement())
   name                String
-  created_at          DateTime   @default(now())
+  created_at          DateTime @default(now())
   platform_created_at DateTime
-  platform_id         String     @unique
-  user_role           UserRole[]
+  platform_id         String   @unique
+  users               User[]   @relation("UserRole")
 
   @@map("role")
-}
-
-model UserRole {
-  user_id String
-  roleId  String
-  role    Role   @relation(fields: [roleId], references: [platform_id])
-  user    User   @relation(fields: [user_id], references: [platform_id])
-
-  @@id([user_id, roleId])
-  @@index([roleId], map: "user_role_roleId_fkey")
-  @@map("user_role")
 }
 
 model AudioEvent {
@@ -135,7 +124,7 @@ model Channel {
   audio_event      AudioEvent[]
   message          Message[]
   message_reaction MessageReaction[]
-  user_channel     UserChannel[]
+  users            User[]            @relation("UserChannel")
 
   @@map("channel")
 }
@@ -153,15 +142,4 @@ model MessageReaction {
   @@index([channel_id], map: "message_reaction_channel_id_fkey")
   @@index([message_id], map: "message_reaction_message_id_fkey")
   @@map("message_reaction")
-}
-
-model UserChannel {
-  user_id    String
-  channel_id String
-  channel    Channel @relation(fields: [channel_id], references: [platform_id])
-  user       User    @relation(fields: [user_id], references: [platform_id])
-
-  @@id([user_id, channel_id])
-  @@index([channel_id], map: "user_channel_channel_id_fkey")
-  @@map("user_channel")
 }
