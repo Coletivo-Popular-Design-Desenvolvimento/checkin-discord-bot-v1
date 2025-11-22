@@ -106,19 +106,21 @@ Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
 1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)
 2. Clique em **New Application**
 3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome**
-4. Na aba Bot, copie o **Token** e adicione no `.env` na variável `TOKEN_BOT`
-5. Em **OAuth2** → **OAuth2 URL Generator**:
+4. Na aba **Bot**, copie o **Token** e adicione no `.env` na variável `TOKEN_BOT`
+5. Marque as opções abaixo:
+   <img width="1472" height="351" alt="image" src="https://github.com/user-attachments/assets/b67c5850-7f58-4444-9d77-32e190c7bdac" />
+6. Em **OAuth2** → **OAuth2 URL Generator**:
 
    - Marque o campo `bot`
    - **Bot Permissions** → `Administrator`
 
-6. Copie a URL gerada
+7. Copie a URL gerada
 
 ```
 https://discord.com/oauth2/authorize?client_id=[CLIENTID]&permissions=8&integration_type=0&scope=bot
 ```
 
-7. Autorizar o Bot no seu servidor
+8. Autorizar o Bot no seu servidor
    - Acesse o link gerado em seu navegador.
    - Escolha o servidor **TPDD - Teste Popular de Desenvolvimento**
    - Aceite as permissões.
