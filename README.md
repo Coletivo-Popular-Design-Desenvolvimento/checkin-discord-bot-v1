@@ -103,7 +103,7 @@ Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
 
 ## 🔖 Como criar o Bot no Discord
 
-1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)
+1. Acesse o <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a>
 2. Clique em **New Application**
 3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome**
 4. Na aba **Bot**, copie o **Token** e adicione no `.env` na variável `TOKEN_BOT`
