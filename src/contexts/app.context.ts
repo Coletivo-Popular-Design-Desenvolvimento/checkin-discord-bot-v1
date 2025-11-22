@@ -4,6 +4,7 @@ import { initializeDiscord } from "./discord.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { UserCommand } from "@application/command/userCommand";
 import { VoiceEventCommand } from "@application/command/voiceEventCommand";
+import { ChannelCommand } from "@application/command/channelCommand";
 import { Logger } from "@application/services/Logger";
 import {
   LoggerContextStatus,
@@ -15,7 +16,8 @@ import { ErrorMessages } from "@type/ErrorMessages";
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
-  const { userRepository, audioEventRepository } = initializeDatabase(logger);
+  const { userRepository, audioEventRepository, channelRepository } =
+    initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { TOKEN_BOT } = process.env;
 
@@ -40,6 +42,8 @@ export function initializeApp() {
     userUseCases.createUserCase,
     userUseCases.updateUserCase,
   );
+
+  new ChannelCommand(discordService, logger, channelRepository);
 
   new VoiceEventCommand(
     discordService,

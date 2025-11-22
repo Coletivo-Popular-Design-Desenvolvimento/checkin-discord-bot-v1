@@ -76,18 +76,24 @@ export class ChannelRepository implements IChannelRepository {
     }
   }
 
-  async createMany(channel: Omit<ChannelEntity, "id">[]): Promise<number> {
-    let errors = 0;
+  async createMany(channels: Omit<ChannelEntity, "id">[]): Promise<number> {
+    let created = 0;
 
     await Promise.all(
-      channel.map(async (ch) => {
+      channels.map(async (ch) => {
         try {
-          const createdChannel = await this.client.channel.create({
-            data: {
+          const result = await this.client.channel.upsert({
+            where: { platform_id: ch.platformId },
+            update: {
+              name: ch.name,
+              url: ch.url,
+              created_at: ch.createdAt,
+            },
+            create: {
               ...this.toPersistence(ch),
               message: {
-                connect: ch.message.map((message) => ({
-                  platform_id: message.platformId,
+                connect: ch.message.map((m) => ({
+                  platform_id: m.platformId,
                 })),
               },
               message_reaction: {
@@ -99,38 +105,28 @@ export class ChannelRepository implements IChannelRepository {
           });
 
           if (ch.user.length > 0) {
-            try {
-              await this.client.userChannel.createMany({
-                data: ch.user.map((user) => ({
-                  user_id: user.platformId,
-                  channel_id: createdChannel.platform_id,
-                })),
-                skipDuplicates: true,
-              });
-            } catch (userError) {
-              this.logger.logToConsole(
-                LoggerContextStatus.ERROR,
-                LoggerContext.REPOSITORY,
-                LoggerContextEntity.CHANNEL,
-                `createMany userChannel | ${userError.message}`,
-              );
-            }
+            await this.client.userChannel.createMany({
+              data: ch.user.map((user) => ({
+                user_id: user.platformId,
+                channel_id: result.platform_id,
+              })),
+              skipDuplicates: true,
+            });
           }
-          return createdChannel;
+
+          created++;
         } catch (error) {
-          errors++;
           this.logger.logToConsole(
             LoggerContextStatus.ERROR,
             LoggerContext.REPOSITORY,
             LoggerContextEntity.CHANNEL,
             `createMany | ${error.message}`,
           );
-          return null;
         }
       }),
     );
 
-    return channel.length - errors;
+    return created;
   }
 
   /**
