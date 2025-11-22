@@ -84,8 +84,8 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
@@ -95,8 +95,8 @@ export class UserRepository implements IUserRepository {
             result,
             result.message,
             result.message_reaction,
-            result.user_channel.map((userChannel) => userChannel.channel),
-            result.user_role.map((userRole) => userRole.role),
+            result.channels,
+            result.roles,
             result.audio_event,
           )
         : null;
@@ -133,8 +133,8 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
@@ -144,8 +144,8 @@ export class UserRepository implements IUserRepository {
             result,
             result.message,
             result.message_reaction,
-            result.user_channel.map((userChannel) => userChannel.channel),
-            result.user_role.map((userRole) => userRole.role),
+            result.channels,
+            result.roles,
             result.audio_event,
           )
         : null;
@@ -182,8 +182,8 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
@@ -193,8 +193,8 @@ export class UserRepository implements IUserRepository {
           result,
           result.message,
           result.message_reaction,
-          result.user_channel.map((userChannel) => userChannel.channel),
-          result.user_role.map((userRole) => userRole.role),
+          result.channels,
+          result.roles,
           result.audio_event,
         ),
       );

@@ -25,13 +25,10 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
 
-      return RoleEntity.fromPersistence(
-        result,
-        result.user_role.map((userRole) => userRole.user),
-      );
+      return RoleEntity.fromPersistence(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -44,15 +41,10 @@ export class RoleRepository implements IRoleRepository {
   async findByUserPlatformId(id: string): Promise<RoleEntity[] | null> {
     try {
       const result = await this.client.role.findMany({
-        where: { user_role: { some: { user: { platform_id: id } } } },
-        include: { user_role: { include: { user: true } } },
+        where: { users: { some: { platform_id: id } } },
+        include: { users: true },
       });
-      return result.map((role) =>
-        RoleEntity.fromPersistence(
-          role,
-          role.user_role.map((userRole) => userRole.user),
-        ),
-      );
+      return result.map((role) => RoleEntity.fromPersistence(role, role.users));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -66,12 +58,9 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { platform_id: id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
-      return RoleEntity.fromPersistence(
-        result,
-        result.user_role.map((userRole) => userRole.user),
-      );
+      return RoleEntity.fromPersistence(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -85,13 +74,10 @@ export class RoleRepository implements IRoleRepository {
     try {
       const results = await this.client.role.findMany({
         take: limit,
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
       return results.map((result) =>
-        RoleEntity.fromPersistence(
-          result,
-          result.user_role.map((userRole) => userRole.user),
-        ),
+        RoleEntity.fromPersistence(result, result.users),
       );
     } catch (error) {
       this.logger.logToConsole(
