@@ -33,7 +33,7 @@ Checkin Discord Bot é um bot de autenticação e monitoramento de usuários par
 ### 1. Clone o projeto
 
 ```bash
-git clone https://github.com/seu-usuario/checkin-discord-bot-v1.git
+git clone https://github.com/Coletivo-Popular-Design-Desenvolvimento/checkin-discord-bot-v1.git
 cd checkin-discord-bot-v1
 ```
 
