@@ -1,22 +1,33 @@
-import { initializeDatabase } from "./database.context";
-import { initializeUserUseCases } from "./useUserCases.context";
-import { initializeDiscord } from "./discord.context";
+import { ChannelCommand } from "@application/command/channelCommand";
+import { MessageCommand } from "@application/command/messageCommand";
 import { UserCommand } from "@application/command/userCommand";
+import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
+import { ErrorMessages } from "@type/ErrorMessages";
 import {
-  LoggerContextStatus,
   LoggerContext,
   LoggerContextEntity,
+  LoggerContextStatus,
 } from "@type/LoggerContextEnum";
-import { ErrorMessages } from "@type/ErrorMessages";
+import { initializeDatabase } from "./database.context";
+import { initializeDiscord } from "./discord.context";
+import { initializeChannelUseCases } from "./useChannelCases.context";
+import { initializeMessageUseCases } from "./useMessageCases.context";
+import { initializeUserUseCases } from "./useUserCases.context";
+import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { initializeUserEventUseCases } from "@contexts/userEventUseCases.context";
 import { UserEventCommand } from "@application/command/userEventCommand";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
-  const { userRepository, userEventRepository, audioEventRepository } =
-    initializeDatabase(logger);
+  const {
+    userRepository,
+    userEventRepository,
+    audioEventRepository,
+    messageRepository,
+    channelRepository,
+  } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { TOKEN_BOT } = process.env;
 
@@ -37,6 +48,15 @@ export function initializeApp() {
     audioEventRepository,
     logger,
   );
+  const { registerVoiceEvent, finalizeVoiceEvent } =
+    initializeVoiceEventUseCases(audioEventRepository, logger);
+  const { registerMessage } = initializeMessageUseCases(
+    messageRepository,
+    userRepository,
+    channelRepository,
+    userUseCases.createUserCase,
+    logger,
+  );
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -50,7 +70,26 @@ export function initializeApp() {
     logger,
     userEventUseCases.createUserEventCase,
   );
+
+  new VoiceEventCommand(
+    discordService,
+    logger,
+    registerVoiceEvent,
+    finalizeVoiceEvent,
+  );
+
+  new MessageCommand(discordService, logger, registerMessage);
+
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
   discordService.client.login(TOKEN_BOT);
+
+  const channelUseCases = initializeChannelUseCases(channelRepository, logger);
+  new ChannelCommand(
+    discordService,
+    logger,
+    channelUseCases.createChannelCase,
+    channelUseCases.updateChannelCase,
+    channelUseCases.deleteChannelCase,
+  );
 }

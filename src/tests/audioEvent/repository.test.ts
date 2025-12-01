@@ -38,6 +38,13 @@ describe("AudioEventRepository", () => {
 
   describe("create", () => {
     it("should create a new audio event", async () => {
+      prismaMock.eventStatus.findUnique.mockResolvedValue({
+        id: 1,
+        name: "ACTIVE",
+        platform_id: mockAudioEventCreatePayload.statusId,
+        created_at: new Date(),
+      });
+
       prismaMock.audioEvent.create.mockResolvedValue(
         mockDbAudioEventCreatedValue,
       );
@@ -45,6 +52,9 @@ describe("AudioEventRepository", () => {
         mockAudioEventCreatePayload,
       );
 
+      expect(prismaMock.eventStatus.findUnique).toHaveBeenCalledWith({
+        where: { platform_id: mockAudioEventCreatePayload.statusId },
+      });
       expect(prismaMock.audioEvent.create).toHaveBeenCalledTimes(1);
       expect(prismaMock.audioEvent.create).toHaveBeenCalledWith({
         data: {
@@ -79,8 +89,9 @@ describe("AudioEventRepository", () => {
       );
     });
 
-    it("should log an error and return null if creation fails", async () => {
-      prismaMock.audioEvent.create.mockRejectedValue(new Error("DB error"));
+    it("should log an error and return null", async () => {
+      prismaMock.eventStatus.findUnique.mockResolvedValue(null);
+
       const event = await audioEventRepository.create(
         mockAudioEventCreatePayload,
       );
@@ -88,7 +99,7 @@ describe("AudioEventRepository", () => {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.AUDIO_EVENT,
-        "create | DB error",
+        `create | EventStatus with platform_id '${mockAudioEventCreatePayload.statusId}' not found`,
       );
       expect(event).toBeNull();
     });
@@ -96,6 +107,13 @@ describe("AudioEventRepository", () => {
 
   describe("createMany", () => {
     it("should create multiple audio events and return the count", async () => {
+      prismaMock.eventStatus.findUnique.mockResolvedValue({
+        id: 1,
+        name: "ACTIVE",
+        platform_id: mockAudioEventCreatePayload.statusId,
+        created_at: new Date(),
+      });
+
       const eventsData = [
         mockAudioEventCreatePayload,
         { ...mockAudioEventCreatePayload, name: "Another Event" },
@@ -108,7 +126,8 @@ describe("AudioEventRepository", () => {
     });
 
     it("should log an error and return null if createMany fails", async () => {
-      prismaMock.audioEvent.createMany.mockRejectedValue(new Error("DB error"));
+      prismaMock.eventStatus.findUnique.mockResolvedValue(null);
+
       const count = await audioEventRepository.createMany([
         mockAudioEventCreatePayload,
       ]);
@@ -116,7 +135,7 @@ describe("AudioEventRepository", () => {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.AUDIO_EVENT,
-        "createMany | DB error",
+        `createMany | EventStatus with platform_id '${mockAudioEventCreatePayload.statusId}' not found`,
       );
       expect(count).toBeNull();
     });
@@ -220,6 +239,13 @@ describe("AudioEventRepository", () => {
 
   describe("updateById", () => {
     it("should update an audio event by id", async () => {
+      prismaMock.eventStatus.findUnique.mockResolvedValue({
+        id: 1,
+        name: "COMPLETED",
+        platform_id: mockAudioEventUpdatePayload.statusId!,
+        created_at: new Date(),
+      });
+
       prismaMock.audioEvent.update.mockResolvedValue(
         mockDbAudioEventUpdatedValue,
       );
@@ -251,7 +277,8 @@ describe("AudioEventRepository", () => {
     });
 
     it("should log an error and return null if update fails", async () => {
-      prismaMock.audioEvent.update.mockRejectedValue(new Error("DB error"));
+      prismaMock.eventStatus.findUnique.mockResolvedValue(null);
+
       const event = await audioEventRepository.updateById(
         1,
         mockAudioEventUpdatePayload,
@@ -260,7 +287,7 @@ describe("AudioEventRepository", () => {
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.AUDIO_EVENT,
-        "updateById | DB error",
+        `updateById | EventStatus with platform_id '${mockAudioEventUpdatePayload.statusId}' not found`,
       );
       expect(event).toBeNull();
     });
