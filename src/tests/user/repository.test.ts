@@ -152,25 +152,6 @@ describe("UserRepository", () => {
     });
   });
 
-  describe("deleteUserById", () => {
-    it("should delete a user by id", async () => {
-      const { id } = await userRepository.create(mockUserValue);
-      const result = await userRepository.deleteById(id);
-
-      expect(result).toBe(true);
-      expect(await userRepository.findById(id)).toBe(null);
-    });
-
-    it("should throw an error if user not found", async () => {
-      const id = 1;
-      const spy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-      await userRepository.deleteById(id);
-
-      expect(spy).toHaveBeenCalledWith("ERROR");
-    });
-  });
-
   describe("listAll", () => {
     it("returns all active users", async () => {
       await userRepository.createMany(

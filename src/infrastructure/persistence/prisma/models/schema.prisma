@@ -29,7 +29,7 @@ model User {
   message             Message[]
   message_reaction    MessageReaction[]
   channels            Channel[]         @relation("UserChannel")
-  user_event          userEvent[]
+  user_event          UserEvent[]
   roles               Role[]            @relation("UserRole")
 
   @@map("user")

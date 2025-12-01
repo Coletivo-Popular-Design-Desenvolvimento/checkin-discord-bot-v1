@@ -118,6 +118,11 @@ Table UserRole {
   usersId Int [ref: > user.id]
 }
 
+Enum EventType {
+  JOINED
+  LEFT
+}
+
 Ref: audio_event.channel_id > channel.platform_id
 
 Ref: audio_event.creator_id > user.platform_id

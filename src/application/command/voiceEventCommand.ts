@@ -26,6 +26,7 @@ export class VoiceEventCommand {
       unknown,
       unknown,
       Client,
+      unknown,
       GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >,

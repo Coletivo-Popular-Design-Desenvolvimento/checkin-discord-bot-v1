@@ -26,7 +26,9 @@ export class UserEventCommand implements IUserEventCommand {
       GuildMember,
       PartialGuildMember,
       Client,
-      VoiceState
+      VoiceState,
+      unknown,
+      unknown
     >,
     private readonly logger: ILoggerService,
     private readonly createUserEvent: ICreateUserEvent,

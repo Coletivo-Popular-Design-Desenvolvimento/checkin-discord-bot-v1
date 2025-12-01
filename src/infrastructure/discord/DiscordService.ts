@@ -18,6 +18,7 @@ export class DiscordService
       GuildMember,
       PartialGuildMember,
       Client,
+      VoiceState,
       GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >
