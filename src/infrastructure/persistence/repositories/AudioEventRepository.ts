@@ -235,18 +235,18 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventData: Partial<Omit<AudioEventEntity, "id" | "createdAt">>,
   ): Promise<AudioEventEntity | null> {
     try {
-      let updateData: {
-        platform_id: string;
-        name: string;
-        start_at: Date;
-        end_at: Date;
-        user_count: number;
-        description: string;
-        image: string;
-        channel: { connect: { platform_id: string } };
-        creator: { connect: { platform_id: string } };
-        status: { connect: { platform_id: string } };
-      };
+      const updateData: {
+        platform_id?: string;
+        name?: string;
+        start_at?: Date;
+        end_at?: Date | null;
+        user_count?: number;
+        description?: string | null;
+        image?: string | null;
+        channel?: { connect: { platform_id: string } };
+        creator?: { connect: { platform_id: string } };
+        status?: { connect: { platform_id: string } };
+      } = {};
 
       if (eventData.platformId) updateData.platform_id = eventData.platformId;
       if (eventData.name) updateData.name = eventData.name;

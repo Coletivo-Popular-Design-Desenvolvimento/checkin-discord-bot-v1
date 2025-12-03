@@ -118,19 +118,8 @@ describe("RegisterVoiceEvent", () => {
         startAt: input.startAt,
         endAt: undefined,
         userCount: input.userCount,
-        channel: expect.objectContaining({
-          platformId: input.channelId,
-          id: 0,
-          name: "",
-          url: "",
-        }),
-        creator: expect.objectContaining({
-          platformId: input.creatorId,
-          id: 0,
-          username: "",
-          bot: false,
-          status: UserStatus.ACTIVE,
-        }),
+        channel: mockChannel, // Agora espera a entidade completa retornada pelo findOrCreateChannel
+        creator: mockUser, // Agora espera a entidade completa retornada pelo findOrCreateUser
         description: input.description,
         image: undefined,
       });

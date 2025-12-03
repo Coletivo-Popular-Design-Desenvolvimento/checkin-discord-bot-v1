@@ -21,7 +21,7 @@ describe("UserRepository", () => {
     logToDatabase: jest.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     userRepository = new UserRepository(
       new PrismaService(jestPrisma.client),
       mockLogger,
@@ -40,6 +40,20 @@ describe("UserRepository", () => {
     mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
       console.error(message); // Simulate logging to console.error
     });
+
+    // Limpa as tabelas relacionadas antes de cada teste
+    // Desabilita FK checks temporariamente para limpar todas as tabelas
+    await jestPrisma.client.$executeRaw`SET FOREIGN_KEY_CHECKS = 0`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE message_reaction`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE message`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE user_event`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE audio_event`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE _UserChannel`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE _UserRole`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE user`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE channel`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE role`;
+    await jestPrisma.client.$executeRaw`SET FOREIGN_KEY_CHECKS = 1`;
   });
 
   describe("findById", () => {
