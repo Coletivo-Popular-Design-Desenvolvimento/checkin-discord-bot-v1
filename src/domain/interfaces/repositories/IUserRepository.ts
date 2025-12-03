@@ -10,5 +10,4 @@ export interface IUserRepository {
   ): Promise<UserEntity | null>;
   listAll(limit?: number, includeInactive?: boolean): Promise<UserEntity[]>;
   updateById(id: number, user: Partial<UserEntity>): Promise<UserEntity | null>;
-  deleteById(id: number): Promise<boolean>;
 }

@@ -8,6 +8,7 @@ import {
   PartialGuildMember,
   GuildScheduledEvent,
   PartialGuildScheduledEvent,
+  VoiceState,
 } from "discord.js";
 
 export class DiscordService
@@ -17,6 +18,7 @@ export class DiscordService
       GuildMember,
       PartialGuildMember,
       Client,
+      VoiceState,
       GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >
@@ -37,12 +39,17 @@ export class DiscordService
   private onVoiceEventHandlers: ((
     event: GuildScheduledEvent | PartialGuildScheduledEvent,
   ) => void)[] = [];
+  private onVoiceEventUserChangeHandlers: ((
+    oldState: VoiceState,
+    newState: VoiceState,
+  ) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
   }
 
   public registerEvents() {
+    console.log("[DiscordService] Registering all Discord events...");
     // Inicializa o event handler. Caso tenha outros contextos que precisem de eventos, eles devem ser adicionados aqui
     // Não esqueça de adicionar estes novos eventos na interface IDiscordService e no EVENT_INTENTS_MAP do contexto do discord. (/contexts/discord.context.ts)
     // Existem excessoes, caso o evento precise de um intent ja registrado no EVENT_INTENTS_MAP, nao precisa ser adicionado la
@@ -78,15 +85,30 @@ export class DiscordService
     });
 
     this.client.on(Events.GuildScheduledEventUpdate, (event) => {
+      console.log(
+        `[DiscordService] GuildScheduledEventUpdate fired: ${event.name} (${event.id})`,
+      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventCreate, (event) => {
+      console.log(
+        `[DiscordService] GuildScheduledEventCreate fired: ${event.name} (${event.id})`,
+      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventDelete, (event) => {
+      console.log(
+        `[DiscordService] GuildScheduledEventDelete fired: ${event.name} (${event.id})`,
+      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    });
+
+    this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+      this.onVoiceEventUserChangeHandlers.forEach((fn) =>
+        fn(oldState, newState),
+      );
     });
   }
 
@@ -104,6 +126,12 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onVoiceEventUserChange(
+    handler: (oldState: VoiceState, newState: VoiceState) => void,
+  ): void {
+    this.onVoiceEventUserChangeHandlers.push(handler);
   }
 
   public onCreateChannel(handler: (channel: GuildChannel) => void): void {

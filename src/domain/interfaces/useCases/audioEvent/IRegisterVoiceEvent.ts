@@ -10,7 +10,10 @@ export interface RegisterVoiceEventInput {
   endAt?: Date;
   userCount: number;
   channelId: string;
+  channelName?: string;
+  channelUrl?: string;
   creatorId: string;
+  creatorUsername?: string;
   description?: string;
   image?: string;
 }

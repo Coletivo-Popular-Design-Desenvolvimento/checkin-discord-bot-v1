@@ -235,28 +235,6 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  /**
-   * Deleta um usuario pelo id.
-   *
-   * @param {number} id O id do usuario a ser deletado.
-   * @returns {Promise<boolean>} True se o usuario foi deletado, false caso contrario.
-   */
-  async deleteById(id: number): Promise<boolean> {
-    try {
-      const result = await this.client.user.delete({
-        where: { id },
-      });
-      return result ? true : false;
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.USER,
-        `deleteById | ${error.message}`,
-      );
-    }
-  }
-
   private toPersistence(user: Partial<UserEntity>) {
     return {
       platform_id: user.platformId,
