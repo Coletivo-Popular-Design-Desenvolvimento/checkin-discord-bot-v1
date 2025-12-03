@@ -15,12 +15,17 @@ import {
 } from "@type/LoggerContextEnum";
 import { IUserRepository } from "@repositories/IUserRepository";
 import { IAudioEventRepository } from "@repositories/IAudioEventRepository";
+import { ICreateUser } from "@interfaces/useCases/user/ICreateUser";
+import { UserStatus } from "@type/UserStatusEnum";
+import { IRegisterVoiceEvent } from "@interfaces/useCases/audioEvent/IRegisterVoiceEvent";
 
 export class CreateUserEvent implements ICreateUserEvent {
   constructor(
     private readonly userEventRepository: IUserEventRepository,
     private readonly userRepository: IUserRepository,
     private readonly audioEventRepository: IAudioEventRepository,
+    private readonly createUser: ICreateUser,
+    private readonly registerVoiceEvent: IRegisterVoiceEvent,
     private readonly logger: ILoggerService,
   ) {}
 
@@ -39,6 +44,15 @@ export class CreateUserEvent implements ICreateUserEvent {
       }
 
       const newUserEvent = await this.userEventRepository.create(toCreate);
+
+      if (newUserEvent) {
+        this.logger.logToConsole(
+          LoggerContextStatus.SUCCESS,
+          LoggerContext.USECASE,
+          LoggerContextEntity.USER_EVENT,
+          `UserEvent created: ${input.eventType} - User: ${input.userPlatformId}`,
+        );
+      }
 
       return {
         data: newUserEvent,
@@ -104,34 +118,105 @@ export class CreateUserEvent implements ICreateUserEvent {
   private async toRepositoryCreateInput(
     input: CreateUserEventInput,
   ): Promise<Omit<UserEventEntity, "id">> {
-    const { userPlatformId, channelPlatformId, ...userEventData } = input;
-    const user = await this.getUser(userPlatformId);
-    const event = await this.getAudioEvent(channelPlatformId);
+    const {
+      userPlatformId,
+      channelPlatformId,
+      userDiscordInfo,
+      channelDiscordInfo,
+      ...userEventData
+    } = input;
+    const user = await this.getUser(userPlatformId, userDiscordInfo);
+    const event = await this.getAudioEvent(
+      channelPlatformId,
+      channelDiscordInfo,
+      userPlatformId,
+    );
     return { user, event, ...userEventData };
   }
 
-  private async getUser(userPlatformId: UserEventEntity["user"]["platformId"]) {
-    const user = await this.userRepository.findByPlatformId(userPlatformId);
-    if (!user) {
+  private async getUser(
+    userPlatformId: UserEventEntity["user"]["platformId"],
+    userDiscordInfo?: CreateUserEventInput["userDiscordInfo"],
+  ) {
+    let user = await this.userRepository.findByPlatformId(userPlatformId);
+
+    if (!user && userDiscordInfo) {
+      // Cria o usuário automaticamente usando o CreateUser UseCase
+      const result = await this.createUser.execute({
+        platformId: userPlatformId,
+        username: userDiscordInfo.username,
+        bot: userDiscordInfo.bot,
+        globalName: userDiscordInfo.globalName,
+        status: UserStatus.ACTIVE,
+        joinedAt: new Date(),
+        createAt: new Date(),
+        updateAt: new Date(),
+        lastActive: new Date(),
+        email: null,
+        platformCreatedAt: null,
+      });
+
+      if (!result.success || !result.data) {
+        throw new Error(`Failed to create user: ${userPlatformId}`);
+      }
+
+      user = result.data;
+    } else if (!user) {
       throw new Error(`${ErrorMessages.USER_NOT_FOUND} ${userPlatformId}`);
     }
+
     return user;
   }
 
   private async getAudioEvent(
     channelPlatformId: UserEventEntity["event"]["channel"]["platformId"],
+    channelDiscordInfo?: CreateUserEventInput["channelDiscordInfo"],
+    userPlatformId?: string,
   ) {
-    const events =
+    const allEvents =
       await this.audioEventRepository.findByChannelId(channelPlatformId);
-    if (events.length === 0) {
+
+    // Filtra apenas eventos ativos (não finalizados)
+    const activeEvents = allEvents.filter(
+      (event) => event.statusId === "active" || event.statusId === "scheduled",
+    );
+
+    if (activeEvents.length === 0) {
+      // Cria um AudioEvent automaticamente se não existir nenhum ativo
+      if (channelDiscordInfo && userPlatformId) {
+        const result = await this.registerVoiceEvent.execute({
+          platformId: `auto-${channelPlatformId}-${Date.now()}`,
+          name: channelDiscordInfo.name || "Voice Session",
+          status: "active",
+          startAt: new Date(),
+          endAt: null,
+          userCount: 1,
+          channelId: channelPlatformId,
+          channelName: channelDiscordInfo.name,
+          channelUrl: channelDiscordInfo.url,
+          creatorId: userPlatformId,
+          description: "Automatically created voice session",
+        });
+
+        if (!result.success || !result.data) {
+          throw new Error(
+            `Failed to create AudioEvent for channel: ${channelPlatformId}`,
+          );
+        }
+
+        return result.data;
+      }
+
       throw new Error(
         `${ErrorMessages.AUDIO_EVENT_NOT_FOUND} ${channelPlatformId}`,
       );
-    } else if (events.length > 1) {
-      throw new Error(
-        `${ErrorMessages.TOO_MANY_AUDIO_EVENTS} ${channelPlatformId}: ${events.length}`,
-      );
     }
-    return events[0];
+
+    // Se houver múltiplos eventos ativos, usa o mais recente
+    if (activeEvents.length > 1) {
+      return activeEvents.sort((a, b) => b.id - a.id)[0];
+    }
+
+    return activeEvents[0];
   }
 }

@@ -33,6 +33,7 @@ const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildScheduledEvents,
   ],
+  [Events.VoiceStateUpdate]: [GatewayIntentBits.GuildVoiceStates],
 };
 
 /**
@@ -58,6 +59,12 @@ export function initializeDiscord(): {
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
+  console.log("=== Discord Intents ===");
+  console.log("Intents:", intents);
+  console.log(
+    "GuildScheduledEvents value:",
+    GatewayIntentBits.GuildScheduledEvents,
+  );
   const client = new Client({ intents: intents });
   const discordService = new DiscordService(client);
   return { discordService };

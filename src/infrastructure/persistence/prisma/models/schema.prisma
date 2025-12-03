@@ -54,7 +54,7 @@ model AudioEvent {
   description String?
   status_id   String
   start_at    DateTime
-  end_at      DateTime
+  end_at      DateTime?
   user_count  Int
   image       String?
   created_at  DateTime    @default(now())

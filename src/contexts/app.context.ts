@@ -42,14 +42,21 @@ export function initializeApp() {
 
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
+  const { registerVoiceEvent, finalizeVoiceEvent } =
+    initializeVoiceEventUseCases(
+      audioEventRepository,
+      channelRepository,
+      userRepository,
+      logger,
+    );
   const userEventUseCases = initializeUserEventUseCases(
     userEventRepository,
     userRepository,
     audioEventRepository,
+    userUseCases.createUserCase,
+    registerVoiceEvent,
     logger,
   );
-  const { registerVoiceEvent, finalizeVoiceEvent } =
-    initializeVoiceEventUseCases(audioEventRepository, logger);
   const { registerMessage } = initializeMessageUseCases(
     messageRepository,
     userRepository,

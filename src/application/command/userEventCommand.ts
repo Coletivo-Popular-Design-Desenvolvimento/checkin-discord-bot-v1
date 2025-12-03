@@ -2,6 +2,7 @@ import { IUserEventCommand } from "@interfaces/commands/IUserEventCommand";
 import { IDiscordService } from "@services/IDiscordService";
 import {
   Client,
+  GuildChannel,
   GuildMember,
   Message,
   PartialGuildMember,
@@ -27,7 +28,7 @@ export class UserEventCommand implements IUserEventCommand {
       PartialGuildMember,
       Client,
       VoiceState,
-      unknown,
+      GuildChannel,
       unknown
     >,
     private readonly logger: ILoggerService,
@@ -52,8 +53,12 @@ export class UserEventCommand implements IUserEventCommand {
           "discordService onVoiceEventUserChange",
         );
         const eventType = this.getEventType(oldState, newState);
+        // Ignora eventos que não sejam JOIN ou LEAVE (ex: mute, deafen, etc)
+        if (eventType === null) {
+          return;
+        }
         await this.createUserEvent.execute(
-          this.toCreateUserEventInput(newState, eventType),
+          this.toCreateUserEventInput(oldState, newState, eventType),
         );
       });
     } catch (error) {
@@ -66,23 +71,45 @@ export class UserEventCommand implements IUserEventCommand {
     }
   }
   private getEventType(
-    oldState: VoiceState | null,
-    newState: VoiceState | null,
-  ): EventType {
-    if (oldState === null && newState !== null) return EventType.JOINED;
-    if (oldState !== null && newState === null) return EventType.LEFT;
-    throw new Error("Unsupported event type");
+    oldState: VoiceState,
+    newState: VoiceState,
+  ): EventType | null {
+    // Verifica se o usuário entrou em um voice channel
+    if (oldState.channelId === null && newState.channelId !== null) {
+      return EventType.JOINED;
+    }
+    // Verifica se o usuário saiu de um voice channel
+    if (oldState.channelId !== null && newState.channelId === null) {
+      return EventType.LEFT;
+    }
+    // Ignora outros casos: mudança de estado (mute/deafen), movimento entre canais, etc
+    return null;
   }
 
   private toCreateUserEventInput(
-    voiceState: VoiceState,
+    oldState: VoiceState,
+    newState: VoiceState,
     eventType: EventType,
   ): CreateUserEventInput {
+    // Para LEFT, usa oldState (canal de onde saiu); para JOINED, usa newState (canal onde entrou)
+    const relevantState = eventType === EventType.LEFT ? oldState : newState;
+
     return {
       createdAt: new Date(),
-      userPlatformId: voiceState.member.id,
-      channelPlatformId: voiceState.channelId,
+      userPlatformId: relevantState.member.id,
+      channelPlatformId: relevantState.channelId,
       eventType,
+      userDiscordInfo: {
+        username: relevantState.member.user.username,
+        bot: relevantState.member.user.bot,
+        globalName: relevantState.member.user.globalName,
+      },
+      channelDiscordInfo: relevantState.channel
+        ? {
+            name: relevantState.channel.name,
+            url: relevantState.channel.url,
+          }
+        : undefined,
     };
   }
 }

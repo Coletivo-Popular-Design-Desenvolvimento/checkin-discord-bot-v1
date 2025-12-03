@@ -40,7 +40,7 @@ Table audio_event {
   description String
   status_id String [not null]
   start_at DateTime [not null]
-  end_at DateTime [not null]
+  end_at DateTime
   user_count Int [not null]
   image String
   created_at DateTime [default: `now()`, not null]

@@ -232,6 +232,9 @@ export type ChannelEntityValue = {
   messageReaction: never[]; // ajusta se tiver mock de reação
 };
 
+export const mockChannelEntityValue =
+  ChannelEntity.fromPersistence(mockDbChannelValue);
+
 export const mockChannelUpdatePayload = {
   name: "updatedChannelName",
   url: "updatedChannelUrl",

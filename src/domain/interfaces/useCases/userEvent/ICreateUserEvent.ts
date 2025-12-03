@@ -9,6 +9,17 @@ export type CreateUserEventInput = Omit<
 > & {
   userPlatformId: UserEventEntity["user"]["platformId"];
   channelPlatformId: UserEventEntity["event"]["channel"]["platformId"];
+  // Informações opcionais do Discord para criar User se não existir
+  userDiscordInfo?: {
+    username: string;
+    bot: boolean;
+    globalName?: string;
+  };
+  // Informações opcionais do Discord para criar AudioEvent se não existir
+  channelDiscordInfo?: {
+    name: string;
+    url?: string;
+  };
 };
 
 export interface ICreateUserEvent {
