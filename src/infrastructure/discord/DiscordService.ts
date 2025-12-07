@@ -49,7 +49,6 @@ export class DiscordService
   }
 
   public registerEvents() {
-    console.log("[DiscordService] Registering all Discord events...");
     // Inicializa o event handler. Caso tenha outros contextos que precisem de eventos, eles devem ser adicionados aqui
     // Não esqueça de adicionar estes novos eventos na interface IDiscordService e no EVENT_INTENTS_MAP do contexto do discord. (/contexts/discord.context.ts)
     // Existem excessoes, caso o evento precise de um intent ja registrado no EVENT_INTENTS_MAP, nao precisa ser adicionado la
@@ -85,23 +84,14 @@ export class DiscordService
     });
 
     this.client.on(Events.GuildScheduledEventUpdate, (event) => {
-      console.log(
-        `[DiscordService] GuildScheduledEventUpdate fired: ${event.name} (${event.id})`,
-      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventCreate, (event) => {
-      console.log(
-        `[DiscordService] GuildScheduledEventCreate fired: ${event.name} (${event.id})`,
-      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
     this.client.on(Events.GuildScheduledEventDelete, (event) => {
-      console.log(
-        `[DiscordService] GuildScheduledEventDelete fired: ${event.name} (${event.id})`,
-      );
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
 
