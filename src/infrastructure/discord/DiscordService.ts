@@ -8,6 +8,7 @@ import {
   PartialGuildMember,
   GuildScheduledEvent,
   PartialGuildScheduledEvent,
+  VoiceState,
 } from "discord.js";
 
 export class DiscordService
@@ -17,6 +18,7 @@ export class DiscordService
       GuildMember,
       PartialGuildMember,
       Client,
+      VoiceState,
       GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >
@@ -36,6 +38,10 @@ export class DiscordService
   private onDeleteChannelHandlers: Array<(channel: GuildChannel) => void> = [];
   private onVoiceEventHandlers: ((
     event: GuildScheduledEvent | PartialGuildScheduledEvent,
+  ) => void)[] = [];
+  private onVoiceEventUserChangeHandlers: ((
+    oldState: VoiceState,
+    newState: VoiceState,
   ) => void)[] = [];
 
   constructor(client: Client) {
@@ -88,6 +94,12 @@ export class DiscordService
     this.client.on(Events.GuildScheduledEventDelete, (event) => {
       this.onVoiceEventHandlers.forEach((fn) => fn(event));
     });
+
+    this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+      this.onVoiceEventUserChangeHandlers.forEach((fn) =>
+        fn(oldState, newState),
+      );
+    });
   }
 
   public onDiscordStart(handler: () => void): void {
@@ -104,6 +116,12 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onVoiceEventUserChange(
+    handler: (oldState: VoiceState, newState: VoiceState) => void,
+  ): void {
+    this.onVoiceEventUserChangeHandlers.push(handler);
   }
 
   public onCreateChannel(handler: (channel: GuildChannel) => void): void {

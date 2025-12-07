@@ -64,7 +64,6 @@ describe("RegisterMessage", () => {
       findByPlatformId: jest.fn(),
       listAll: jest.fn(),
       updateById: jest.fn(),
-      deleteById: jest.fn(),
     };
 
     mockChannelRepository = {

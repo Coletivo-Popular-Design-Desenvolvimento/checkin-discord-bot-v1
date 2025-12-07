@@ -9,7 +9,7 @@ export class AudioEventEntity {
     public readonly name: string,
     public readonly statusId: string, // Represents the foreign key to EventStatus
     public readonly startAt: Date,
-    public readonly endAt: Date,
+    public readonly endAt: Date | null,
     public readonly userCount: number,
     public readonly createdAt: Date,
     public readonly description?: string | null,

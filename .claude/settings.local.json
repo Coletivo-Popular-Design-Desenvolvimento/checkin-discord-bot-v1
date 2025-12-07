@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)",
+      "Bash(docker exec:*)",
+      "Bash(node dist/index.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
