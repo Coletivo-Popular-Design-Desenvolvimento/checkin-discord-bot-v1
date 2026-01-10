@@ -1,4 +1,4 @@
-import { EventType, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { UserEventEntity } from "@domain/entities/UserEvent";
 import {
   IUserEventRepository,
@@ -11,6 +11,8 @@ import {
   LoggerContextStatus,
 } from "@domain/types/LoggerContextEnum";
 import { PrismaService } from "../prisma/prismaService";
+import { PrismaMapper } from "./PrismaMapper";
+import { EventType } from "@domain/types/EventTypeEnum";
 
 export class UserEventRepository implements IUserEventRepository {
   private client: PrismaClient;
@@ -45,7 +47,7 @@ export class UserEventRepository implements IUserEventRepository {
         data: this.toPersistence(eventData),
         include: { user: true, event: true },
       });
-      return UserEventEntity.fromPersistence(result, result.user, result.event);
+      return PrismaMapper.toUserEventEntity(result, result.user, result.event);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -84,7 +86,7 @@ export class UserEventRepository implements IUserEventRepository {
         include: { user: true, event: true },
       });
       return result
-        ? UserEventEntity.fromPersistence(result, result.user, result.event)
+        ? PrismaMapper.toUserEventEntity(result, result.user, result.event)
         : null;
     } catch (error) {
       this.logger.logToConsole(
@@ -115,7 +117,7 @@ export class UserEventRepository implements IUserEventRepository {
         include: { user: true, event: true },
       });
       return results.map((result) =>
-        UserEventEntity.fromPersistence(result, result.user, result.event),
+        PrismaMapper.toUserEventEntity(result, result.user, result.event),
       );
     } catch (error) {
       this.logger.logToConsole(

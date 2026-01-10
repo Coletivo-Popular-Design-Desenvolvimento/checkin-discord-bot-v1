@@ -1,8 +1,5 @@
 import { MessageReaction, User, Message, Channel } from "@prisma/client";
-import { ChannelEntity } from "../../domain/entities/Channel";
-import { MessageEntity } from "../../domain/entities/Message";
 import { MessageReactionEntity } from "../../domain/entities/MessageReaction";
-import { UserEntity } from "../../domain/entities/User";
 import { CreateMessageReactionData } from "../../domain/dtos/CreateMessageReactionData";
 import { ILoggerService } from "../../domain/interfaces/services/ILogger";
 import {
@@ -14,6 +11,7 @@ import { PrismaService } from "../../infrastructure/persistence/prisma/prismaSer
 import { MessageReactionRepository } from "../../infrastructure/persistence/repositories/MessageReactionRepository";
 import { prismaMock } from "../config/singleton";
 import { UpdateMessageReactionData } from "@domain/interfaces/repositories/IMessageReactionRepository";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 // --- Mocks Completos para a Nova Arquitetura ---
 
@@ -69,13 +67,13 @@ const mockFullMessageReaction = {
 };
 
 // Mocks das Entidades de Domínio (simulando o retorno das factories)
-const mockUserEntity = UserEntity.fromPersistence(mockDbUser);
-const mockMessageEntity = MessageEntity.fromPersistence(
+const mockUserEntity = PrismaMapper.toUserEntity(mockDbUser);
+const mockMessageEntity = PrismaMapper.toMessageEntity(
   mockDbMessage,
   mockDbUser,
   mockDbChannel,
 );
-const mockChannelEntity = ChannelEntity.fromPersistence(mockDbChannel);
+const mockChannelEntity = PrismaMapper.toChannelEntity(mockDbChannel);
 
 // A entidade rica que o repositório deve retornar
 const mockMessageReactionEntity = new MessageReactionEntity(
@@ -100,12 +98,12 @@ describe("MessageReactionRepository", () => {
       mockLogger,
     );
     // Mock das factories para isolar o teste do repositório
-    jest.spyOn(UserEntity, "fromPersistence").mockReturnValue(mockUserEntity);
+    jest.spyOn(PrismaMapper, "toUserEntity").mockReturnValue(mockUserEntity);
     jest
-      .spyOn(MessageEntity, "fromPersistence")
+      .spyOn(PrismaMapper, "toMessageEntity")
       .mockReturnValue(mockMessageEntity);
     jest
-      .spyOn(ChannelEntity, "fromPersistence")
+      .spyOn(PrismaMapper, "toChannelEntity")
       .mockReturnValue(mockChannelEntity);
   });
 
@@ -291,7 +289,7 @@ describe("MessageReactionRepository", () => {
         ...mockFullMessageReaction,
         channel: { ...mockDbChannel, platform_id: "newChannel123" },
       };
-      const updatedChannelEntity = ChannelEntity.fromPersistence(
+      const updatedChannelEntity = PrismaMapper.toChannelEntity(
         updatedFullReaction.channel,
       );
       const updatedMessageReactionEntity = new MessageReactionEntity(
@@ -304,7 +302,7 @@ describe("MessageReactionRepository", () => {
       prismaMock.messageReaction.update.mockResolvedValue(updatedFullReaction);
       // Mock the factory for the updated channel specifically for this test run
       jest
-        .spyOn(ChannelEntity, "fromPersistence")
+        .spyOn(PrismaMapper, "toChannelEntity")
         .mockReturnValueOnce(mockChannelEntity)
         .mockReturnValueOnce(updatedChannelEntity);
 

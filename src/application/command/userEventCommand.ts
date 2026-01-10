@@ -18,7 +18,7 @@ import {
   LoggerContextEntity,
   LoggerContextStatus,
 } from "@type/LoggerContextEnum";
-import { EventType } from "@prisma/client";
+import { EventType } from "@type/EventTypeEnum";
 
 export class UserEventCommand implements IUserEventCommand {
   constructor(

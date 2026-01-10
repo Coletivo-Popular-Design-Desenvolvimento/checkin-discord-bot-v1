@@ -1,6 +1,4 @@
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
-import { ChannelEntity } from "@domain/entities/Channel";
-import { UserEntity } from "@domain/entities/User";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
   LoggerContextStatus,
@@ -18,6 +16,7 @@ import {
   mockAudioEventUpdatePayload,
 } from "@tests/config/constants";
 import { prismaMock } from "@tests/config/singleton";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("AudioEventRepository", () => {
   let audioEventRepository: AudioEventRepository;
@@ -93,8 +92,8 @@ describe("AudioEventRepository", () => {
           mockDbAudioEventCreatedValue.created_at,
           mockDbAudioEventCreatedValue.description,
           mockDbAudioEventCreatedValue.image,
-          ChannelEntity.fromPersistence(mockDbAudioEventCreatedValue.channel),
-          UserEntity.fromPersistence(mockDbAudioEventCreatedValue.creator),
+          PrismaMapper.toChannelEntity(mockDbAudioEventCreatedValue.channel),
+          PrismaMapper.toUserEntity(mockDbAudioEventCreatedValue.creator),
         ),
       );
     });

@@ -9,6 +9,7 @@ import {
   LoggerContextStatus,
 } from "@type/LoggerContextEnum";
 import { ILoggerService } from "@services/ILogger";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class UserRepository implements IUserRepository {
   private client: PrismaClient;
@@ -33,7 +34,7 @@ export class UserRepository implements IUserRepository {
       const result = await this.client.user.create({
         data: this.toPersistence(user),
       });
-      return UserEntity.fromPersistence(result);
+      return PrismaMapper.toUserEntity(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -91,7 +92,7 @@ export class UserRepository implements IUserRepository {
       });
 
       return result
-        ? UserEntity.fromPersistence(
+        ? PrismaMapper.toUserEntity(
             result,
             result.message,
             result.message_reaction,
@@ -140,7 +141,7 @@ export class UserRepository implements IUserRepository {
       });
 
       return result
-        ? UserEntity.fromPersistence(
+        ? PrismaMapper.toUserEntity(
             result,
             result.message,
             result.message_reaction,
@@ -189,7 +190,7 @@ export class UserRepository implements IUserRepository {
       });
 
       return results.map((result) =>
-        UserEntity.fromPersistence(
+        PrismaMapper.toUserEntity(
           result,
           result.message,
           result.message_reaction,
@@ -224,7 +225,7 @@ export class UserRepository implements IUserRepository {
         where: { id },
         data: this.toPersistence(user),
       });
-      return result ? UserEntity.fromPersistence(result) : null;
+      return result ? PrismaMapper.toUserEntity(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,

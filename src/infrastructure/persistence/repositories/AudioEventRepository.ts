@@ -11,6 +11,7 @@ import {
   LoggerContextStatus,
 } from "@domain/types/LoggerContextEnum";
 import { PrismaService } from "../prisma/prismaService";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class AudioEventRepository implements IAudioEventRepository {
   private client: PrismaClient;
@@ -83,7 +84,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         },
         include: { channel: true, creator: true, status: true },
       });
-      return AudioEventEntity.fromPersistence(
+      return PrismaMapper.toAudioEventEntity(
         result,
         result.channel!,
         result.creator!,
@@ -142,7 +143,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(
+        ? PrismaMapper.toAudioEventEntity(
             result,
             result.channel,
             result.creator,
@@ -166,7 +167,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(
+        ? PrismaMapper.toAudioEventEntity(
             result,
             result.channel,
             result.creator,
@@ -201,11 +202,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return results.map((result) =>
-        AudioEventEntity.fromPersistence(
-          result,
-          result.channel,
-          result.creator,
-        ),
+        PrismaMapper.toAudioEventEntity(result, result.channel, result.creator),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -293,7 +290,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         data: updateData,
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(
+      return PrismaMapper.toAudioEventEntity(
         result,
         result.channel,
         result.creator,

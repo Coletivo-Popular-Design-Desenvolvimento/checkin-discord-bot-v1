@@ -18,9 +18,7 @@ import {
   UpdateMessageReactionData,
 } from "../../../domain/interfaces/repositories/IMessageReactionRepository";
 import { MessageReactionEntity } from "../../../domain/entities/MessageReaction";
-import { UserEntity } from "../../../domain/entities/User";
-import { MessageEntity } from "../../../domain/entities/Message";
-import { ChannelEntity } from "../../../domain/entities/Channel";
+import { PrismaMapper } from "./PrismaMapper";
 import { CreateMessageReactionData } from "@domain/dtos/CreateMessageReactionData";
 
 type FullMessageReaction = MessageReaction & {
@@ -195,13 +193,13 @@ export class MessageReactionRepository implements IMessageReactionRepository {
   }
 
   private toDomain(reaction: FullMessageReaction): MessageReactionEntity {
-    const user = UserEntity.fromPersistence(reaction.user);
-    const message = MessageEntity.fromPersistence(
+    const user = PrismaMapper.toUserEntity(reaction.user);
+    const message = PrismaMapper.toMessageEntity(
       reaction.message,
       reaction.user,
       reaction.channel,
     );
-    const channel = ChannelEntity.fromPersistence(reaction.channel);
+    const channel = PrismaMapper.toChannelEntity(reaction.channel);
 
     return new MessageReactionEntity(reaction.id, user, message, channel);
   }

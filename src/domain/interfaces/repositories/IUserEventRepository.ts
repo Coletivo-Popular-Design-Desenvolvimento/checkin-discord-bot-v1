@@ -1,4 +1,4 @@
-import { EventType } from "@prisma/client";
+import { EventType } from "../../types/EventTypeEnum";
 import { UserEventEntity } from "../../entities/UserEvent";
 
 export interface UserEventListAllInput {

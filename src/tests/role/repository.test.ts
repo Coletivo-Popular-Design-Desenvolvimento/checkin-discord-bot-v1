@@ -1,9 +1,9 @@
-import { UserEntity } from "@domain/entities/User";
 import { ILoggerService } from "@services/ILogger";
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { RoleRepository } from "@infra/repositories/RoleRepository";
 import { mockDBRoleValue } from "../config/constants";
 import { prismaMock } from "../config/singleton";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("RoleRepository", () => {
   let roleRepository: RoleRepository;
@@ -41,7 +41,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
+        mockDBRoleValue.users.map((user) => PrismaMapper.toUserEntity(user)),
       );
     });
 
@@ -88,7 +88,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
+        mockDBRoleValue.users.map((user) => PrismaMapper.toUserEntity(user)),
       );
     });
     it("should return null if role not found", async () => {
@@ -120,7 +120,7 @@ describe("RoleRepository", () => {
       expect(role).toHaveProperty("platformCreatedAt", new Date("2025-01-01"));
       expect(role).toHaveProperty(
         "user",
-        mockDBRoleValue.users.map((user) => UserEntity.fromPersistence(user)),
+        mockDBRoleValue.users.map((user) => PrismaMapper.toUserEntity(user)),
       );
     });
     it("should return null if role not found", async () => {
