@@ -99,6 +99,22 @@ export const mockDbMessageValue = {
   created_at: new Date(),
 } as unknown as messageDbModel;
 
+export const mockMessageToBeCreated = (
+  channel: ChannelEntity,
+  user: UserEntity,
+): MessageEntity => {
+  return new MessageEntity(
+    channel,
+    user,
+    [],
+    "message_platform_id",
+    new Date(),
+    false,
+    34643,
+    new Date(),
+  );
+};
+
 export const mockDbMessageValueWithRelations = {
   id: 1,
   platform_id: "1234567890",
