@@ -173,31 +173,60 @@ describe("MessageRepository", () => {
     });
   });
 
-  describe.skip("create methods suite", () => {
+  describe("create methods suite", () => {
     describe("createMany", () => {
-      const deletedMessage = createMockMessageEntity({
-        isDeleted: true,
-        platformId: "deleted-platform-id",
-        channel: messageChannel,
-        user: messageUser,
-      });
-      const messagesToCreate = [messageToBeFound, deletedMessage];
-
       it("should insert into db new messages", async () => {
+        const newMessage1 = createMockMessageEntity({
+          platformId: "new-message-1-platform-id",
+          channel: messageChannel,
+          user: messageUser,
+        });
+        const newMessage2 = createMockMessageEntity({
+          isDeleted: true,
+          platformId: "new-message-2-platform-id",
+          channel: messageChannel,
+          user: messageUser,
+        });
+        const messagesToCreate = [newMessage1, newMessage2];
+
         const totalCreated =
           await messageRepository.createMany(messagesToCreate);
 
         expect(totalCreated).toEqual(messagesToCreate.length);
+
+        const createdMessage1 = await messageRepository.findByPlatformId(
+          newMessage1.platformId,
+        );
+        const createdMessage2 = await messageRepository.findByPlatformId(
+          newMessage2.platformId,
+        );
+        if (createdMessage1) {
+          await messageRepository.deleteById(createdMessage1.id);
+        }
+        if (createdMessage2) {
+          await messageRepository.deleteById(createdMessage2.id);
+        }
       });
 
       it("should NOT insert into db if an error occurs", async () => {
-        const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+        const invalidMessage = createMockMessageEntity({
+          channel: null,
+          user: null,
+        });
 
-        const response = await messageRepository.createMany(messagesToCreate);
+        const spyConsole = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
 
-        expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+        //forcing column value with type different from defined on schema
+        Object.assign(invalidMessage, {
+          platformId: 123,
+        });
 
-        expect(response).toBeUndefined();
+        const response = await messageRepository.createMany([invalidMessage]);
+
+        expect(response).toEqual(0);
+        expect(spyConsole).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
       });
     });
   });

@@ -38,9 +38,9 @@ export class MessageRepository implements IMessageRepository {
       const result = await this.client.message.create({
         data: this.toPersistence(message),
         include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
+          user: Boolean(message.user),
+          channel: Boolean(message.channel),
+          message_reaction: Boolean(message?.messageReactions?.length),
         },
       });
       return this.toDomain(result);
@@ -74,6 +74,7 @@ export class MessageRepository implements IMessageRepository {
         LoggerContextEntity.MESSAGE,
         `createMany | ${error.message}`,
       );
+      return 0;
     }
   }
 
@@ -233,10 +234,10 @@ export class MessageRepository implements IMessageRepository {
     params?: MessageRepositoryListAllInput,
   ): Promise<MessageEntity[]> {
     try {
-      let limit, includeDeleted;
+      let limit: number, includeDeleted: boolean;
       if (params) {
         limit = params?.limit;
-        includeDeleted = Boolean(params.includeDeleted);
+        includeDeleted = Boolean(params?.includeDeleted);
       }
 
       const results = await this.client.message.findMany({
