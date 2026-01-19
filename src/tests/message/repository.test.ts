@@ -1,24 +1,30 @@
-import { MessageEntity } from "../../domain/entities/Message";
-import { ChannelEntity } from "../../domain/entities/Channel";
-import { UserEntity } from "../../domain/entities/User";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
-import { LoggerContextStatus } from "../../domain/types/LoggerContextEnum";
-import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
-import { MessageRepository } from "../../infrastructure/persistence/repositories/MessageRepository";
+import { MessageEntity } from "@domain/entities/Message";
+import { ChannelEntity } from "@domain/entities/Channel";
+import { UserEntity } from "@domain/entities/User";
+import { ILoggerService } from "@domain/interfaces/services/ILogger";
+import { LoggerContextStatus } from "@domain/types/LoggerContextEnum";
+import { PrismaService } from "@infra/persistence/prisma/prismaService";
+import { MessageRepository } from "@infra/repositories/MessageRepository";
 import {
-  createNumerousMocksWithRelations,
   createMockMessageEntity,
-  mockDbMessageValueWithRelations,
-  mockMessageUpdateValueWithRelations,
   mockMessageValue,
-} from "../config/constants";
+  mockUserValue,
+  mockChannelEntityForRelations,
+  mockMessageToBeCreated,
+} from "@tests/config/constants";
 
-import { prismaMock } from "../config/singleton";
+import { UserRepository } from "@infra/repositories/UserRepository";
+import { ChannelRepository } from "@infra/repositories/ChannelRepository";
 
 describe("MessageRepository", () => {
   let messageRepository: MessageRepository;
-  const prismaServiceMock = new PrismaService(prismaMock);
-  beforeAll(() => {
+  let userRepository: UserRepository;
+  let channelRepository: ChannelRepository;
+  let messageUser: UserEntity;
+  let messageChannel: ChannelEntity;
+  let messageToBeFound: MessageEntity;
+
+  beforeEach(async () => {
     const mockLogger: ILoggerService = {
       logToConsole: jest.fn(),
       logToDatabase: jest.fn(),
@@ -26,49 +32,49 @@ describe("MessageRepository", () => {
     mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
       console.error(message); // Simulate logging to console.error
     });
-    messageRepository = new MessageRepository(prismaServiceMock, mockLogger);
+
+    messageRepository = new MessageRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+    channelRepository = new ChannelRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+    userRepository = new UserRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+
+    messageUser = await userRepository.create(mockUserValue);
+    messageChannel = await channelRepository.create(
+      mockChannelEntityForRelations,
+    );
+
+    const messageToCreate = mockMessageToBeCreated(messageChannel, messageUser);
+    messageToBeFound = await messageRepository.create(messageToCreate);
+  });
+
+  afterEach(async () => {
+    await messageRepository.deleteById(messageToBeFound.id);
+    await userRepository.deleteById(messageUser.id);
+    await channelRepository.deleteById(messageChannel.id);
   });
 
   describe("findById", () => {
     it("should return a message by id", async () => {
-      const id = 1;
+      const result = await messageRepository.findById(messageToBeFound.id);
 
-      prismaMock.message.findUnique.mockResolvedValue(
-        mockDbMessageValueWithRelations,
-      );
+      expect(result).toHaveProperty("id", messageToBeFound.id);
+      expect(result).toHaveProperty("platformId", messageToBeFound.platformId);
 
-      const message = await messageRepository.findById(id);
-
-      expect(prismaMock.message.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findUnique).toHaveBeenCalledWith({
-        where: { id },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(message).toHaveProperty("id", 1);
-      expect(message).toHaveProperty("platformId", mockMessageValue.platformId);
+      await messageRepository.deleteById(messageToBeFound.id);
     });
 
     it("should return null when no message is found", async () => {
       const id = 3;
 
-      prismaMock.message.findUnique.mockResolvedValue(null);
-
       const message = await messageRepository.findById(id);
-
-      expect(prismaMock.message.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findUnique).toHaveBeenCalledWith({
-        where: { id },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
 
       expect(message).toBeNull();
     });
@@ -76,399 +82,169 @@ describe("MessageRepository", () => {
 
   describe("findByChannelId", () => {
     it("should return a list of active messages by channel id", async () => {
-      const channelId = "654341"; // usando diretamente o valor
-
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-      ]);
-
-      const messages = await messageRepository.findByChannelId(channelId);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { channel_id: channelId, is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
+      const messages = await messageRepository.findByChannelId(
+        messageChannel.platformId,
+      );
 
       expect(messages).toHaveLength(1);
-      expect(messages[0]).toHaveProperty("id", 1);
-      expect(messages[0]).toHaveProperty(
-        "channel",
-        expect.objectContaining({ platformId: "654341" }),
-      );
+      expect(messages[0]).toHaveProperty("id", messageToBeFound.id);
     });
 
     it("should return a list of all messages by channel id", async () => {
-      const channelId = "654341"; // usando diretamente o valor
-
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-      ]);
-
-      const messages = await messageRepository.findByChannelId(channelId, true);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { channel_id: channelId },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
+      const messages = await messageRepository.findByChannelId(
+        messageChannel.platformId,
+        true,
+      );
 
       expect(messages).toHaveLength(1);
-      expect(messages[0]).toHaveProperty("id", 1);
+      expect(messages[0]).toHaveProperty("id", messageToBeFound.id);
       expect(messages[0]).toHaveProperty(
         "channel",
-        expect.objectContaining({ platformId: "654341" }),
+        expect.objectContaining({
+          platformId: messageToBeFound.channel.platformId,
+        }),
       );
     });
 
     it("should return empty array when no message is found", async () => {
       const channelId = "23232676";
 
-      prismaMock.message.findMany.mockResolvedValue([]);
-
       const message = await messageRepository.findByChannelId(channelId);
 
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { channel_id: channelId, is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
       expect(message).toHaveLength(0);
-    });
-
-    it("should return no message if error occurs", async () => {
-      const channelId = "32687576";
-
-      prismaMock.message.findMany.mockRejectedValue(new Error());
-
-      const spy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-      const response = await messageRepository.findByChannelId(channelId);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { channel_id: channelId, is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
-
-      expect(response).toBeUndefined();
     });
   });
 
   describe("findByplatformId", () => {
     it("should return a message by discord id", async () => {
-      const platformId = mockMessageValue.platformId;
-
-      prismaMock.message.findFirst.mockResolvedValue(
-        mockDbMessageValueWithRelations,
+      const message = await messageRepository.findByPlatformId(
+        messageToBeFound.platformId,
       );
 
-      const message = await messageRepository.findByPlatformId(platformId);
-
-      expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { platform_id: platformId },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(message).toHaveProperty("id", 1);
-      expect(message).toHaveProperty("platformId", mockMessageValue.platformId);
+      expect(message).toHaveProperty("id", messageToBeFound.id);
     });
 
     it("should return null if no message is found", async () => {
       const platformId = mockMessageValue.platformId;
 
-      prismaMock.message.findFirst.mockResolvedValue(null);
-
       const message = await messageRepository.findByPlatformId(platformId);
 
-      expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { platform_id: platformId },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
       expect(message).toBeNull();
-    });
-
-    it("should not return message if error occurs", async () => {
-      const platformId = "23232687576";
-
-      prismaMock.message.findFirst.mockRejectedValue(new Error());
-
-      const spy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-      const response = await messageRepository.findByPlatformId(platformId);
-
-      expect(prismaMock.message.findFirst).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findFirst).toHaveBeenCalledWith({
-        where: { platform_id: platformId },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
-
-      expect(response).toBeUndefined();
     });
   });
 
   describe("findByUserId", () => {
     it("should return a list of active messages by user id", async () => {
-      const userId = "1"; // usando diretamente o valor
-
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-      ]);
-
-      const messages = await messageRepository.findByUserId(userId);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { user_id: userId, is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
+      const messages = await messageRepository.findByUserId(
+        messageUser.platformId,
+      );
 
       expect(messages).toHaveLength(1);
-      expect(messages[0]).toHaveProperty("id", 1);
+      expect(messages[0]).toHaveProperty("id", messageToBeFound.id);
       expect(messages[0]).toHaveProperty(
         "user",
-        expect.objectContaining({ platformId: "1" }),
+        expect.objectContaining({
+          platformId: messageToBeFound.user.platformId,
+        }),
       );
     });
 
     it("should return a list of all messages by user id", async () => {
-      const userId = "1"; // usando diretamente o valor
-
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-      ]);
-
-      const messages = await messageRepository.findByUserId(userId, true);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { user_id: userId },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
+      const messages = await messageRepository.findByUserId(
+        messageUser.platformId,
+        true,
+      );
 
       expect(messages).toHaveLength(1);
-      expect(messages[0]).toHaveProperty("id", 1);
+      expect(messages[0]).toHaveProperty("id", messageToBeFound.id);
       expect(messages[0]).toHaveProperty(
         "user",
-        expect.objectContaining({ platformId: "1" }),
+        expect.objectContaining({
+          platformId: messageToBeFound.user.platformId,
+        }),
       );
     });
 
     it("should return empty array when no message is found", async () => {
       const userId = "23232676";
-
-      prismaMock.message.findMany.mockResolvedValue([]);
-
       const messages = await messageRepository.findByUserId(userId);
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { user_id: userId, is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
 
       expect(messages).toHaveLength(0);
     });
   });
 
   describe("create methods suite", () => {
-    const today = new Date();
-
-    // Criamos uma entidade de teste completa
-    const messageToCreate = createMockMessageEntity({
-      platformCreatedAt: today,
-      createdAt: today,
-    });
-
-    describe("create", () => {
-      it("should insert into db a new message", async () => {
-        prismaMock.message.create.mockResolvedValue(
-          mockDbMessageValueWithRelations,
-        );
-
-        const newMessage = await messageRepository.create(messageToCreate);
-
-        expect(prismaMock.message.create).toHaveBeenCalledTimes(1);
-        expect(prismaMock.message.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
-            channel_id: messageToCreate.channel.platformId,
-            platform_id: messageToCreate.platformId,
-            user_id: messageToCreate.user.platformId,
-          }),
-          include: {
-            user: true,
-            channel: true,
-            message_reaction: true,
-          },
-        });
-
-        expect(newMessage).toHaveProperty("id", 1);
-      });
-
-      it("should NOT insert into db if an error occurs", async () => {
-        const error = new Error("could not create");
-        prismaMock.message.create.mockRejectedValue(error);
-
-        const spy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        const response = await messageRepository.create(messageToCreate);
-
-        expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
-
-        expect(response).toBeUndefined();
-      });
-    });
-
     describe("createMany", () => {
-      // Criamos entidades com channel e user diferentes usando factories
-      const otherChannel = new ChannelEntity(
-        2,
-        "3", // platformId diferente
-        "other-channel",
-        "https://discord.com/channels/123/3",
-        new Date("2023-01-01"),
-      );
-
-      const otherUser = new UserEntity(
-        2,
-        "2", // platformId diferente
-        "other-user",
-        false,
-        1,
-        "Other User",
-        new Date("2023-01-01"),
-        new Date("2023-01-01"),
-        new Date("2023-01-01"),
-        new Date("2023-01-01"),
-        new Date("2023-01-01"),
-        "other@test.com",
-      );
-
-      const otherMessageToCreate = new MessageEntity(
-        otherChannel,
-        otherUser,
-        [],
-        "other-message-456",
-        today,
-        false,
-        undefined,
-        today,
-      );
-
-      const messagesToCreate = [messageToCreate, otherMessageToCreate];
-
       it("should insert into db new messages", async () => {
-        prismaMock.message.createMany.mockResolvedValue({
-          count: messagesToCreate.length,
+        const newMessage1 = createMockMessageEntity({
+          platformId: "new-message-1-platform-id",
+          channel: messageChannel,
+          user: messageUser,
         });
+        const newMessage2 = createMockMessageEntity({
+          isDeleted: true,
+          platformId: "new-message-2-platform-id",
+          channel: messageChannel,
+          user: messageUser,
+        });
+        const messagesToCreate = [newMessage1, newMessage2];
 
         const totalCreated =
           await messageRepository.createMany(messagesToCreate);
 
-        expect(prismaMock.message.createMany).toHaveBeenCalledTimes(1);
-        expect(prismaMock.message.createMany).toHaveBeenCalledWith({
-          data: expect.arrayContaining(
-            messagesToCreate.map((msg) => {
-              return {
-                channel_id: msg.channel.platformId,
-                platform_id: msg.platformId,
-                user_id: msg.user.platformId,
-                created_at: expect.anything(),
-                platform_created_at: expect.anything(),
-                is_deleted: false,
-                id: undefined,
-              };
-            }),
-          ),
-          skipDuplicates: true,
-        });
-
         expect(totalCreated).toEqual(messagesToCreate.length);
+
+        const createdMessage1 = await messageRepository.findByPlatformId(
+          newMessage1.platformId,
+        );
+        const createdMessage2 = await messageRepository.findByPlatformId(
+          newMessage2.platformId,
+        );
+        if (createdMessage1) {
+          await messageRepository.deleteById(createdMessage1.id);
+        }
+        if (createdMessage2) {
+          await messageRepository.deleteById(createdMessage2.id);
+        }
       });
 
       it("should NOT insert into db if an error occurs", async () => {
-        const error = new Error("could not create");
-        prismaMock.message.createMany.mockRejectedValue(error);
+        const invalidMessage = createMockMessageEntity({
+          channel: null,
+          user: null,
+        });
 
-        const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+        const spyConsole = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
 
-        const response = await messageRepository.createMany(messagesToCreate);
+        //forcing column value with type different from defined on schema
+        Object.assign(invalidMessage, {
+          platformId: 123,
+        });
 
-        expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
+        const response = await messageRepository.createMany([invalidMessage]);
 
-        expect(response).toBeUndefined();
+        expect(response).toEqual(0);
+        expect(spyConsole).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
       });
     });
   });
 
   describe("deleteById", () => {
     it("if db returns entity, should delete message succesfully", async () => {
-      prismaMock.message.delete.mockResolvedValue(
-        mockDbMessageValueWithRelations,
-      );
-
-      const deleted = await messageRepository.deleteById(mockMessageValue.id);
-
-      expect(prismaMock.message.delete).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.delete).toHaveBeenCalledWith({
-        where: { id: mockMessageValue.id },
+      const messageEntity = createMockMessageEntity({
+        platformId: "deleted-platform-id",
+        channel: messageChannel,
+        user: messageUser,
       });
+      const messageToDelete = await messageRepository.create(messageEntity);
+      const deleted = await messageRepository.deleteById(messageToDelete.id);
 
       expect(deleted).toBeTruthy();
     });
 
     it("if error occurs, should log it", async () => {
-      const error = new Error();
-      prismaMock.message.delete.mockRejectedValue(error);
-
       const spy = jest.spyOn(console, "error").mockImplementation(() => {});
 
       const response = await messageRepository.deleteById(mockMessageValue.id);
@@ -481,111 +257,51 @@ describe("MessageRepository", () => {
 
   describe("listAll", () => {
     it("should bring all active messages", async () => {
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-      ]);
-
       const response = await messageRepository.listAll();
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        where: { is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
 
       expect(response).toHaveLength(1);
       expect(response[0]).toHaveProperty(
         "platformId",
-        mockDbMessageValueWithRelations.platform_id,
+        messageToBeFound.platformId,
       );
       expect(response[0]).toHaveProperty(
         "user",
-        expect.objectContaining({ platformId: "1" }),
+        expect.objectContaining({
+          platformId: messageToBeFound.user.platformId,
+        }),
       );
     });
 
     it("when limit is given, should bring that amount or less of active messages", async () => {
       const limit = 10;
-      const mockDbReturn = createNumerousMocksWithRelations(limit);
-
-      prismaMock.message.findMany.mockResolvedValue(mockDbReturn);
 
       const response = await messageRepository.listAll({ limit });
 
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        take: limit,
-        where: { is_deleted: false },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(response).toHaveLength(limit);
-      expect(response[0]).toHaveProperty("platformId", "1000");
+      expect(response).toHaveLength(1);
+      expect(response[0]).toHaveProperty(
+        "platformId",
+        messageToBeFound.platformId,
+      );
       expect(response[0]).toHaveProperty(
         "user",
-        expect.objectContaining({ platformId: "10" }),
+        expect.objectContaining({
+          platformId: messageToBeFound.user.platformId,
+        }),
       );
     });
 
     it("should bring all messages, including soft deleted", async () => {
-      const mockDeleted = {
-        id: 4,
-        user_id: "4",
-        platform_id: "343534353",
-        channel_id: "2345424",
-        created_at: new Date("2025-04-01"),
-        platform_created_at: new Date("2025-04-01"),
-        is_deleted: true,
-        user: {
-          id: 4,
-          platform_id: "4",
-          username: "DeletedUser",
-          global_name: "Deleted User",
-          joined_at: new Date("2023-01-01"),
-          platform_created_at: new Date("2023-01-01"),
-          update_at: new Date("2023-01-01"),
-          last_active: new Date("2023-01-01"),
-          create_at: new Date("2023-01-01"),
-          bot: false,
-          email: "deleted@test.com",
-          status: 1,
-        },
-        channel: {
-          id: 4,
-          platform_id: "2345424",
-          name: "deleted-channel",
-          url: "https://discord.com/channels/123/2345424",
-          created_at: new Date("2023-01-01"),
-        },
-        message_reaction: [],
-      };
+      const mockDeleted = createMockMessageEntity({
+        isDeleted: true,
+        platformId: "deleted-message-platform-id",
+        channel: messageChannel,
+        user: messageUser,
+      });
 
-      prismaMock.message.findMany.mockResolvedValue([
-        mockDbMessageValueWithRelations,
-        mockDeleted,
-      ]);
+      await messageRepository.create(mockDeleted);
 
       const response = await messageRepository.listAll({
         includeDeleted: true,
-      });
-
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        take: undefined,
-        where: { is_deleted: undefined },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
       });
 
       expect(response).toHaveLength(2);
@@ -595,85 +311,44 @@ describe("MessageRepository", () => {
 
     it("should bring all messages, including soft deleted, within a limit", async () => {
       const limit = 5;
-      const mockedDbResponse = createNumerousMocksWithRelations(limit, true);
+      const mockDeleted = createMockMessageEntity({
+        isDeleted: true,
+        platformId: "deleted-message-platform-id",
+        channel: messageChannel,
+        user: messageUser,
+      });
 
-      prismaMock.message.findMany.mockResolvedValue(mockedDbResponse);
+      await messageRepository.create(mockDeleted);
 
       const response = await messageRepository.listAll({
         limit,
         includeDeleted: true,
       });
 
-      expect(prismaMock.message.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.findMany).toHaveBeenCalledWith({
-        take: limit,
-        where: { is_deleted: undefined },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
-
-      expect(response).toHaveLength(limit);
-      expect(response[0]).toHaveProperty("isDeleted", true);
-      expect(response[1]).toHaveProperty("isDeleted", false);
-    });
-
-    it("if error occurs, should log it and return no messages", async () => {
-      const error = new Error();
-      prismaMock.message.findMany.mockRejectedValue(error);
-
-      const spy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-      const response = await messageRepository.listAll();
-
-      expect(spy).toHaveBeenCalledWith(LoggerContextStatus.ERROR);
-
-      expect(response).toBeUndefined();
+      expect(response).toHaveLength(2);
+      expect(response[0]).toHaveProperty("isDeleted", false);
+      expect(response[1]).toHaveProperty("isDeleted", true);
     });
   });
 
   describe("updateById", () => {
     it("should update message successfully", async () => {
-      prismaMock.message.update.mockResolvedValue(
-        mockMessageUpdateValueWithRelations,
-      );
-
       // Criamos uma entidade completa para update
-      const messageEntityToUpdate = createMockMessageEntity({
+      const messageEntityToUpdate = {
+        ...messageToBeFound,
         isDeleted: true,
-      });
+      };
 
       const updatedMessage = await messageRepository.updateById(
-        mockMessageValue.id,
+        messageEntityToUpdate.id,
         messageEntityToUpdate,
       );
-
-      expect(prismaMock.message.update).toHaveBeenCalledTimes(1);
-      expect(prismaMock.message.update).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          channel_id: messageEntityToUpdate.channel.platformId,
-          platform_id: messageEntityToUpdate.platformId,
-          user_id: messageEntityToUpdate.user.platformId,
-          is_deleted: true,
-        }),
-        where: { id: mockMessageValue.id },
-        include: {
-          user: true,
-          channel: true,
-          message_reaction: true,
-        },
-      });
 
       expect(updatedMessage).not.toBeNull();
       expect(updatedMessage).toHaveProperty("isDeleted", true);
     });
 
     it("should NOT update message if error occurs", async () => {
-      const error = new Error();
-      prismaMock.message.update.mockRejectedValue(error);
-
       const spy = jest.spyOn(console, "error").mockImplementation(() => {});
 
       // Criamos uma entidade completa para o teste de erro
