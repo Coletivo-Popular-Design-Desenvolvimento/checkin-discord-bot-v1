@@ -9,10 +9,8 @@ import {
   mockDBUserValue,
   mockDbMessageValue,
 } from "@tests/config/constants";
-import { UserEntity } from "@domain/entities/User";
 import { Message, User } from "@prisma/client";
-import { MessageEntity } from "@domain/entities/Message";
-import { ChannelEntity } from "@domain/entities/Channel";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("ChannelRepository", () => {
   let channelRepository: ChannelRepository;
@@ -101,7 +99,7 @@ describe("ChannelRepository", () => {
         },
       });
 
-      const expectedEntity = ChannelEntity.fromPersistence(
+      const expectedEntity = PrismaMapper.toChannelEntity(
         mockDbChannelValue,
         mockDbChannelValue.users,
         mockDbChannelValue.message,
@@ -132,11 +130,11 @@ describe("ChannelRepository", () => {
 
   describe("create", () => {
     it("should create a new channel", async () => {
-      const mockUserEntity = UserEntity.fromPersistence(
+      const mockUserEntity = PrismaMapper.toUserEntity(
         mockDBUserValue as unknown as User,
       );
 
-      const mockMessageEntity = MessageEntity.fromPersistence(
+      const mockMessageEntity = PrismaMapper.toMessageEntity(
         mockDbMessageValue as unknown as Message,
       );
 

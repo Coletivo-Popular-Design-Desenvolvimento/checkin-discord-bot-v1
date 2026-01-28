@@ -10,6 +10,7 @@ export enum LoggerContext {
 
 export enum LoggerContextEntity {
   USER = "USER",
+  USER_EVENT = "USER_EVENT",
   MESSAGE = "MESSAGE",
   MESSAGE_REACTION = "MESSAGE_REACTION",
   CHANNEL = "CHANNEL",

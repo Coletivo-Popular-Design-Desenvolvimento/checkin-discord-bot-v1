@@ -15,6 +15,7 @@ import {
 } from "../../../domain/types/LoggerContextEnum";
 import { PrismaService } from "../prisma/prismaService";
 import { MessageRepositoryListAllInput } from "../../../domain/types/MessageListAllInput";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class MessageRepository implements IMessageRepository {
   private client: PrismaClient;
@@ -296,7 +297,7 @@ export class MessageRepository implements IMessageRepository {
       message_reaction?: MessageReaction[];
     },
   ): MessageEntity {
-    return MessageEntity.fromPersistence(
+    return PrismaMapper.toMessageEntity(
       message,
       message.user,
       message.channel,

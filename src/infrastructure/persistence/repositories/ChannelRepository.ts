@@ -8,6 +8,7 @@ import {
 import { ILoggerService } from "../../../domain/interfaces/services/ILogger";
 import { IChannelRepository } from "../../../domain/interfaces/repositories/IChannelRepository";
 import { ChannelEntity } from "../../../domain/entities/Channel";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class ChannelRepository implements IChannelRepository {
   private client: PrismaClient;
@@ -57,7 +58,7 @@ export class ChannelRepository implements IChannelRepository {
         },
       });
 
-      return ChannelEntity.fromPersistence(
+      return PrismaMapper.toChannelEntity(
         result,
         result.users || [],
         result.message,
@@ -155,7 +156,7 @@ export class ChannelRepository implements IChannelRepository {
 
       if (!result) return null;
 
-      return ChannelEntity.fromPersistence(
+      return PrismaMapper.toChannelEntity(
         result,
         result.users,
         result.message,
@@ -193,7 +194,7 @@ export class ChannelRepository implements IChannelRepository {
 
       if (!result) return null;
 
-      return ChannelEntity.fromPersistence(
+      return PrismaMapper.toChannelEntity(
         result,
         result.users,
         result.message,
@@ -229,7 +230,7 @@ export class ChannelRepository implements IChannelRepository {
       });
 
       return results.map((result) =>
-        ChannelEntity.fromPersistence(
+        PrismaMapper.toChannelEntity(
           result,
           result.users,
           result.message,
@@ -263,7 +264,7 @@ export class ChannelRepository implements IChannelRepository {
         where: { id },
         data: this.toPersistence(channel),
       });
-      return ChannelEntity.fromPersistence(result);
+      return PrismaMapper.toChannelEntity(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,

@@ -29,7 +29,7 @@ model User {
   message             Message[]
   message_reaction    MessageReaction[]
   channels            Channel[]         @relation("UserChannel")
-  user_event          userEvent[]
+  user_event          UserEvent[]
   roles               Role[]            @relation("UserRole")
 
   @@map("user")
@@ -54,7 +54,7 @@ model AudioEvent {
   description String?
   status_id   String
   start_at    DateTime
-  end_at      DateTime
+  end_at      DateTime?
   user_count  Int
   image       String?
   created_at  DateTime    @default(now())
@@ -62,7 +62,7 @@ model AudioEvent {
   channel     Channel     @relation(fields: [channel_id], references: [platform_id])
   creator     User        @relation(fields: [creator_id], references: [platform_id])
   status      EventStatus @relation(fields: [status_id], references: [platform_id])
-  user_event  userEvent[]
+  user_event  UserEvent[]
 
   @@index([channel_id], map: "audio_event_channel_id_fkey")
   @@index([creator_id], map: "audio_event_creator_id_fkey")
@@ -80,13 +80,20 @@ model EventStatus {
   @@map("event_status")
 }
 
-model userEvent {
-  event_id String
-  user_id  String
-  event    AudioEvent @relation(fields: [event_id], references: [platform_id])
-  user     User       @relation(fields: [user_id], references: [platform_id])
+enum EventType {
+  JOINED
+  LEFT
+}
 
-  @@id([user_id, event_id])
+model UserEvent {
+  id         Int        @id @default(autoincrement())
+  event_id   String
+  user_id    String
+  event_type EventType
+  created_at DateTime   @default(now())
+  event      AudioEvent @relation(fields: [event_id], references: [platform_id])
+  user       User       @relation(fields: [user_id], references: [platform_id])
+
   @@index([event_id], map: "user_event_event_id_fkey")
   @@map("user_event")
 }

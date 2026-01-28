@@ -8,9 +8,12 @@ import {
 } from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
 import { UserEntity } from "@domain/entities/User";
-import { MessageEntity } from "@domain/entities/Message";
 import { ChannelEntity } from "@domain/entities/Channel";
 import { MessageReactionEntity } from "@domain/entities/MessageReaction";
+import { UserEventEntity } from "@domain/entities/UserEvent";
+import { MessageEntity } from "@entities/Message";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
+import { EventType } from "@type/EventTypeEnum";
 
 export type naturalizeUser = {
   id: number;
@@ -138,7 +141,6 @@ export const mockMessageValue = {
   channelId: "654341",
   userId: "1",
   isDeleted: false,
-  discordCreatedAt: undefined,
   createdAt: undefined,
   platformCreatedAt: new Date(),
 };
@@ -247,6 +249,9 @@ export type ChannelEntityValue = {
   messageReaction: never[]; // ajusta se tiver mock de reação
 };
 
+export const mockChannelEntityValue =
+  PrismaMapper.toChannelEntity(mockDbChannelValue);
+
 export const mockChannelUpdatePayload = {
   name: "updatedChannelName",
   url: "updatedChannelUrl",
@@ -278,7 +283,7 @@ export const mockDbAudioEventValue = {
   created_at: mockDate,
 };
 
-export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
+export const mockAudioEventEntityValue = PrismaMapper.toAudioEventEntity(
   mockDbAudioEventValue,
   mockDbChannelValue,
   mockDBUserValue,
@@ -330,6 +335,40 @@ export const mockDbAudioEventUpdatedValue: PrismaAudioEvent = {
   name: mockAudioEventUpdatePayload.name!,
   status_id: mockAudioEventUpdatePayload.statusId!,
   user_count: mockAudioEventUpdatePayload.userCount!,
+};
+
+// User event repository const mocks.
+export const mockDbUserEventValue = {
+  id: 1,
+  user: mockDBUserValue,
+  user_id: mockDBUserValue.platform_id,
+  event: mockDbAudioEventValue,
+  event_id: mockDbAudioEventValue.platform_id,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
+};
+
+export const mockUserEventEntityValue = PrismaMapper.toUserEventEntity(
+  mockDbUserEventValue,
+  mockDBUserValue,
+  mockDbAudioEventValue,
+);
+
+export const mockUserEventCreatePayload: Omit<UserEventEntity, "id"> = {
+  user: mockUserValue,
+  event: mockAudioEventEntityValue,
+  eventType: EventType.JOINED,
+  createdAt: mockDate,
+};
+
+export const mockDbUserEventCreatedValue = {
+  id: 2,
+  user: mockDBUserValue,
+  user_id: mockDBUserValue.platform_id,
+  event: mockDbAudioEventValue,
+  event_id: mockDbAudioEventValue.platform_id,
+  event_type: EventType.JOINED,
+  created_at: mockDate,
 };
 
 //RoleRepository tests consts
@@ -446,7 +485,7 @@ export function createMockUserEntity(
   overrides: Partial<UserEntity> = {},
 ): UserEntity {
   const dbUser = createMockDbUser();
-  const userEntity = UserEntity.fromPersistence(dbUser);
+  const userEntity = PrismaMapper.toUserEntity(dbUser);
   return new UserEntity(
     overrides.id ?? userEntity.id,
     overrides.platformId ?? userEntity.platformId,
@@ -470,7 +509,7 @@ export function createMockChannelEntity(
   overrides: Partial<ChannelEntity> = {},
 ): ChannelEntity {
   const dbChannel = createMockDbChannel();
-  const channelEntity = ChannelEntity.fromPersistence(dbChannel, [], [], []);
+  const channelEntity = PrismaMapper.toChannelEntity(dbChannel, [], [], []);
   return new ChannelEntity(
     overrides.id ?? channelEntity.id,
     overrides.platformId ?? channelEntity.platformId,
@@ -510,11 +549,7 @@ export function createMockMessageEntity(
   const dbUser = createMockDbUser();
   const dbChannel = createMockDbChannel();
 
-  const baseEntity = MessageEntity.fromPersistence(
-    dbMessage,
-    dbUser,
-    dbChannel,
-  );
+  const baseEntity = PrismaMapper.toMessageEntity(dbMessage, dbUser, dbChannel);
 
   // Se não há overrides específicos, retorna a entidade base
   if (Object.keys(overrides).length === 0) {

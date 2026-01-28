@@ -26,6 +26,7 @@ export class VoiceEventCommand {
       unknown,
       unknown,
       Client,
+      unknown,
       GuildChannel,
       GuildScheduledEvent | PartialGuildScheduledEvent
     >,
@@ -33,15 +34,27 @@ export class VoiceEventCommand {
     private readonly registerVoiceEvent: IRegisterVoiceEvent,
     private readonly finalizeVoiceEvent: IFinalizeVoiceEvent,
   ) {
+    this.logger.logToConsole(
+      LoggerContextStatus.SUCCESS,
+      LoggerContext.COMMAND,
+      LoggerContextEntity.AUDIO_EVENT,
+      "VoiceEventCommand initialized",
+    );
     this.executeVoiceEvent();
   }
 
   async executeVoiceEvent(): Promise<void> {
     try {
       this.discordService.onVoiceEvent(async (discordEvent) => {
+        this.logger.logToConsole(
+          LoggerContextStatus.SUCCESS,
+          LoggerContext.COMMAND,
+          LoggerContextEntity.AUDIO_EVENT,
+          `Voice event received: ${discordEvent.name} - Status: ${discordEvent.status}`,
+        );
         const convertedEvent =
           VoiceEventCommand.convertDiscordEvent(discordEvent);
-        await this.processVoiceEvent(convertedEvent);
+        await this.processVoiceEvent(convertedEvent, discordEvent);
       });
     } catch (error) {
       this.logger.logToConsole(
@@ -53,21 +66,24 @@ export class VoiceEventCommand {
     }
   }
 
-  private async processVoiceEvent(event: {
-    id: string;
-    name: string;
-    status: DiscordEventStatus;
-    scheduledStartAt: Date | null;
-    scheduledEndAt: Date | null;
-    userCount: number | null;
-    channelId: string | null;
-    creatorId: string | null;
-    description: string | null;
-    image?: string;
-  }): Promise<void> {
+  private async processVoiceEvent(
+    event: {
+      id: string;
+      name: string;
+      status: DiscordEventStatus;
+      scheduledStartAt: Date | null;
+      scheduledEndAt: Date | null;
+      userCount: number | null;
+      channelId: string | null;
+      creatorId: string | null;
+      description: string | null;
+      image?: string;
+    },
+    discordEvent: GuildScheduledEvent | PartialGuildScheduledEvent,
+  ): Promise<void> {
     try {
       if (event.status === "ACTIVE" && !event.scheduledEndAt) {
-        await this.handleVoiceEventStarted(event);
+        await this.handleVoiceEventStarted(event, discordEvent);
       } else if (event.status === "COMPLETED" || event.scheduledEndAt) {
         await this.handleVoiceEventEnded(event);
       } else {
@@ -88,19 +104,26 @@ export class VoiceEventCommand {
     }
   }
 
-  private async handleVoiceEventStarted(event: {
-    id: string;
-    name: string;
-    status: DiscordEventStatus;
-    scheduledStartAt: Date | null;
-    scheduledEndAt: Date | null;
-    userCount: number | null;
-    channelId: string | null;
-    creatorId: string | null;
-    description: string | null;
-    image?: string;
-  }): Promise<void> {
+  private async handleVoiceEventStarted(
+    event: {
+      id: string;
+      name: string;
+      status: DiscordEventStatus;
+      scheduledStartAt: Date | null;
+      scheduledEndAt: Date | null;
+      userCount: number | null;
+      channelId: string | null;
+      creatorId: string | null;
+      description: string | null;
+      image?: string;
+    },
+    discordEvent: GuildScheduledEvent | PartialGuildScheduledEvent,
+  ): Promise<void> {
     try {
+      // Busca informações do canal e criador do Discord
+      const channel = discordEvent.channel;
+      const creator = discordEvent.creator;
+
       const input: RegisterVoiceEventInput = {
         platformId: event.id,
         name: event.name,
@@ -109,7 +132,10 @@ export class VoiceEventCommand {
         endAt: event.scheduledEndAt,
         userCount: event.userCount || 0,
         channelId: event.channelId || "",
+        channelName: channel?.name,
+        channelUrl: channel?.url,
         creatorId: event.creatorId || "",
+        creatorUsername: creator?.username,
         description: event.description || undefined,
         image: event.image,
       };

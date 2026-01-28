@@ -6,3 +6,5 @@ node_modules
 !.env.test
 !.env.example
 .vscode
+.idea
+.claude/settings.local.json

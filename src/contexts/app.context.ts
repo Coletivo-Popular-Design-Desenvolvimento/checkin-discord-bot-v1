@@ -15,12 +15,15 @@ import { initializeChannelUseCases } from "./useChannelCases.context";
 import { initializeMessageUseCases } from "./useMessageCases.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
+import { initializeUserEventUseCases } from "@contexts/userEventUseCases.context";
+import { UserEventCommand } from "@application/command/userEventCommand";
 
 export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
   const {
     userRepository,
+    userEventRepository,
     audioEventRepository,
     messageRepository,
     channelRepository,
@@ -40,7 +43,20 @@ export function initializeApp() {
   // Daqui para baixo, vao as dependencias internas
   const userUseCases = initializeUserUseCases(userRepository, logger);
   const { registerVoiceEvent, finalizeVoiceEvent } =
-    initializeVoiceEventUseCases(audioEventRepository, logger);
+    initializeVoiceEventUseCases(
+      audioEventRepository,
+      channelRepository,
+      userRepository,
+      logger,
+    );
+  const userEventUseCases = initializeUserEventUseCases(
+    userEventRepository,
+    userRepository,
+    audioEventRepository,
+    userUseCases.createUserCase,
+    registerVoiceEvent,
+    logger,
+  );
   const { registerMessage } = initializeMessageUseCases(
     messageRepository,
     userRepository,
@@ -55,6 +71,11 @@ export function initializeApp() {
     logger,
     userUseCases.createUserCase,
     userUseCases.updateUserCase,
+  );
+  new UserEventCommand(
+    discordService,
+    logger,
+    userEventUseCases.createUserEventCase,
   );
 
   new VoiceEventCommand(

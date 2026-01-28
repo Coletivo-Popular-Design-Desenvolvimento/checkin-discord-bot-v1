@@ -8,6 +8,7 @@ import {
 } from "@domain/types/LoggerContextEnum";
 import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class RoleRepository implements IRoleRepository {
   private client: PrismaClient;
@@ -28,7 +29,7 @@ export class RoleRepository implements IRoleRepository {
         include: { users: true },
       });
 
-      return RoleEntity.fromPersistence(result, result.users);
+      return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -44,7 +45,7 @@ export class RoleRepository implements IRoleRepository {
         where: { users: { some: { platform_id: id } } },
         include: { users: true },
       });
-      return result.map((role) => RoleEntity.fromPersistence(role, role.users));
+      return result.map((role) => PrismaMapper.toRoleEntity(role, role.users));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -60,7 +61,7 @@ export class RoleRepository implements IRoleRepository {
         where: { platform_id: id },
         include: { users: true },
       });
-      return RoleEntity.fromPersistence(result, result.users);
+      return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -77,7 +78,7 @@ export class RoleRepository implements IRoleRepository {
         include: { users: true },
       });
       return results.map((result) =>
-        RoleEntity.fromPersistence(result, result.users),
+        PrismaMapper.toRoleEntity(result, result.users),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -97,7 +98,7 @@ export class RoleRepository implements IRoleRepository {
         where: { id },
         data: this.toPersistence(role),
       });
-      return result ? RoleEntity.fromPersistence(result) : null;
+      return result ? PrismaMapper.toRoleEntity(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,

@@ -1,5 +1,7 @@
 import { RegisterVoiceEvent } from "@domain/useCases/audioEvent/RegisterVoiceEvent";
 import { IAudioEventRepository } from "@repositories/IAudioEventRepository";
+import { IChannelRepository } from "@repositories/IChannelRepository";
+import { IUserRepository } from "@repositories/IUserRepository";
 import { ILoggerService } from "@services/ILogger";
 import { AudioEventEntity } from "@entities/AudioEvent";
 import { ChannelEntity } from "@entities/Channel";
@@ -9,6 +11,8 @@ import { UserStatus } from "@type/UserStatusEnum";
 describe("RegisterVoiceEvent", () => {
   let registerVoiceEvent: RegisterVoiceEvent;
   let mockAudioEventRepository: jest.Mocked<IAudioEventRepository>;
+  let mockChannelRepository: jest.Mocked<IChannelRepository>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
   let mockLogger: jest.Mocked<ILoggerService>;
 
   const mockChannel = new ChannelEntity(
@@ -56,6 +60,25 @@ describe("RegisterVoiceEvent", () => {
       deleteById: jest.fn(),
     };
 
+    mockChannelRepository = {
+      create: jest.fn().mockResolvedValue(mockChannel),
+      createMany: jest.fn(),
+      findById: jest.fn(),
+      findByPlatformId: jest.fn().mockResolvedValue(mockChannel),
+      listAll: jest.fn(),
+      updateById: jest.fn(),
+      deleteById: jest.fn(),
+    };
+
+    mockUserRepository = {
+      create: jest.fn().mockResolvedValue(mockUser),
+      createMany: jest.fn(),
+      findById: jest.fn(),
+      findByPlatformId: jest.fn().mockResolvedValue(mockUser),
+      listAll: jest.fn(),
+      updateById: jest.fn(),
+    };
+
     mockLogger = {
       logToConsole: jest.fn(),
       logToDatabase: jest.fn(),
@@ -63,6 +86,8 @@ describe("RegisterVoiceEvent", () => {
 
     registerVoiceEvent = new RegisterVoiceEvent(
       mockAudioEventRepository,
+      mockChannelRepository,
+      mockUserRepository,
       mockLogger,
     );
   });
@@ -93,19 +118,8 @@ describe("RegisterVoiceEvent", () => {
         startAt: input.startAt,
         endAt: undefined,
         userCount: input.userCount,
-        channel: expect.objectContaining({
-          platformId: input.channelId,
-          id: 0,
-          name: "",
-          url: "",
-        }),
-        creator: expect.objectContaining({
-          platformId: input.creatorId,
-          id: 0,
-          username: "",
-          bot: false,
-          status: UserStatus.ACTIVE,
-        }),
+        channel: mockChannel, // Agora espera a entidade completa retornada pelo findOrCreateChannel
+        creator: mockUser, // Agora espera a entidade completa retornada pelo findOrCreateUser
         description: input.description,
         image: undefined,
       });
