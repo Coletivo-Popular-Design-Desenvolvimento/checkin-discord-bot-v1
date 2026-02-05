@@ -57,7 +57,6 @@ describe("MessageRepository", () => {
 
   afterEach(async () => {
     await messageRepository.deleteById(messageToBeFound.id);
-    await userRepository.deleteById(messageUser.id);
     await channelRepository.deleteById(messageChannel.id);
   });
 
