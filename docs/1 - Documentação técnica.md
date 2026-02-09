@@ -17,12 +17,12 @@ O CPDD precisa de **dados concretos** sobre o comportamento e engajamento dos me
 
 ### Diretoria
 
-- @Eder Borella
+- @Milena Carneiro
 - @Intra
 
 ### Liderança Técnica
 
-- **Desenvolvimento**: @Milena C
+- **Desenvolvimento**: @Filipe Arruda
 - **Dados**: @Paulo Costa
 
 ## 🎯 Objetivo e Integração
