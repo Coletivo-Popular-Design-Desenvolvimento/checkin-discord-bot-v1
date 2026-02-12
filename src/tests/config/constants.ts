@@ -5,14 +5,15 @@ import {
   Message,
   Channel,
   MessageReaction,
-  EventType,
 } from "@prisma/client";
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
 import { UserEntity } from "@domain/entities/User";
-import { MessageEntity } from "@domain/entities/Message";
 import { ChannelEntity } from "@domain/entities/Channel";
 import { MessageReactionEntity } from "@domain/entities/MessageReaction";
 import { UserEventEntity } from "@domain/entities/UserEvent";
+import { MessageEntity } from "@entities/Message";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
+import { EventType } from "@type/EventTypeEnum";
 
 export type naturalizeUser = {
   id: number;
@@ -45,8 +46,8 @@ export const mockDBUserValue = {
   email: undefined,
   message: [],
   message_reaction: [],
-  user_channel: [],
-  user_role: [],
+  channels: [],
+  roles: [],
   audio_event: [],
 } as unknown as naturalizeUser;
 
@@ -100,6 +101,22 @@ export const mockDbMessageValue = {
   platform_created_at: new Date(),
   created_at: new Date(),
 } as unknown as messageDbModel;
+
+export const mockMessageToBeCreated = (
+  channel: ChannelEntity,
+  user: UserEntity,
+): MessageEntity => {
+  return new MessageEntity(
+    channel,
+    user,
+    [],
+    "message_platform_id",
+    new Date(),
+    false,
+    34643,
+    new Date(),
+  );
+};
 
 export const mockDbMessageValueWithRelations = {
   id: 1,
@@ -216,11 +233,7 @@ export const mockDbChannelValue = {
   created_at: new Date(),
   name: "channelName",
   url: "channelUrl",
-  user_channel: [
-    {
-      user: mockDBUserValue,
-    },
-  ],
+  users: [mockDBUserValue],
   message: [mockDbMessageValue],
   message_reaction: [],
 };
@@ -235,6 +248,9 @@ export type ChannelEntityValue = {
   message: Array<typeof mockMessageValue>;
   messageReaction: never[]; // ajusta se tiver mock de reação
 };
+
+export const mockChannelEntityValue =
+  PrismaMapper.toChannelEntity(mockDbChannelValue);
 
 export const mockChannelUpdatePayload = {
   name: "updatedChannelName",
@@ -267,7 +283,7 @@ export const mockDbAudioEventValue = {
   created_at: mockDate,
 };
 
-export const mockAudioEventEntityValue = AudioEventEntity.fromPersistence(
+export const mockAudioEventEntityValue = PrismaMapper.toAudioEventEntity(
   mockDbAudioEventValue,
   mockDbChannelValue,
   mockDBUserValue,
@@ -332,7 +348,7 @@ export const mockDbUserEventValue = {
   created_at: mockDate,
 };
 
-export const mockUserEventEntityValue = UserEventEntity.fromPersistence(
+export const mockUserEventEntityValue = PrismaMapper.toUserEventEntity(
   mockDbUserEventValue,
   mockDBUserValue,
   mockDbAudioEventValue,
@@ -362,7 +378,7 @@ export const mockDBRoleValue = {
   name: "dev",
   created_at: new Date("2025-01-01"),
   platform_created_at: new Date("2025-01-01"),
-  user_role: [{ user: mockDBUserValue }],
+  users: [mockDBUserValue],
 };
 
 /**
@@ -398,7 +414,7 @@ export function createMockDbChannel(overrides: Partial<Channel> = {}): Channel {
     created_at: new Date("2023-01-01"),
     message: [],
     user_reaction: [],
-    user_channel: [],
+    users: [],
     ...overrides,
   } as Channel;
 }
@@ -469,7 +485,7 @@ export function createMockUserEntity(
   overrides: Partial<UserEntity> = {},
 ): UserEntity {
   const dbUser = createMockDbUser();
-  const userEntity = UserEntity.fromPersistence(dbUser);
+  const userEntity = PrismaMapper.toUserEntity(dbUser);
   return new UserEntity(
     overrides.id ?? userEntity.id,
     overrides.platformId ?? userEntity.platformId,
@@ -493,7 +509,7 @@ export function createMockChannelEntity(
   overrides: Partial<ChannelEntity> = {},
 ): ChannelEntity {
   const dbChannel = createMockDbChannel();
-  const channelEntity = ChannelEntity.fromPersistence(dbChannel, [], [], []);
+  const channelEntity = PrismaMapper.toChannelEntity(dbChannel, [], [], []);
   return new ChannelEntity(
     overrides.id ?? channelEntity.id,
     overrides.platformId ?? channelEntity.platformId,
@@ -533,11 +549,7 @@ export function createMockMessageEntity(
   const dbUser = createMockDbUser();
   const dbChannel = createMockDbChannel();
 
-  const baseEntity = MessageEntity.fromPersistence(
-    dbMessage,
-    dbUser,
-    dbChannel,
-  );
+  const baseEntity = PrismaMapper.toMessageEntity(dbMessage, dbUser, dbChannel);
 
   // Se não há overrides específicos, retorna a entidade base
   if (Object.keys(overrides).length === 0) {

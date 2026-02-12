@@ -9,6 +9,7 @@ import {
   LoggerContextStatus,
 } from "@type/LoggerContextEnum";
 import { ILoggerService } from "@services/ILogger";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class UserRepository implements IUserRepository {
   private client: PrismaClient;
@@ -33,7 +34,7 @@ export class UserRepository implements IUserRepository {
       const result = await this.client.user.create({
         data: this.toPersistence(user),
       });
-      return UserEntity.fromPersistence(result);
+      return PrismaMapper.toUserEntity(result);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -84,19 +85,19 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
 
       return result
-        ? UserEntity.fromPersistence(
+        ? PrismaMapper.toUserEntity(
             result,
             result.message,
             result.message_reaction,
-            result.user_channel.map((userChannel) => userChannel.channel),
-            result.user_role.map((userRole) => userRole.role),
+            result.channels,
+            result.roles,
             result.audio_event,
           )
         : null;
@@ -133,19 +134,19 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
 
       return result
-        ? UserEntity.fromPersistence(
+        ? PrismaMapper.toUserEntity(
             result,
             result.message,
             result.message_reaction,
-            result.user_channel.map((userChannel) => userChannel.channel),
-            result.user_role.map((userRole) => userRole.role),
+            result.channels,
+            result.roles,
             result.audio_event,
           )
         : null;
@@ -182,19 +183,19 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          user_channel: { include: { channel: true } },
-          user_role: { include: { role: true } },
+          channels: true,
+          roles: true,
           audio_event: true,
         },
       });
 
       return results.map((result) =>
-        UserEntity.fromPersistence(
+        PrismaMapper.toUserEntity(
           result,
           result.message,
           result.message_reaction,
-          result.user_channel.map((userChannel) => userChannel.channel),
-          result.user_role.map((userRole) => userRole.role),
+          result.channels,
+          result.roles,
           result.audio_event,
         ),
       );
@@ -224,35 +225,13 @@ export class UserRepository implements IUserRepository {
         where: { id },
         data: this.toPersistence(user),
       });
-      return result ? UserEntity.fromPersistence(result) : null;
+      return result ? PrismaMapper.toUserEntity(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
         LoggerContextEntity.USER,
         `updateById | ${error.message}`,
-      );
-    }
-  }
-
-  /**
-   * Deleta um usuario pelo id.
-   *
-   * @param {number} id O id do usuario a ser deletado.
-   * @returns {Promise<boolean>} True se o usuario foi deletado, false caso contrario.
-   */
-  async deleteById(id: number): Promise<boolean> {
-    try {
-      const result = await this.client.user.delete({
-        where: { id },
-      });
-      return result ? true : false;
-    } catch (error) {
-      this.logger.logToConsole(
-        LoggerContextStatus.ERROR,
-        LoggerContext.REPOSITORY,
-        LoggerContextEntity.USER,
-        `deleteById | ${error.message}`,
       );
     }
   }

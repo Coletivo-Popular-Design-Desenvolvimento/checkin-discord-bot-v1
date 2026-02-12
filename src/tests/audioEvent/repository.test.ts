@@ -1,6 +1,4 @@
 import { AudioEventEntity } from "@domain/entities/AudioEvent";
-import { ChannelEntity } from "@domain/entities/Channel";
-import { UserEntity } from "@domain/entities/User";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
   LoggerContextStatus,
@@ -18,6 +16,7 @@ import {
   mockAudioEventUpdatePayload,
 } from "@tests/config/constants";
 import { prismaMock } from "@tests/config/singleton";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("AudioEventRepository", () => {
   let audioEventRepository: AudioEventRepository;
@@ -59,17 +58,27 @@ describe("AudioEventRepository", () => {
       expect(prismaMock.audioEvent.create).toHaveBeenCalledWith({
         data: {
           platform_id: mockAudioEventCreatePayload.platformId,
-          channel_id: mockAudioEventCreatePayload.channel.platformId,
-          creator_id: mockAudioEventCreatePayload.creator.platformId,
           name: mockAudioEventCreatePayload.name,
           description: mockAudioEventCreatePayload.description,
-          status_id: mockAudioEventCreatePayload.statusId,
           start_at: mockAudioEventCreatePayload.startAt,
           end_at: mockAudioEventCreatePayload.endAt,
           user_count: mockAudioEventCreatePayload.userCount,
           image: mockAudioEventCreatePayload.image,
+          channel: {
+            connect: {
+              platform_id: mockAudioEventCreatePayload.channel.platformId,
+            },
+          },
+          creator: {
+            connect: {
+              platform_id: mockAudioEventCreatePayload.creator.platformId,
+            },
+          },
+          status: {
+            connect: { platform_id: mockAudioEventCreatePayload.statusId },
+          },
         },
-        include: { channel: true, creator: true },
+        include: { channel: true, creator: true, status: true },
       });
       expect(event).toEqual(
         new AudioEventEntity(
@@ -83,8 +92,8 @@ describe("AudioEventRepository", () => {
           mockDbAudioEventCreatedValue.created_at,
           mockDbAudioEventCreatedValue.description,
           mockDbAudioEventCreatedValue.image,
-          ChannelEntity.fromPersistence(mockDbAudioEventCreatedValue.channel),
-          UserEntity.fromPersistence(mockDbAudioEventCreatedValue.creator),
+          PrismaMapper.toChannelEntity(mockDbAudioEventCreatedValue.channel),
+          PrismaMapper.toUserEntity(mockDbAudioEventCreatedValue.creator),
         ),
       );
     });
@@ -260,15 +269,10 @@ describe("AudioEventRepository", () => {
         data: {
           platform_id: mockAudioEventUpdatePayload.platformId,
           name: mockAudioEventUpdatePayload.name,
-          status_id: mockAudioEventUpdatePayload.statusId,
           user_count: mockAudioEventUpdatePayload.userCount,
-          // other fields should be undefined if not in payload
-          channel_id: undefined,
-          creator_id: undefined,
-          description: undefined,
-          start_at: undefined,
-          end_at: undefined,
-          image: undefined,
+          status: {
+            connect: { platform_id: mockAudioEventUpdatePayload.statusId },
+          },
         },
         include: { channel: true, creator: true },
       });

@@ -16,7 +16,9 @@ export class FindUser implements IFindUser {
     private readonly logger: ILoggerService,
   ) {}
 
-  async execute(id: number | string): Promise<GenericOutputDto<UserEntity>> {
+  async execute(
+    id: number | string,
+  ): Promise<GenericOutputDto<UserEntity | null>> {
     try {
       let user: UserEntity;
 

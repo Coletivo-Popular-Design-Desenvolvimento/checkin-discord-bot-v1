@@ -11,6 +11,7 @@ import {
   LoggerContextStatus,
 } from "@domain/types/LoggerContextEnum";
 import { PrismaService } from "../prisma/prismaService";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class AudioEventRepository implements IAudioEventRepository {
   private client: PrismaClient;
@@ -64,15 +65,29 @@ export class AudioEventRepository implements IAudioEventRepository {
 
       const result = await this.client.audioEvent.create({
         data: {
-          ...this.toPersistence(eventData),
-          status_id: eventStatus.platform_id,
+          platform_id: eventData.platformId,
+          name: eventData.name,
+          start_at: eventData.startAt,
+          end_at: eventData.endAt,
+          user_count: eventData.userCount,
+          description: eventData.description,
+          image: eventData.image,
+          channel: {
+            connect: { platform_id: eventData.channel?.platformId },
+          },
+          creator: {
+            connect: { platform_id: eventData.creator?.platformId },
+          },
+          status: {
+            connect: { platform_id: eventStatus.platform_id },
+          },
         },
-        include: { channel: true, creator: true },
+        include: { channel: true, creator: true, status: true },
       });
-      return AudioEventEntity.fromPersistence(
+      return PrismaMapper.toAudioEventEntity(
         result,
-        result.channel,
-        result.creator,
+        result.channel!,
+        result.creator!,
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -128,7 +143,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(
+        ? PrismaMapper.toAudioEventEntity(
             result,
             result.channel,
             result.creator,
@@ -152,7 +167,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return result
-        ? AudioEventEntity.fromPersistence(
+        ? PrismaMapper.toAudioEventEntity(
             result,
             result.channel,
             result.creator,
@@ -187,11 +202,7 @@ export class AudioEventRepository implements IAudioEventRepository {
         include: { channel: true, creator: true },
       });
       return results.map((result) =>
-        AudioEventEntity.fromPersistence(
-          result,
-          result.channel,
-          result.creator,
-        ),
+        PrismaMapper.toAudioEventEntity(result, result.channel, result.creator),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -221,6 +232,41 @@ export class AudioEventRepository implements IAudioEventRepository {
     eventData: Partial<Omit<AudioEventEntity, "id" | "createdAt">>,
   ): Promise<AudioEventEntity | null> {
     try {
+      const updateData: {
+        platform_id?: string;
+        name?: string;
+        start_at?: Date;
+        end_at?: Date | null;
+        user_count?: number;
+        description?: string | null;
+        image?: string | null;
+        channel?: { connect: { platform_id: string } };
+        creator?: { connect: { platform_id: string } };
+        status?: { connect: { platform_id: string } };
+      } = {};
+
+      if (eventData.platformId) updateData.platform_id = eventData.platformId;
+      if (eventData.name) updateData.name = eventData.name;
+      if (eventData.startAt) updateData.start_at = eventData.startAt;
+      if (eventData.endAt !== undefined) updateData.end_at = eventData.endAt;
+      if (eventData.userCount !== undefined)
+        updateData.user_count = eventData.userCount;
+      if (eventData.description !== undefined)
+        updateData.description = eventData.description;
+      if (eventData.image !== undefined) updateData.image = eventData.image;
+
+      if (eventData.channel?.platformId) {
+        updateData.channel = {
+          connect: { platform_id: eventData.channel.platformId },
+        };
+      }
+
+      if (eventData.creator?.platformId) {
+        updateData.creator = {
+          connect: { platform_id: eventData.creator.platformId },
+        };
+      }
+
       if (eventData.statusId) {
         const eventStatus = await this.findOrCreateEventStatus(
           eventData.statusId,
@@ -234,14 +280,17 @@ export class AudioEventRepository implements IAudioEventRepository {
           );
           return null;
         }
+        updateData.status = {
+          connect: { platform_id: eventStatus.platform_id },
+        };
       }
 
       const result = await this.client.audioEvent.update({
         where: { id },
-        data: this.toPersistence(eventData),
+        data: updateData,
         include: { channel: true, creator: true },
       });
-      return AudioEventEntity.fromPersistence(
+      return PrismaMapper.toAudioEventEntity(
         result,
         result.channel,
         result.creator,

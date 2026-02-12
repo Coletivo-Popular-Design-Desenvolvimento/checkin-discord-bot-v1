@@ -8,6 +8,7 @@ import {
 } from "@domain/types/LoggerContextEnum";
 import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prismaService";
+import { PrismaMapper } from "./PrismaMapper";
 
 export class RoleRepository implements IRoleRepository {
   private client: PrismaClient;
@@ -25,13 +26,10 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
 
-      return RoleEntity.fromPersistence(
-        result,
-        result.user_role.map((userRole) => userRole.user),
-      );
+      return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -44,15 +42,10 @@ export class RoleRepository implements IRoleRepository {
   async findByUserPlatformId(id: string): Promise<RoleEntity[] | null> {
     try {
       const result = await this.client.role.findMany({
-        where: { user_role: { some: { user: { platform_id: id } } } },
-        include: { user_role: { include: { user: true } } },
+        where: { users: { some: { platform_id: id } } },
+        include: { users: true },
       });
-      return result.map((role) =>
-        RoleEntity.fromPersistence(
-          role,
-          role.user_role.map((userRole) => userRole.user),
-        ),
-      );
+      return result.map((role) => PrismaMapper.toRoleEntity(role, role.users));
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -66,12 +59,9 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { platform_id: id },
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
-      return RoleEntity.fromPersistence(
-        result,
-        result.user_role.map((userRole) => userRole.user),
-      );
+      return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -85,13 +75,10 @@ export class RoleRepository implements IRoleRepository {
     try {
       const results = await this.client.role.findMany({
         take: limit,
-        include: { user_role: { include: { user: true } } },
+        include: { users: true },
       });
       return results.map((result) =>
-        RoleEntity.fromPersistence(
-          result,
-          result.user_role.map((userRole) => userRole.user),
-        ),
+        PrismaMapper.toRoleEntity(result, result.users),
       );
     } catch (error) {
       this.logger.logToConsole(
@@ -111,7 +98,7 @@ export class RoleRepository implements IRoleRepository {
         where: { id },
         data: this.toPersistence(role),
       });
-      return result ? RoleEntity.fromPersistence(result) : null;
+      return result ? PrismaMapper.toRoleEntity(result) : null;
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,

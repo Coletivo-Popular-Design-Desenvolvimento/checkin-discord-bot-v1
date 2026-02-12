@@ -12,6 +12,8 @@ import { ChannelRepository } from "@infra/repositories/ChannelRepository";
 import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepository";
 import { AudioEventRepository } from "@infra/repositories/AudioEventRepository";
 import { IAudioEventRepository } from "@domain/interfaces/repositories/IAudioEventRepository";
+import { IUserEventRepository } from "@repositories/IUserEventRepository";
+import { UserEventRepository } from "@infra/repositories/UserEventRepository";
 
 /**
  * Inicializa e configura o banco de dados.
@@ -32,6 +34,7 @@ export function initializeDatabase(
   messageReactionRepository: IMessageReactionRepository;
   channelRepository: IChannelRepository;
   audioEventRepository: IAudioEventRepository;
+  userEventRepository: IUserEventRepository;
 } {
   const prismaClient = new PrismaClient();
   const newPrismaService = new PrismaService(prismaClient);
@@ -56,6 +59,10 @@ export function initializeDatabase(
     prismaService ?? newPrismaService,
     logger,
   );
+  const userEventRepository = new UserEventRepository(
+    prismaService ?? newPrismaService,
+    logger,
+  );
 
   return {
     userRepository,
@@ -63,5 +70,6 @@ export function initializeDatabase(
     messageReactionRepository,
     channelRepository,
     audioEventRepository,
+    userEventRepository,
   };
 }

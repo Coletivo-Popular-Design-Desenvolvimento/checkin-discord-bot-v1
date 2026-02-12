@@ -1,5 +1,3 @@
-import { UserEventEntity } from "@domain/entities/UserEvent";
-import { UserEntity } from "@domain/entities/User";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
   LoggerContext,
@@ -15,8 +13,8 @@ import {
   mockUserEventEntityValue,
 } from "@tests/config/constants";
 import { prismaMock } from "@tests/config/singleton";
-import { EventType } from "@prisma/client";
-import { AudioEventEntity } from "@entities/AudioEvent";
+import { EventType } from "@type/EventTypeEnum";
+import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("UserEventRepository", () => {
   let userEventRepository: UserEventRepository;
@@ -55,12 +53,10 @@ describe("UserEventRepository", () => {
         include: { user: true, event: true },
       });
       expect(event).toEqual(
-        new UserEventEntity(
-          mockDbUserEventCreatedValue.id,
-          mockDbUserEventCreatedValue.event_type,
-          mockDbUserEventCreatedValue.created_at,
-          UserEntity.fromPersistence(mockDbUserEventCreatedValue.user),
-          AudioEventEntity.fromPersistence(mockDbUserEventCreatedValue.event),
+        PrismaMapper.toUserEventEntity(
+          mockDbUserEventCreatedValue,
+          mockDbUserEventCreatedValue.user,
+          mockDbUserEventCreatedValue.event,
         ),
       );
     });
