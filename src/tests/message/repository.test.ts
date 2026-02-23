@@ -57,6 +57,9 @@ describe("MessageRepository", () => {
 
   afterEach(async () => {
     await messageRepository.deleteById(messageToBeFound.id);
+    await jestPrisma.client.user
+      .delete({ where: { id: messageUser.id } })
+      .catch(() => {});
     await channelRepository.deleteById(messageChannel.id);
   });
 
