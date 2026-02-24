@@ -47,6 +47,7 @@ Este projeto segue **Clean Architecture + CQRS**, garantindo:
 
 - [📋 Documentação de Produto](./0%20-%20Documentação%20de%20Produto.md) - Visão de negócio e objetivos
 - [🔧 Documentação Técnica](./1%20-%20Documentação%20técnica.md) - Overview completo da implementação
+- [🤖 Criar bot no Discord](./Criar-bot-Discord.md) - Passo a passo com prints (token, OAuth2, convite)
 - [🗂️ Índice de Leitura](./🗂️%20Índice%20de%20Leitura%20-%20Checkin%20Bot.md) - Guia de navegação por perfil
 
 ### 🏛️ **Arquitetura Detalhada**
