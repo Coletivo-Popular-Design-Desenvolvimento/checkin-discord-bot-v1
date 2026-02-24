@@ -111,6 +111,8 @@ npm run dev
 
 Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
 
+> **Erro `P1001: Can't reach database server at db:3306`?** O container do banco deve estar parado. Suba a stack e confira: `docker compose --profile dev up -d` e depois `docker compose ps` (o serviço `db` deve estar com status "healthy"). No `.env`, use `DB_HOST=db` quando rodar com Docker.
+
 > ⚠️ **Atenção Usuários Windows:** Se você possui uma instalação local do MariaDB ou MySQL no seu Windows, você poderá encontrar um erro relacionado ao plugin `auth_gssapi_client` ao tentar rodar `npm run dev` (especificamente durante as etapas do Prisma). Isso ocorre porque o Prisma pode tentar usar o cliente de banco de dados instalado globalmente em vez do esperado.
 >
 > **Soluções possíveis:**
