@@ -1,5 +1,3 @@
 # Pessoas revisoras obrigatórias
-/src/ @Coletivo-Popular-Design-Desenvolvimento/revisador-de-codigo
-
-#Documentação do projeto
-/docs/ @Coletivo-Popular-Design-Desenvolvimento/admin
+@Coletivo-Popular-Design-Desenvolvimento/lider-de-projeto
+@Coletivo-Popular-Design-Desenvolvimento/revisador-de-codigo
