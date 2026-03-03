@@ -240,7 +240,7 @@ Mesmo que o código da tarefa seja o suficiente, adicionar algumas palavras ajud
 
 Assim que suas mudanças estiverem prontas, é hora de criar o Pull Request!
 
-Na página do seu fork, clique em `Pull requests`, selecione a base como o repositório do CPDD, branch `homol`. Seleciona a sua branch como origem das mudanças.
+Na página do seu fork, clique em `Pull requests`, selecione a base como o repositório do CPDD, branch `homol`. Selecione a sua branch como origem das mudanças.
 
 ## 📜 Licença
 
