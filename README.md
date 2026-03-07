@@ -111,6 +111,8 @@ npm run dev
 
 Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
 
+> **Erro `P1001: Can't reach database server at db:3306`?** O container do banco deve estar parado. Suba a stack e confira: `docker compose --profile dev up -d` e depois `docker compose ps` (o serviço `db` deve estar com status "healthy"). No `.env`, use `DB_HOST=db` quando rodar com Docker.
+
 > ⚠️ **Atenção Usuários Windows:** Se você possui uma instalação local do MariaDB ou MySQL no seu Windows, você poderá encontrar um erro relacionado ao plugin `auth_gssapi_client` ao tentar rodar `npm run dev` (especificamente durante as etapas do Prisma). Isso ocorre porque o Prisma pode tentar usar o cliente de banco de dados instalado globalmente em vez do esperado.
 >
 > **Soluções possíveis:**
@@ -150,25 +152,24 @@ docker compose -f compose.yml --profile prod up -d --build
 
 ## 🔖 Como criar o Bot no Discord
 
-1. Acesse o [Discord Developer Portal](https://discord.com/developers/applications)
-2. Clique em **New Application**
-3. Adicione um nome padrão neste formato **teste-tpdd-bot-seu-nome**
-4. Copie o **Token** e adicione no `.env`
-5. Em **OAuth2** → **Client information**:
+Guia completo com prints: **[docs/Criar-bot-Discord.md](docs/Criar-bot-Discord.md)**.
 
-   - **Client ID**: `Copie o id`
+| Informação       | Onde obter                | Uso                   |
+| ---------------- | ------------------------- | --------------------- |
+| **Token do bot** | Bot → Token (Reset Token) | `TOKEN_BOT` no `.env` |
+| **Client ID**    | OAuth2 → URL gerada       | URL de convite        |
 
-6. Gere uma URL de permissão
+1. [Discord Developer Portal](https://discord.com/developers/applications)
+   → **New Application** → nome `teste-tpdd-bot-seu-nome`.
+2. **Bot** → **Reset Token** → copie o token → coloque no `.env` como `TOKEN_BOT`.
+3. **OAuth2** → marque o scope **bot** (e **applications.commands**) → copie a **Generated URL** (contém o Client ID).
+4. Abra a URL de convite no navegador, escolha o servidor **TPDD - Teste Popular de Desenvolvimento** e clique em **Authorize**.
+
+URL de convite sugerida:
 
 ```
-https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=1759218604441591&scope=bot applications.commands
+https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=175921860444159&scope=bot%20applications.commands
 ```
-
-7. Autorizar o Bot no seu servidor
-   - Acesse o link gerado trocando o clint_id pelo do seu bot criado.
-   - Escolha o servidor **TPDD - Teste Popular de Desenvolvimento**
-   - Aceite as permissões.
-   - Clique em **Authorize**.
 
 ## 📂 Estrutura do Projeto
 
