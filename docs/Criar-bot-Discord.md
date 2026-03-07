@@ -51,7 +51,16 @@ A **URL de convite** é gerada no OAuth2 e usada para adicionar o bot ao servido
 
 ---
 
-## 4. Configurar OAuth2 e escopos
+## 4. Permissões de Intents
+
+1. No menu lateral da aplicação, clique em **Bot**.
+2. Na seção **Privileged Gateway Intents**, ative às intents necessárias para o bot de acordo com a imagem.
+
+![Página Bot — Intent Permissions](./criar-bot-discord/07-intents-permissions.png)
+
+---
+
+## 5. Configurar OAuth2 e escopos
 
 1. No menu lateral, clique em **OAuth2**.
 2. Em **OAuth2 URL Generator**:
@@ -64,7 +73,7 @@ A **URL de convite** é gerada no OAuth2 e usada para adicionar o bot ao servido
 
 ---
 
-## 5. Gerar a URL de convite
+## 6. Gerar a URL de convite
 
 1. Ainda em **OAuth2**, role até **Integration Type** e **Generated URL**.
 2. Em **Integration Type**, deixe **Guild Install** (instalação por servidor).
@@ -86,7 +95,7 @@ Substitua `SEU_CLIENT_ID` pelo Client ID da sua aplicação.
 
 ---
 
-## 6. Adicionar o bot ao servidor
+## 7. Adicionar o bot ao servidor
 
 1. Abra a **URL de convite** gerada no navegador (com seu `client_id`).
 2. Na tela de autorização:
@@ -98,7 +107,7 @@ Substitua `SEU_CLIENT_ID` pelo Client ID da sua aplicação.
 
 ---
 
-## 7. Configurar o projeto
+## 8. Configurar o projeto
 
 1. No repositório do bot, crie ou edite o arquivo `.env` na raiz.
 2. Defina pelo menos:
