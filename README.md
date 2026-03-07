@@ -218,9 +218,29 @@ checkin-discord-bot-v1
 └── tsconfig.json
 ```
 
+## Contribuindo com o projeto
+
+Esta seção detalha as informações sobre branches de longa duração e dos passos para contribuir com o projeto.
+
+### Branches the longa duração
+
+| Nome da branch | Propósito                                                | Ambiente de teste |
+| -------------- | -------------------------------------------------------- | ----------------- |
+| main           | Código estável, que vai para produção                    | -                 |
+| homol          | Pré-produção, testes em ambiente similar à produção      | homol             |
+| feature/\*     | Desenvolvimento da funcionalidade. Trabalho em andamento | servidor privado  |
+
+### Quero contribuir. Que fazer?
+
+Comece criando uma branch relacionada à sua tarefa. Suponhamos que sua tarefa tenha código CPDD-1917 e se trate de 
+criar documentação sobre testes. Crie uma branch chamada `feature/CPDD-1917-criar-documentacao-testes`.
+Mesmo que o código da tarefa seja o suficiente, adicionar algumas palavras ajuda a contextualizar.
+
+Assim que suas mudanças estiverem prontas, é hora de criar o Pull Request! 
+
 ## 📜 Licença
 
-Este projeto está licenciado sob a [Licença AGPL](LICENSE).
+Este projeto está licenciado sob a [Licença AGPL](LICENSE).
 
 ## 🧠 Observação Final
 
