@@ -6,6 +6,8 @@ Checkin Discord Bot é um bot de autenticação e monitoramento de usuários par
 
 ## 📈 Funcionalidades
 
+testes
+
 - Registro automático de usuários no Discord
 - Atribuição de cargos após autenticação
 - Monitoramento de mensagens e chamadas de voz
