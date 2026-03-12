@@ -18,6 +18,12 @@ export interface IMessageReactionRepository {
     userPlatformId: string,
   ): Promise<MessageReactionEntity[]>;
 
+  findByUserMessageAndEmoji(
+    userId: string,
+    messageId: string,
+    reactionEmoji: string,
+  ): Promise<MessageReactionEntity | null>;
+
   updateMessageReaction(
     id: number,
     data: UpdateMessageReactionData,

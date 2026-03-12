@@ -8,5 +8,7 @@ export class MessageReactionEntity {
     public readonly user?: UserEntity,
     public readonly message?: MessageEntity,
     public readonly channel?: ChannelEntity,
+    public readonly reactionEmoji?: string,
+    public readonly reactedAt?: Date,
   ) {}
 }

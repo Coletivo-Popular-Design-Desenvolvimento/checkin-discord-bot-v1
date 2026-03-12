@@ -6,7 +6,11 @@ import {
   GuildMember,
   GuildScheduledEvent,
   Message,
+  MessageReaction,
+  PartialMessageReaction,
   PartialGuildMember,
+  PartialUser,
+  User,
   VoiceState,
   PartialGuildScheduledEvent,
 } from "discord.js";
@@ -34,6 +38,7 @@ const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {
     GatewayIntentBits.GuildScheduledEvents,
   ],
   [Events.VoiceStateUpdate]: [GatewayIntentBits.GuildVoiceStates],
+  [Events.MessageReactionAdd]: [GatewayIntentBits.GuildMessageReactions],
 };
 
 /**
@@ -55,7 +60,9 @@ export function initializeDiscord(): {
     Client,
     VoiceState,
     GuildChannel,
-    GuildScheduledEvent | PartialGuildScheduledEvent
+    GuildScheduledEvent | PartialGuildScheduledEvent,
+    MessageReaction | PartialMessageReaction,
+    User | PartialUser
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();

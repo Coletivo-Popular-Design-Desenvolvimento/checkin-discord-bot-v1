@@ -1,5 +1,6 @@
 import { ChannelCommand } from "@application/command/channelCommand";
 import { MessageCommand } from "@application/command/messageCommand";
+import { MessageReactionCommand } from "@application/command/messageReactionCommand";
 import { UserCommand } from "@application/command/userCommand";
 import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
@@ -13,6 +14,7 @@ import { initializeDatabase } from "./database.context";
 import { initializeDiscord } from "./discord.context";
 import { initializeChannelUseCases } from "./useChannelCases.context";
 import { initializeMessageUseCases } from "./useMessageCases.context";
+import { initializeMessageReactionUseCases } from "./useMessageReactionCases.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { initializeUserEventUseCases } from "@contexts/userEventUseCases.context";
@@ -26,6 +28,7 @@ export function initializeApp() {
     userEventRepository,
     audioEventRepository,
     messageRepository,
+    messageReactionRepository,
     channelRepository,
   } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
@@ -65,6 +68,15 @@ export function initializeApp() {
     logger,
   );
 
+  const { registerMessageReaction } = initializeMessageReactionUseCases(
+    messageReactionRepository,
+    userRepository,
+    channelRepository,
+    messageRepository,
+    userUseCases.createUserCase,
+    logger,
+  );
+
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
     discordService,
@@ -86,6 +98,7 @@ export function initializeApp() {
   );
 
   new MessageCommand(discordService, logger, registerMessage);
+  new MessageReactionCommand(discordService, logger, registerMessageReaction);
 
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
