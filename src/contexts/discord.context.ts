@@ -21,6 +21,10 @@ const EVENT_INTENTS_MAP: Partial<Record<Events, GatewayIntentBits[]>> = {
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.Guilds,
   ],
+  [Events.GuildMemberUpdate]: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+  ],
   [Events.GuildScheduledEventUpdate]: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildScheduledEvents,

@@ -1,7 +1,7 @@
 import { ILoggerService } from "@services/ILogger";
 import { PrismaService } from "@infra/persistence/prisma/prismaService";
 import { RoleRepository } from "@infra/repositories/RoleRepository";
-import { mockDBRoleValue } from "../config/constants";
+import { mockDBRoleValue, mockDBUserValue } from "../config/constants";
 import { prismaMock } from "../config/singleton";
 import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
@@ -59,16 +59,17 @@ describe("RoleRepository", () => {
         include: { users: true },
       });
 
-      expect(role).toBeUndefined();
+      expect(role).toBeNull();
     });
 
     it("should log an error", async () => {
       prismaMock.role.findUnique.mockRejectedValue(new Error());
       const spy = jest.spyOn(console, "error");
 
-      await roleRepository.findById(mockDBRoleValue.id);
+      const role = await roleRepository.findById(mockDBRoleValue.id);
 
       expect(spy).toHaveBeenCalledWith("ERROR");
+      expect(role).toBeNull();
     });
   });
 
@@ -98,7 +99,7 @@ describe("RoleRepository", () => {
       const role = await roleRepository.findByUserPlatformId(platform_id);
 
       expect(prismaMock.role.findMany).toHaveBeenCalledTimes(1);
-      expect(role).toBeUndefined();
+      expect(role).toBeNull();
     });
   });
 
@@ -134,7 +135,7 @@ describe("RoleRepository", () => {
         where: { platform_id: platform_id },
         include: { users: true },
       });
-      expect(role).toBeUndefined();
+      expect(role).toBeNull();
     });
   });
 
@@ -164,7 +165,7 @@ describe("RoleRepository", () => {
         name: "dev",
       };
 
-      prismaMock.user.update.mockRejectedValue(new Error());
+      prismaMock.role.update.mockRejectedValue(new Error());
       await roleRepository.updateById(id, roleData);
 
       expect(prismaMock.role.update).toHaveBeenCalledTimes(1);
@@ -210,7 +211,7 @@ describe("RoleRepository", () => {
         where: { id: mockDBRoleValue.id },
       });
 
-      expect(role).toBe(role);
+      expect(role).toBe(true);
     });
 
     it("should throw an error", async () => {
@@ -225,6 +226,123 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.delete).toHaveBeenCalledWith({
         where: { id: mockDBRoleValue.id },
       });
+    });
+  });
+
+  describe("create", () => {
+    it("should create a role", async () => {
+      const roleInput = {
+        platformId: "new-role-id",
+        name: "new-role",
+        platformCreatedAt: new Date("2025-01-01"),
+      };
+      const createdRole = {
+        ...mockDBRoleValue,
+        platform_id: roleInput.platformId,
+        name: roleInput.name,
+        users: [],
+      };
+
+      prismaMock.role.create.mockResolvedValue(createdRole);
+
+      const role = await roleRepository.create(roleInput);
+
+      expect(prismaMock.role.create).toHaveBeenCalledTimes(1);
+      expect(prismaMock.role.create).toHaveBeenCalledWith({
+        data: {
+          platform_id: roleInput.platformId,
+          name: roleInput.name,
+          platform_created_at: roleInput.platformCreatedAt,
+        },
+      });
+      expect(role).toHaveProperty("platformId", roleInput.platformId);
+      expect(role).toHaveProperty("name", roleInput.name);
+    });
+
+    it("should throw an error on create failure", async () => {
+      const roleInput = {
+        platformId: "new-role-id",
+        name: "new-role",
+        platformCreatedAt: new Date("2025-01-01"),
+      };
+
+      prismaMock.role.create.mockRejectedValue(new Error("Create failed"));
+      const spy = jest.spyOn(console, "error");
+
+      await expect(roleRepository.create(roleInput)).rejects.toThrow(
+        "Create failed",
+      );
+      expect(spy).toHaveBeenCalledWith("ERROR");
+    });
+  });
+
+  describe("assignRoleToUser", () => {
+    it("should assign a role to a user", async () => {
+      prismaMock.role.update.mockResolvedValue(mockDBRoleValue);
+
+      const result = await roleRepository.assignRoleToUser(
+        mockDBRoleValue.platform_id,
+        mockDBUserValue.platform_id,
+      );
+
+      expect(prismaMock.role.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.role.update).toHaveBeenCalledWith({
+        where: { platform_id: mockDBRoleValue.platform_id },
+        data: {
+          users: {
+            connect: { platform_id: mockDBUserValue.platform_id },
+          },
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it("should return false on error", async () => {
+      prismaMock.role.update.mockRejectedValue(new Error("Assign failed"));
+      const spy = jest.spyOn(console, "error");
+
+      const result = await roleRepository.assignRoleToUser(
+        mockDBRoleValue.platform_id,
+        mockDBUserValue.platform_id,
+      );
+
+      expect(spy).toHaveBeenCalledWith("ERROR");
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("removeRoleFromUser", () => {
+    it("should remove a role from a user", async () => {
+      prismaMock.role.update.mockResolvedValue(mockDBRoleValue);
+
+      const result = await roleRepository.removeRoleFromUser(
+        mockDBRoleValue.platform_id,
+        mockDBUserValue.platform_id,
+      );
+
+      expect(prismaMock.role.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.role.update).toHaveBeenCalledWith({
+        where: { platform_id: mockDBRoleValue.platform_id },
+        data: {
+          users: {
+            disconnect: { platform_id: mockDBUserValue.platform_id },
+          },
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it("should return false on error", async () => {
+      prismaMock.role.update.mockRejectedValue(new Error("Remove failed"));
+      const spy = jest.spyOn(console, "error");
+
+      const result = await roleRepository.removeRoleFromUser(
+        mockDBRoleValue.platform_id,
+        mockDBUserValue.platform_id,
+      );
+
+      expect(spy).toHaveBeenCalledWith("ERROR");
+      expect(result).toBe(false);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { ChannelCommand } from "@application/command/channelCommand";
 import { MessageCommand } from "@application/command/messageCommand";
+import { RoleUpdateCommand } from "@application/command/roleUpdateCommand";
 import { UserCommand } from "@application/command/userCommand";
 import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
@@ -16,6 +17,7 @@ import { initializeMessageUseCases } from "./useMessageCases.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { initializeUserEventUseCases } from "@contexts/userEventUseCases.context";
+import { initializeRoleUseCases } from "@contexts/useRoleCases.context";
 import { UserEventCommand } from "@application/command/userEventCommand";
 
 export function initializeApp() {
@@ -27,6 +29,7 @@ export function initializeApp() {
     audioEventRepository,
     messageRepository,
     channelRepository,
+    roleRepository,
   } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
   const { TOKEN_BOT } = process.env;
@@ -64,6 +67,12 @@ export function initializeApp() {
     userUseCases.createUserCase,
     logger,
   );
+  const roleUseCases = initializeRoleUseCases(
+    roleRepository,
+    userRepository,
+    userUseCases.createUserCase,
+    logger,
+  );
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -86,6 +95,12 @@ export function initializeApp() {
   );
 
   new MessageCommand(discordService, logger, registerMessage);
+
+  new RoleUpdateCommand(
+    discordService,
+    logger,
+    roleUseCases.updateUserRoleCase,
+  );
 
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();
