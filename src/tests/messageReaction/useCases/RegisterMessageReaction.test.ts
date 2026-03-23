@@ -274,7 +274,7 @@ describe("RegisterMessageReaction", () => {
       expect(mockMessageReactionRepository.create).toHaveBeenCalled();
     });
 
-    it("should return existing reaction when reaction already registered", async () => {
+    it("should return existing reaction when reaction registered", async () => {
       const input = {
         userId: "user123",
         messageId: "message123",
@@ -293,13 +293,13 @@ describe("RegisterMessageReaction", () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockReaction);
-      expect(result.message).toBe("Reaction already registered");
+      expect(result.message).toBe("Reaction registered");
       expect(mockMessageReactionRepository.create).not.toHaveBeenCalled();
       expect(mockLogger.logToConsole).toHaveBeenCalledWith(
         "SUCCESS",
         "USECASE",
         "MESSAGE_REACTION",
-        expect.stringContaining("Reaction already registered"),
+        expect.stringContaining("Reaction registered"),
       );
     });
 
