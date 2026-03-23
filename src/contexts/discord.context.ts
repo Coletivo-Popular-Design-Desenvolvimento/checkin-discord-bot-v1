@@ -10,6 +10,7 @@ import {
   PartialMessageReaction,
   PartialGuildMember,
   PartialUser,
+  Partials,
   User,
   VoiceState,
   PartialGuildScheduledEvent,
@@ -66,7 +67,15 @@ export function initializeDiscord(): {
   >;
 } {
   const intents = Object.values(EVENT_INTENTS_MAP).flat();
-  const client = new Client({ intents: intents });
+  const client = new Client({
+    intents,
+    partials: [
+      Partials.Message,
+      Partials.Channel,
+      Partials.Reaction,
+      Partials.User,
+    ],
+  });
   const discordService = new DiscordService(client);
   return { discordService };
 }

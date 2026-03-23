@@ -99,12 +99,14 @@ Table message_reaction {
   message_id String [not null]
   channel_id String [not null]
   id Int [pk, increment]
+  reaction_emoji String [default: '']
+  reacted_at DateTime [default: `now()`, not null]
   channel channel [not null]
   message message [not null]
   user user [not null]
 
   indexes {
-    (user_id, message_id) [unique]
+    (user_id, message_id, reaction_emoji) [unique]
   }
 }
 
