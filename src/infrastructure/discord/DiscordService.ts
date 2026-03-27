@@ -83,8 +83,8 @@ export class DiscordService
       this.onDeleteChannelHandlers.forEach((fn) => fn(<GuildChannel>channel));
     });
 
-    this.client.on(Events.GuildScheduledEventUpdate, (event) => {
-      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    this.client.on(Events.GuildScheduledEventUpdate, (_oldEvent, newEvent) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(newEvent));
     });
 
     this.client.on(Events.GuildScheduledEventCreate, (event) => {
