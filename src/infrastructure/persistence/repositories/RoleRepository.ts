@@ -1,5 +1,8 @@
 import { RoleEntity } from "@domain/entities/Role";
-import { IRoleRepository } from "@domain/interfaces/repositories/IRoleRepository";
+import {
+  CreateRoleInput,
+  IRoleRepository,
+} from "@domain/interfaces/repositories/IRoleRepository";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
   LoggerContext,
@@ -28,7 +31,9 @@ export class RoleRepository implements IRoleRepository {
         where: { id },
         include: { users: true },
       });
-
+      if (!result) {
+        return null;
+      }
       return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
@@ -38,7 +43,9 @@ export class RoleRepository implements IRoleRepository {
         `findByIdRole | ${error.message}`,
       );
     }
+    return null;
   }
+
   async findByUserPlatformId(id: string): Promise<RoleEntity[] | null> {
     try {
       const result = await this.client.role.findMany({
@@ -54,13 +61,18 @@ export class RoleRepository implements IRoleRepository {
         `findByUserPlatformId | ${error.message}`,
       );
     }
+    return null;
   }
+
   async findByPlatformId(id: string): Promise<RoleEntity | null> {
     try {
       const result = await this.client.role.findUnique({
         where: { platform_id: id },
         include: { users: true },
       });
+      if (!result) {
+        return null;
+      }
       return PrismaMapper.toRoleEntity(result, result.users);
     } catch (error) {
       this.logger.logToConsole(
@@ -70,7 +82,9 @@ export class RoleRepository implements IRoleRepository {
         `findByPlatformId | ${error.message}`,
       );
     }
+    return null;
   }
+
   async listAll(limit?: number): Promise<RoleEntity[]> {
     try {
       const results = await this.client.role.findMany({
@@ -88,7 +102,9 @@ export class RoleRepository implements IRoleRepository {
         `listAll | ${error.message}`,
       );
     }
+    return [];
   }
+
   async updateById(
     id: number,
     role: Partial<RoleEntity>,
@@ -103,10 +119,11 @@ export class RoleRepository implements IRoleRepository {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
         LoggerContext.REPOSITORY,
-        LoggerContextEntity.USER,
+        LoggerContextEntity.ROLE,
         `updateById | ${error.message}`,
       );
     }
+    return null;
   }
 
   async deleteById(id: number): Promise<boolean> {
@@ -122,8 +139,79 @@ export class RoleRepository implements IRoleRepository {
         LoggerContextEntity.ROLE,
         `deleteRole | ${error.message}`,
       );
-      return false;
     }
+    return false;
+  }
+
+  async create(role: CreateRoleInput): Promise<RoleEntity> {
+    try {
+      const result = await this.client.role.create({
+        data: {
+          platform_id: role.platformId,
+          name: role.name,
+          platform_created_at: role.platformCreatedAt,
+        },
+      });
+      return PrismaMapper.toRoleEntity(result);
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.ROLE,
+        `create | ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  async assignRoleToUser(
+    rolePlatformId: string,
+    userPlatformId: string,
+  ): Promise<boolean> {
+    try {
+      await this.client.role.update({
+        where: { platform_id: rolePlatformId },
+        data: {
+          users: {
+            connect: { platform_id: userPlatformId },
+          },
+        },
+      });
+      return true;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.ROLE,
+        `assignRoleToUser | ${error.message}`,
+      );
+    }
+    return false;
+  }
+
+  async removeRoleFromUser(
+    rolePlatformId: string,
+    userPlatformId: string,
+  ): Promise<boolean> {
+    try {
+      await this.client.role.update({
+        where: { platform_id: rolePlatformId },
+        data: {
+          users: {
+            disconnect: { platform_id: userPlatformId },
+          },
+        },
+      });
+      return true;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.ROLE,
+        `removeRoleFromUser | ${error.message}`,
+      );
+    }
+    return false;
   }
 
   private toPersistence(role: Partial<RoleEntity>) {
