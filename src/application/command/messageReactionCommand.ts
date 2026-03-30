@@ -52,7 +52,7 @@ export class MessageReactionCommand {
     user: User | PartialUser,
   ): Promise<void> {
     try {
-      if (user.bot) {
+      if (user?.bot) {
         return;
       }
 
@@ -70,11 +70,7 @@ export class MessageReactionCommand {
 
       const result = await this.registerMessageReaction.execute(input);
 
-      const emojiLabel =
-        reaction.emoji.name ??
-        reaction.emoji.id ??
-        reaction.emoji.identifier ??
-        "";
+      const emojiLabel = MessageReactionCommand.getEmojiFromReaction(reaction);
       const logPayload = `user_id=${input.userId} message_id=${input.messageId} reaction=${emojiLabel}`;
 
       if (result.success) {
@@ -102,17 +98,27 @@ export class MessageReactionCommand {
     }
   }
 
+  /**
+   * Resolve o identificador do emoji a partir do payload de reação (unicode, custom id ou nome).
+   */
+  static getEmojiFromReaction(
+    reaction: MessageReaction | PartialMessageReaction,
+  ): string {
+    return (
+      reaction.emoji.identifier ??
+      reaction.emoji.name ??
+      reaction.emoji.id ??
+      ""
+    );
+  }
+
   static toRegisterMessageReactionInput(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ): RegisterMessageReactionInput {
     const message = reaction.message;
     const channel = message.channel;
-    const emoji =
-      reaction.emoji.identifier ??
-      reaction.emoji.name ??
-      reaction.emoji.id ??
-      "";
+    const emoji = MessageReactionCommand.getEmojiFromReaction(reaction);
 
     let channelName = "Unknown Channel";
     let channelUrl = "";
@@ -138,13 +144,12 @@ export class MessageReactionCommand {
       channelId: channel.id,
       reactionEmoji: emoji,
       reactedAt: new Date(),
-      username: "username" in user ? user.username : undefined,
-      userGlobalName: "globalName" in user ? user.globalName : undefined,
-      userBot: "bot" in user ? user.bot : undefined,
-      userPlatformCreatedAt:
-        "createdTimestamp" in user && user.createdTimestamp
-          ? new Date(user.createdTimestamp)
-          : undefined,
+      username: user?.username,
+      userGlobalName: user?.globalName,
+      userBot: user?.bot,
+      userPlatformCreatedAt: user?.createdTimestamp
+        ? new Date(user.createdTimestamp)
+        : undefined,
       userJoinedAt,
       channelName,
       channelUrl,

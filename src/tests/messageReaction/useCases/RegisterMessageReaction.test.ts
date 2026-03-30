@@ -390,19 +390,20 @@ describe("RegisterMessageReaction", () => {
         channelId: "channel123",
       };
 
-      const error = new Error("Database connection failed");
+      const errorMessage = "Database connection failed";
+      const error = new Error(errorMessage);
       mockUserRepository.findByPlatformId.mockRejectedValue(error);
 
       const result = await registerMessageReaction.execute(input);
 
       expect(result.success).toBe(false);
       expect(result.data).toBeNull();
-      expect(result.message).toBe("Database connection failed");
+      expect(result.message).toBe(errorMessage);
       expect(mockLogger.logToConsole).toHaveBeenCalledWith(
         "ERROR",
         "USECASE",
         "MESSAGE_REACTION",
-        "registerMessageReaction.execute | Database connection failed",
+        `registerMessageReaction.execute | ${errorMessage}`,
       );
     });
 
