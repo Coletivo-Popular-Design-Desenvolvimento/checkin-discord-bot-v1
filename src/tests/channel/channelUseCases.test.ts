@@ -153,7 +153,7 @@ describe("Channel useCases", () => {
       );
     });
 
-    it("should returns a not found response when channel not found", async () => {
+    it("should create channel when not found during update", async () => {
       const id = 1;
       const channelChangedData = {
         platformId: "1234567890",
@@ -166,6 +166,14 @@ describe("Channel useCases", () => {
 
       expect(channelRepository.findById).toHaveBeenCalledTimes(1);
       expect(channelRepository.findById).toHaveBeenCalledWith(id);
+      expect(channelRepository.create).toHaveBeenCalledTimes(1);
+      expect(channelRepository.create).toHaveBeenCalledWith(channelChangedData);
+      expect(loggerMock.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.SUCCESS,
+        LoggerContext.USECASE,
+        LoggerContextEntity.CHANNEL,
+        `Canal ${channelChangedData.platformId} - ${channelChangedData.name} criado no Use Case de atualizacao`,
+      );
       expect(channelRepository.updateById).not.toHaveBeenCalledTimes(1);
     });
 

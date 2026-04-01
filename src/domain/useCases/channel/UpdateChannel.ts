@@ -3,7 +3,6 @@ import { IChannelRepository } from "@domain/interfaces/repositories/IChannelRepo
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import { ChannelIdType } from "@domain/interfaces/useCases/channel/IChannelId";
 import { IUpdateChannel } from "@domain/interfaces/useCases/channel/IUpdateChannel";
-import { ErrorMessages } from "@domain/types/ErrorMessages";
 import {
   LoggerContext,
   LoggerContextEntity,
@@ -27,12 +26,22 @@ export class UpdateChannel implements IUpdateChannel {
           : await this.channelRepository.findById(id);
 
       if (!channel) {
+        const channelData: Omit<ChannelEntity, "id"> = {
+          platformId: data.platformId ?? (typeof id === "string" ? id : ""),
+          name: data.name ?? "Unknown Channel",
+          url: data.url ?? "",
+          createdAt: data.createdAt ?? new Date(),
+        };
+
+        await this.channelRepository.create(channelData);
+
         this.logger.logToConsole(
-          LoggerContextStatus.ERROR,
+          LoggerContextStatus.SUCCESS,
           LoggerContext.USECASE,
           LoggerContextEntity.CHANNEL,
-          `UpdateChannel.execute | ${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
+          `Canal ${channelData.platformId} - ${channelData.name} criado no Use Case de atualizacao`,
         );
+        return;
       }
 
       const updatedChannel = await this.channelRepository.updateById(
