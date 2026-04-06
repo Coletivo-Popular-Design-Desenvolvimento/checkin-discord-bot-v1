@@ -49,6 +49,10 @@ export class DiscordService
     oldState: VoiceState,
     newState: VoiceState,
   ) => void)[] = [];
+  private onMemberUpdateHandlers: ((
+    oldMember: GuildMember | PartialGuildMember,
+    newMember: GuildMember,
+  ) => void)[] = [];
   private onReactionAddHandlers: ((
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
@@ -83,6 +87,11 @@ export class DiscordService
       this.onUserLeaveHandlers.forEach((fn) => fn(member));
     });
 
+    //caso de excessao, pois esse evento compartilha o intent com GuildMemberAdd
+    this.client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
+      this.onMemberUpdateHandlers.forEach((fn) => fn(oldMember, newMember));
+    });
+
     this.client.on(Events.ChannelCreate, (channel) => {
       this.onNewChannelHandlers.forEach((fn) => fn(channel));
     });
@@ -97,8 +106,8 @@ export class DiscordService
       this.onDeleteChannelHandlers.forEach((fn) => fn(<GuildChannel>channel));
     });
 
-    this.client.on(Events.GuildScheduledEventUpdate, (event) => {
-      this.onVoiceEventHandlers.forEach((fn) => fn(event));
+    this.client.on(Events.GuildScheduledEventUpdate, (_oldEvent, newEvent) => {
+      this.onVoiceEventHandlers.forEach((fn) => fn(newEvent));
     });
 
     this.client.on(Events.GuildScheduledEventCreate, (event) => {
@@ -156,6 +165,15 @@ export class DiscordService
 
   public onUserLeave(handler: (member: GuildMember) => void): void {
     this.onUserLeaveHandlers.push(handler);
+  }
+
+  public onMemberUpdate(
+    handler: (
+      oldMember: GuildMember | PartialGuildMember,
+      newMember: GuildMember,
+    ) => void,
+  ): void {
+    this.onMemberUpdateHandlers.push(handler);
   }
 
   public onVoiceEventUserChange(
