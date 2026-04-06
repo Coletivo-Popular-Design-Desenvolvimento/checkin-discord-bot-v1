@@ -53,6 +53,10 @@ export class DiscordService
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ) => void)[] = [];
+  private onReactionRemoveHandlers: ((
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+  ) => void)[] = [];
 
   constructor(client: Client) {
     this.client = client;
@@ -114,6 +118,10 @@ export class DiscordService
     this.client.on(Events.MessageReactionAdd, (reaction, user) => {
       this.onReactionAddHandlers.forEach((fn) => fn(reaction, user));
     });
+
+    this.client.on(Events.MessageReactionRemove, (reaction, user) => {
+      this.onReactionRemoveHandlers.forEach((fn) => fn(reaction, user));
+    });
   }
 
   public onReactionAdd(
@@ -123,6 +131,15 @@ export class DiscordService
     ) => void,
   ): void {
     this.onReactionAddHandlers.push(handler);
+  }
+
+  public onReactionRemove(
+    handler: (
+      reaction: MessageReaction | PartialMessageReaction,
+      user: User | PartialUser,
+    ) => void,
+  ): void {
+    this.onReactionRemoveHandlers.push(handler);
   }
 
   public onDiscordStart(handler: () => void): void {

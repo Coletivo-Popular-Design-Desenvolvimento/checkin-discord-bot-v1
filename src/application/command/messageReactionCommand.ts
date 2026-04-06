@@ -13,6 +13,10 @@ import {
 } from "@type/LoggerContextEnum";
 import { IRegisterMessageReaction } from "@interfaces/useCases/messageReaction/IRegisterMessageReaction";
 import { RegisterMessageReactionInput } from "@interfaces/useCases/messageReaction/IRegisterMessageReaction";
+import {
+  IRemoveMessageReaction,
+  RemoveMessageReactionInput,
+} from "@interfaces/useCases/messageReaction/IRemoveMessageReaction";
 import { Client } from "discord.js";
 
 export class MessageReactionCommand {
@@ -30,6 +34,7 @@ export class MessageReactionCommand {
     >,
     private readonly logger: ILoggerService,
     private readonly registerMessageReaction: IRegisterMessageReaction,
+    private readonly removeMessageReaction: IRemoveMessageReaction,
   ) {
     this.executeReactionHandler();
   }
@@ -37,6 +42,9 @@ export class MessageReactionCommand {
   private executeReactionHandler(): void {
     try {
       this.discordService.onReactionAdd(this.handleReaction.bind(this));
+      this.discordService.onReactionRemove(
+        this.handleReactionRemove.bind(this),
+      );
     } catch (error) {
       this.logger.logToConsole(
         LoggerContextStatus.ERROR,
@@ -98,6 +106,57 @@ export class MessageReactionCommand {
     }
   }
 
+  private async handleReactionRemove(
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+  ): Promise<void> {
+    try {
+      if (user?.bot) {
+        return;
+      }
+
+      if (reaction.partial) {
+        await reaction.fetch();
+      }
+      if (reaction.message.partial) {
+        await reaction.message.fetch();
+      }
+
+      const input = MessageReactionCommand.toRemoveMessageReactionInput(
+        reaction,
+        user,
+      );
+
+      const result = await this.removeMessageReaction.execute(input);
+
+      const emojiLabel = MessageReactionCommand.getEmojiFromReaction(reaction);
+      const logPayload = `user_id=${input.userId} message_id=${input.messageId} reaction=${emojiLabel}`;
+
+      if (result.success) {
+        this.logger.logToConsole(
+          LoggerContextStatus.SUCCESS,
+          LoggerContext.COMMAND,
+          LoggerContextEntity.MESSAGE_REACTION,
+          `Reaction removed: ${logPayload}`,
+        );
+      } else {
+        this.logger.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.COMMAND,
+          LoggerContextEntity.MESSAGE_REACTION,
+          `Failed to remove reaction (${logPayload}): ${result.message ?? "Unknown error"}`,
+        );
+      }
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.COMMAND,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `handleReactionRemove | ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   /**
    * Resolve o identificador do emoji a partir do payload de reação (unicode, custom id ou nome).
    */
@@ -110,6 +169,20 @@ export class MessageReactionCommand {
       reaction.emoji.id ??
       ""
     );
+  }
+
+  static toRemoveMessageReactionInput(
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+  ): RemoveMessageReactionInput {
+    const message = reaction.message;
+    const emoji = MessageReactionCommand.getEmojiFromReaction(reaction);
+
+    return {
+      userId: user.id,
+      messageId: message.id,
+      reactionEmoji: emoji,
+    };
   }
 
   static toRegisterMessageReactionInput(

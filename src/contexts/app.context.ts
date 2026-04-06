@@ -68,14 +68,15 @@ export function initializeApp() {
     logger,
   );
 
-  const { registerMessageReaction } = initializeMessageReactionUseCases(
-    messageReactionRepository,
-    userRepository,
-    channelRepository,
-    messageRepository,
-    userUseCases.createUserCase,
-    logger,
-  );
+  const { registerMessageReaction, removeMessageReaction } =
+    initializeMessageReactionUseCases(
+      messageReactionRepository,
+      userRepository,
+      channelRepository,
+      messageRepository,
+      userUseCases.createUserCase,
+      logger,
+    );
 
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
@@ -98,7 +99,12 @@ export function initializeApp() {
   );
 
   new MessageCommand(discordService, logger, registerMessage);
-  new MessageReactionCommand(discordService, logger, registerMessageReaction);
+  new MessageReactionCommand(
+    discordService,
+    logger,
+    registerMessageReaction,
+    removeMessageReaction,
+  );
 
   // Isso deve ser executado depois que o user command for iniciado
   discordService.registerEvents();

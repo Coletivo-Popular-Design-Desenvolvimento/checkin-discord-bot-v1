@@ -17,6 +17,7 @@ export interface IDiscordService<
   onVoiceEventUserChange(handler: (oldState: S, newState: S) => void): void;
   onVoiceEvent(handler: (event: E) => void): void;
   onReactionAdd(handler: (reaction: R, user: U2) => void): void;
+  onReactionRemove(handler: (reaction: R, user: U2) => void): void;
   registerEvents(): void;
   onCreateChannel(handler: (channel: C) => void): void;
   onChangeChannel(handler: (oldChannel: C, newChannel: C) => void): void;

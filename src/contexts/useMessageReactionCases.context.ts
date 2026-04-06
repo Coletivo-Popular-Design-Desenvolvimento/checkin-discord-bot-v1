@@ -5,6 +5,7 @@ import { IMessageRepository } from "@repositories/IMessageRepository";
 import { ICreateUser } from "@interfaces/useCases/user/ICreateUser";
 import { ILoggerService } from "@services/ILogger";
 import { RegisterMessageReaction } from "@domain/useCases/messageReaction/RegisterMessageReaction";
+import { RemoveMessageReaction } from "@domain/useCases/messageReaction/RemoveMessageReaction";
 
 export function initializeMessageReactionUseCases(
   messageReactionRepository: IMessageReactionRepository,
@@ -15,6 +16,7 @@ export function initializeMessageReactionUseCases(
   logger: ILoggerService,
 ): {
   registerMessageReaction: RegisterMessageReaction;
+  removeMessageReaction: RemoveMessageReaction;
 } {
   const registerMessageReaction = new RegisterMessageReaction(
     messageReactionRepository,
@@ -25,5 +27,10 @@ export function initializeMessageReactionUseCases(
     logger,
   );
 
-  return { registerMessageReaction };
+  const removeMessageReaction = new RemoveMessageReaction(
+    messageReactionRepository,
+    logger,
+  );
+
+  return { registerMessageReaction, removeMessageReaction };
 }
