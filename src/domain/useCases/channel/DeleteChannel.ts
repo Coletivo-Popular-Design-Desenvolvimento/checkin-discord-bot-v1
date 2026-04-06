@@ -29,6 +29,7 @@ export class DeleteChannel implements IDeleteChannel {
           LoggerContextEntity.CHANNEL,
           `DeleteChannel.execute | ${ErrorMessages.CHANNEL_NOT_FOUND} ${id}`,
         );
+        return;
       }
 
       const isDeleted = await this.channelRepository.deleteById(channel.id);
