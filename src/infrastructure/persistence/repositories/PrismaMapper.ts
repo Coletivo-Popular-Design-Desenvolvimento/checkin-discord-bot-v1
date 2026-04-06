@@ -114,6 +114,8 @@ export class PrismaMapper {
       user && PrismaMapper.toUserEntity(user),
       message && PrismaMapper.toMessageEntity(message),
       channel && PrismaMapper.toChannelEntity(channel),
+      messageReact.reaction_emoji ?? undefined,
+      messageReact.reacted_at ?? undefined,
     );
   }
 

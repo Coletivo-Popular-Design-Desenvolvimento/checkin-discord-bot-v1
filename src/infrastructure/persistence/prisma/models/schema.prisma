@@ -130,15 +130,17 @@ model Channel {
 }
 
 model MessageReaction {
-  user_id    String
-  message_id String
-  channel_id String
-  id         Int     @id @default(autoincrement())
-  channel    Channel @relation(fields: [channel_id], references: [platform_id])
-  message    Message @relation(fields: [message_id], references: [platform_id])
-  user       User    @relation(fields: [user_id], references: [platform_id])
+  user_id        String
+  message_id     String
+  channel_id     String
+  id             Int      @id @default(autoincrement())
+  reaction_emoji String?  @default("")
+  reacted_at     DateTime @default(now())
+  channel        Channel  @relation(fields: [channel_id], references: [platform_id])
+  message        Message  @relation(fields: [message_id], references: [platform_id])
+  user           User     @relation(fields: [user_id], references: [platform_id])
 
-  @@unique([user_id, message_id])
+  @@unique([user_id, message_id, reaction_emoji])
   @@index([channel_id], map: "message_reaction_channel_id_fkey")
   @@index([message_id], map: "message_reaction_message_id_fkey")
   @@map("message_reaction")

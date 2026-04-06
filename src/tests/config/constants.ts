@@ -530,12 +530,16 @@ export function createMockMessageReactionEntity(
   messageEntity?: MessageEntity,
   channelEntity?: ChannelEntity,
   id: number = 1,
+  reactionEmoji?: string,
+  reactedAt?: Date,
 ): MessageReactionEntity {
   return new MessageReactionEntity(
     id,
     userEntity ?? createMockUserEntity(),
     messageEntity ?? createMockMessageEntity(),
     channelEntity ?? createMockChannelEntity(),
+    reactionEmoji,
+    reactedAt,
   );
 }
 

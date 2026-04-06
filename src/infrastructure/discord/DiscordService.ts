@@ -5,9 +5,13 @@ import {
   GuildChannel,
   GuildMember,
   Message,
+  MessageReaction,
+  PartialMessageReaction,
   PartialGuildMember,
+  PartialUser,
   GuildScheduledEvent,
   PartialGuildScheduledEvent,
+  User,
   VoiceState,
 } from "discord.js";
 
@@ -20,7 +24,9 @@ export class DiscordService
       Client,
       VoiceState,
       GuildChannel,
-      GuildScheduledEvent | PartialGuildScheduledEvent
+      GuildScheduledEvent | PartialGuildScheduledEvent,
+      MessageReaction | PartialMessageReaction,
+      User | PartialUser
     >
 {
   public readonly client: Client;
@@ -46,6 +52,14 @@ export class DiscordService
   private onMemberUpdateHandlers: ((
     oldMember: GuildMember | PartialGuildMember,
     newMember: GuildMember,
+  ) => void)[] = [];
+  private onReactionAddHandlers: ((
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+  ) => void)[] = [];
+  private onReactionRemoveHandlers: ((
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
   ) => void)[] = [];
 
   constructor(client: Client) {
@@ -109,6 +123,32 @@ export class DiscordService
         fn(oldState, newState),
       );
     });
+
+    this.client.on(Events.MessageReactionAdd, (reaction, user) => {
+      this.onReactionAddHandlers.forEach((fn) => fn(reaction, user));
+    });
+
+    this.client.on(Events.MessageReactionRemove, (reaction, user) => {
+      this.onReactionRemoveHandlers.forEach((fn) => fn(reaction, user));
+    });
+  }
+
+  public onReactionAdd(
+    handler: (
+      reaction: MessageReaction | PartialMessageReaction,
+      user: User | PartialUser,
+    ) => void,
+  ): void {
+    this.onReactionAddHandlers.push(handler);
+  }
+
+  public onReactionRemove(
+    handler: (
+      reaction: MessageReaction | PartialMessageReaction,
+      user: User | PartialUser,
+    ) => void,
+  ): void {
+    this.onReactionRemoveHandlers.push(handler);
   }
 
   public onDiscordStart(handler: () => void): void {

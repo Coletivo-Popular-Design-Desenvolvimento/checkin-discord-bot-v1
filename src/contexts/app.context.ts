@@ -1,6 +1,7 @@
 import { ChannelCommand } from "@application/command/channelCommand";
 import { MessageCommand } from "@application/command/messageCommand";
 import { RoleUpdateCommand } from "@application/command/roleUpdateCommand";
+import { MessageReactionCommand } from "@application/command/messageReactionCommand";
 import { UserCommand } from "@application/command/userCommand";
 import { VoiceEventCommand } from "@application/command/voiceEventCommand";
 import { Logger } from "@application/services/Logger";
@@ -14,6 +15,7 @@ import { initializeDatabase } from "./database.context";
 import { initializeDiscord } from "./discord.context";
 import { initializeChannelUseCases } from "./useChannelCases.context";
 import { initializeMessageUseCases } from "./useMessageCases.context";
+import { initializeMessageReactionUseCases } from "./useMessageReactionCases.context";
 import { initializeUserUseCases } from "./useUserCases.context";
 import { initializeVoiceEventUseCases } from "./useVoiceEventCases.context";
 import { initializeUserEventUseCases } from "@contexts/userEventUseCases.context";
@@ -28,6 +30,7 @@ export function initializeApp() {
     userEventRepository,
     audioEventRepository,
     messageRepository,
+    messageReactionRepository,
     channelRepository,
     roleRepository,
   } = initializeDatabase(logger);
@@ -74,6 +77,16 @@ export function initializeApp() {
     logger,
   );
 
+  const { registerMessageReaction, removeMessageReaction } =
+    initializeMessageReactionUseCases(
+      messageReactionRepository,
+      userRepository,
+      channelRepository,
+      messageRepository,
+      userUseCases.createUserCase,
+      logger,
+    );
+
   // E finalmente as inicializacoes da aplicacao
   new UserCommand(
     discordService,
@@ -95,6 +108,12 @@ export function initializeApp() {
   );
 
   new MessageCommand(discordService, logger, registerMessage);
+  new MessageReactionCommand(
+    discordService,
+    logger,
+    registerMessageReaction,
+    removeMessageReaction,
+  );
 
   new RoleUpdateCommand(
     discordService,

@@ -6,6 +6,8 @@ export interface IDiscordService<
   S = unknown,
   C = unknown,
   E = unknown,
+  R = unknown,
+  U2 = unknown,
 > {
   client: T;
   onDiscordStart(handler: () => void): void;
@@ -15,6 +17,8 @@ export interface IDiscordService<
   onMemberUpdate(handler: (oldMember: U | P, newMember: U) => void): void;
   onVoiceEventUserChange(handler: (oldState: S, newState: S) => void): void;
   onVoiceEvent(handler: (event: E) => void): void;
+  onReactionAdd(handler: (reaction: R, user: U2) => void): void;
+  onReactionRemove(handler: (reaction: R, user: U2) => void): void;
   registerEvents(): void;
   onCreateChannel(handler: (channel: C) => void): void;
   onChangeChannel(handler: (oldChannel: C, newChannel: C) => void): void;

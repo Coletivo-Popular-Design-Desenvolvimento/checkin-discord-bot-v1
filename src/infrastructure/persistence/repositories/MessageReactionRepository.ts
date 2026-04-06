@@ -48,6 +48,8 @@ export class MessageReactionRepository implements IMessageReactionRepository {
           user: { connect: { platform_id: data.userId } },
           message: { connect: { platform_id: data.messageId } },
           channel: { connect: { platform_id: data.channelId } },
+          reaction_emoji: data.reactionEmoji ?? "",
+          reacted_at: data.reactedAt,
         },
         include: { user: true, message: true, channel: true },
       });
@@ -70,6 +72,8 @@ export class MessageReactionRepository implements IMessageReactionRepository {
           user_id: d.userId,
           message_id: d.messageId,
           channel_id: d.channelId,
+          reaction_emoji: d.reactionEmoji ?? "",
+          reacted_at: d.reactedAt,
         })),
         skipDuplicates: true,
       });
@@ -145,6 +149,32 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     }
   }
 
+  async findByUserMessageAndEmoji(
+    userId: string,
+    messageId: string,
+    reactionEmoji: string,
+  ): Promise<MessageReactionEntity | null> {
+    try {
+      const result = await this.client.messageReaction.findFirst({
+        where: {
+          user_id: userId,
+          message_id: messageId,
+          reaction_emoji: reactionEmoji,
+        },
+        include: { user: true, message: true, channel: true },
+      });
+      return result ? this.toDomain(result) : null;
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.MESSAGE_REACTION,
+        `findByUserMessageAndEmoji | ${error.message}`,
+      );
+      return null;
+    }
+  }
+
   async updateMessageReaction(
     id: number,
     data: UpdateMessageReactionData,
@@ -157,6 +187,10 @@ export class MessageReactionRepository implements IMessageReactionRepository {
         persistenceData.message = { connect: { platform_id: data.messageId } };
       if (data.channelId)
         persistenceData.channel = { connect: { platform_id: data.channelId } };
+      if (data.reactionEmoji !== undefined)
+        persistenceData.reaction_emoji = data.reactionEmoji;
+      if (data.reactedAt !== undefined)
+        persistenceData.reacted_at = data.reactedAt;
 
       const result = await this.client.messageReaction.update({
         where: { id },
@@ -201,6 +235,13 @@ export class MessageReactionRepository implements IMessageReactionRepository {
     );
     const channel = PrismaMapper.toChannelEntity(reaction.channel);
 
-    return new MessageReactionEntity(reaction.id, user, message, channel);
+    return new MessageReactionEntity(
+      reaction.id,
+      user,
+      message,
+      channel,
+      reaction.reaction_emoji ?? undefined,
+      reaction.reacted_at ?? undefined,
+    );
   }
 }
