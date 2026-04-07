@@ -1,0 +1,41 @@
+name: Deploy to Droplet - Checkin
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Droplet
+        env:
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          PROJECT_PATH: ${{ secrets.CHECKIN_PROJECT_PATH }}
+        run: |
+          echo "Connecting to droplet..."
+          ssh -o StrictHostKeyChecking=no ${DROPLET_USER}@${DROPLET_IP} << EOF
+            echo "Connected. Navigating to: ${PROJECT_PATH}"
+            cd ${PROJECT_PATH}
+            echo "Pulling latest changes from main..."
+            git pull origin main
+            echo "Rebuilding and restarting containers..."
+            docker compose --profile prod up -d --build
+            echo "Deploy finished!"
+          EOF
