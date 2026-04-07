@@ -3,7 +3,7 @@ name: Deploy to Droplet - Checkin
 on:
   push:
     branches:
-      - main
+      - homol
 jobs:
   deploy:
     runs-on: ubuntu-latest
