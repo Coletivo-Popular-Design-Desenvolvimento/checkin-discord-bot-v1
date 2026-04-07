@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,13 +27,6 @@ jobs:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           PROJECT_PATH: ${{ secrets.CHECKIN_PROJECT_PATH }}
         run: |
-          echo "Connecting to droplet..."
-          ssh -o StrictHostKeyChecking=no ${DROPLET_USER}@${DROPLET_IP} << EOF
-            echo "Connected. Navigating to: ${PROJECT_PATH}"
-            cd ${PROJECT_PATH}
-            echo "Pulling latest changes from main..."
-            git pull origin main
-            echo "Rebuilding and restarting containers..."
-            docker compose --profile prod up -d --build
-            echo "Deploy finished!"
-          EOF
+          SAFE_PATH=$(printf '%q' "${PROJECT_PATH}")
+          ssh "${DROPLET_USER}@${DROPLET_IP}" \
+            "set -e && cd ${SAFE_PATH} && git pull origin main && docker compose --profile prod up -d --build"
