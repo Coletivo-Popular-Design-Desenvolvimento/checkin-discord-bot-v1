@@ -28,9 +28,9 @@ model User {
   audio_event         AudioEvent[]
   message             Message[]
   message_reaction    MessageReaction[]
-  channels            Channel[]         @relation("UserChannel")
+  channels            UserChannel[]
   user_event          UserEvent[]
-  roles               Role[]            @relation("UserRole")
+  roles               UserRole[]
 
   @@map("user")
 }
@@ -41,7 +41,7 @@ model Role {
   created_at          DateTime @default(now())
   platform_created_at DateTime
   platform_id         String   @unique
-  users               User[]   @relation("UserRole")
+  users               UserRole[]
 
   @@map("role")
 }
@@ -124,7 +124,7 @@ model Channel {
   audio_event      AudioEvent[]
   message          Message[]
   message_reaction MessageReaction[]
-  users            User[]            @relation("UserChannel")
+  users            UserChannel[]
 
   @@map("channel")
 }
@@ -144,4 +144,24 @@ model MessageReaction {
   @@index([channel_id], map: "message_reaction_channel_id_fkey")
   @@index([message_id], map: "message_reaction_message_id_fkey")
   @@map("message_reaction")
+}
+
+model UserChannel {
+  user_platform_id    String
+  channel_platform_id String
+
+  user    User    @relation(fields: [user_platform_id], references: [platform_id])
+  channel Channel @relation(fields: [channel_platform_id], references: [platform_id])
+
+  @@id([user_platform_id, channel_platform_id])
+}
+
+model UserRole {
+  user_platform_id String
+  role_platform_id String
+
+  user User @relation(fields: [user_platform_id], references: [platform_id])
+  role Role @relation(fields: [role_platform_id], references: [platform_id])
+
+  @@id([user_platform_id, role_platform_id])
 }
