@@ -85,8 +85,12 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          channels: true,
-          roles: true,
+          channels: {
+            include: { channel: true },
+          },
+          roles: {
+            include: { role: true },
+          },
           audio_event: true,
         },
       });
@@ -134,8 +138,12 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          channels: true,
-          roles: true,
+          channels: {
+            include: { channel: true },
+          },
+          roles: {
+            include: { role: true },
+          },
           audio_event: true,
         },
       });
@@ -183,8 +191,12 @@ export class UserRepository implements IUserRepository {
         include: {
           message: true,
           message_reaction: true,
-          channels: true,
-          roles: true,
+          channels: {
+            include: { channel: true },
+          },
+          roles: {
+            include: { role: true },
+          },
           audio_event: true,
         },
       });
