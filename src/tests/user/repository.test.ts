@@ -48,8 +48,8 @@ describe("UserRepository", () => {
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE message`;
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE user_event`;
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE audio_event`;
-    await jestPrisma.client.$executeRaw`TRUNCATE TABLE _UserChannel`;
-    await jestPrisma.client.$executeRaw`TRUNCATE TABLE _UserRole`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE UserChannel`;
+    await jestPrisma.client.$executeRaw`TRUNCATE TABLE UserRole`;
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE user`;
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE channel`;
     await jestPrisma.client.$executeRaw`TRUNCATE TABLE role`;
