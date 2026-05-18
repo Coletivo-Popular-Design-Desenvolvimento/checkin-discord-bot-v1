@@ -36,11 +36,11 @@ model User {
 }
 
 model Role {
-  id                  Int      @id @default(autoincrement())
+  id                  Int        @id @default(autoincrement())
   name                String
-  created_at          DateTime @default(now())
+  created_at          DateTime   @default(now())
   platform_created_at DateTime
-  platform_id         String   @unique
+  platform_id         String     @unique
   users               UserRole[]
 
   @@map("role")
