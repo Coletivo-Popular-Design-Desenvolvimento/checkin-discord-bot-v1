@@ -27,8 +27,6 @@ jobs:
             echo "branch=main" >> $GITHUB_OUTPUT
           elif git branch -r --contains "$TAG_COMMIT" | grep -qE "origin/homol$"; then
             echo "branch=homol" >> $GITHUB_OUTPUT
-          elif git branch -r --contains "$TAG_COMMIT" | grep -qE "origin/CPDD-139$"; then
-            echo "branch=CPDD-139" >> $GITHUB_OUTPUT
           else
             echo "branch=none" >> $GITHUB_OUTPUT
           fi
