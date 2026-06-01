@@ -45,8 +45,10 @@ export class ChannelRepository implements IChannelRepository {
           },
           users: channel.user?.length
             ? {
-                connect: channel.user.map((user) => ({
-                  platform_id: user.platformId,
+                create: channel.user.map((u) => ({
+                  user: {
+                    connect: { platform_id: u.platformId },
+                  },
                 })),
               }
             : undefined,
@@ -54,13 +56,17 @@ export class ChannelRepository implements IChannelRepository {
         include: {
           message: true,
           message_reaction: true,
-          users: true,
+          users: {
+            include: {
+              user: true,
+            },
+          },
         },
       });
 
       return PrismaMapper.toChannelEntity(
         result,
-        result.users || [],
+        result.users,
         result.message,
         result.message_reaction,
       );
@@ -103,8 +109,12 @@ export class ChannelRepository implements IChannelRepository {
                 where: { id: createdChannel.id },
                 data: {
                   users: {
-                    connect: ch.user.map((user) => ({
-                      platform_id: user.platformId,
+                    create: ch.user.map((user) => ({
+                      user: {
+                        connect: {
+                          platform_id: user.platformId,
+                        },
+                      },
                     })),
                   },
                 },
@@ -148,7 +158,11 @@ export class ChannelRepository implements IChannelRepository {
           id,
         },
         include: {
-          users: true,
+          users: {
+            include: {
+              user: true,
+            },
+          },
           message: true,
           message_reaction: true,
         },
@@ -186,7 +200,11 @@ export class ChannelRepository implements IChannelRepository {
           platform_id: id,
         },
         include: {
-          users: true,
+          users: {
+            include: {
+              user: true,
+            },
+          },
           message: true,
           message_reaction: true,
         },
@@ -223,7 +241,11 @@ export class ChannelRepository implements IChannelRepository {
         take: limit,
         where: {},
         include: {
-          users: true,
+          users: {
+            include: {
+              user: true,
+            },
+          },
           message: true,
           message_reaction: true,
         },

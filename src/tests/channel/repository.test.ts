@@ -38,7 +38,7 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findUnique).toHaveBeenCalledWith({
         where: { id },
         include: {
-          users: true,
+          users: { include: { user: true } },
           message: true,
           message_reaction: true,
         },
@@ -93,7 +93,7 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
         where: { platform_id: platformId },
         include: {
-          users: true,
+          users: { include: { user: true } },
           message: true,
           message_reaction: true,
         },
@@ -118,7 +118,7 @@ describe("ChannelRepository", () => {
       expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
         where: { platform_id: platformId },
         include: {
-          users: true,
+          users: { include: { user: true } },
           message: true,
           message_reaction: true,
         },
@@ -178,15 +178,17 @@ describe("ChannelRepository", () => {
             connect: [],
           },
           users: {
-            connect: channelData.user.map((user) => ({
-              platform_id: user.platformId,
+            create: channelData.user.map((user) => ({
+              user: {
+                connect: { platform_id: user.platformId },
+              },
             })),
           },
         },
         include: {
           message: true,
           message_reaction: true,
-          users: true,
+          users: { include: { user: true } },
         },
       });
 
@@ -295,7 +297,7 @@ describe("ChannelRepository", () => {
         where: {},
         take: undefined,
         include: {
-          users: true,
+          users: { include: { user: true } },
           message: true,
           message_reaction: true,
         },
@@ -346,7 +348,7 @@ describe("ChannelRepository", () => {
         where: {},
         take: 1,
         include: {
-          users: true,
+          users: { include: { user: true } },
           message: true,
           message_reaction: true,
         },

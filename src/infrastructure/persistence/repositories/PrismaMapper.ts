@@ -9,6 +9,48 @@ import { UserEventEntity } from "@entities/UserEvent";
 import { EventType } from "@type/EventTypeEnum";
 
 export class PrismaMapper {
+  private static toUsersFromRelation(
+    users?: Array<
+      | prisma.User
+      | (prisma.UserChannel & { user: prisma.User })
+      | (prisma.UserRole & { user: prisma.User })
+    >,
+  ): UserEntity[] {
+    return (
+      users?.map((entry) =>
+        "user" in entry
+          ? PrismaMapper.toUserEntity(entry.user)
+          : PrismaMapper.toUserEntity(entry),
+      ) || []
+    );
+  }
+
+  private static toChannelsFromRelation(
+    channels?: Array<
+      prisma.Channel | (prisma.UserChannel & { channel: prisma.Channel })
+    >,
+  ): ChannelEntity[] {
+    return (
+      channels?.map((entry) =>
+        "channel" in entry
+          ? PrismaMapper.toChannelEntity(entry.channel)
+          : PrismaMapper.toChannelEntity(entry),
+      ) || []
+    );
+  }
+
+  private static toRolesFromRelation(
+    roles?: Array<prisma.Role | (prisma.UserRole & { role: prisma.Role })>,
+  ): RoleEntity[] {
+    return (
+      roles?.map((entry) =>
+        "role" in entry
+          ? PrismaMapper.toRoleEntity(entry.role)
+          : PrismaMapper.toRoleEntity(entry),
+      ) || []
+    );
+  }
+
   static toAudioEventEntity(
     prismaEvent: prisma.AudioEvent,
     channel?: prisma.Channel,
@@ -34,8 +76,10 @@ export class PrismaMapper {
     user: prisma.User,
     messages?: prisma.Message[],
     reactions?: prisma.MessageReaction[],
-    channels?: prisma.Channel[],
-    roles?: prisma.Role[],
+    channels?: Array<
+      prisma.Channel | (prisma.UserChannel & { channel: prisma.Channel })
+    >,
+    roles?: Array<prisma.Role | (prisma.UserRole & { role: prisma.Role })>,
     audioEvents?: prisma.AudioEvent[],
   ): UserEntity {
     return new UserEntity(
@@ -55,15 +99,17 @@ export class PrismaMapper {
       reactions?.map((reaction) =>
         PrismaMapper.toMessageReactionEntity(reaction),
       ),
-      channels?.map((channel) => PrismaMapper.toChannelEntity(channel)),
-      roles?.map((role) => PrismaMapper.toRoleEntity(role)),
+      PrismaMapper.toChannelsFromRelation(channels),
+      PrismaMapper.toRolesFromRelation(roles),
       audioEvents?.map((event) => PrismaMapper.toAudioEventEntity(event)),
     );
   }
 
   static toChannelEntity(
     channel: prisma.Channel,
-    userChannel?: prisma.User[],
+    userChannel?: Array<
+      prisma.User | (prisma.UserChannel & { user: prisma.User })
+    >,
     message?: prisma.Message[],
     messageReaction?: prisma.MessageReaction[],
   ): ChannelEntity {
@@ -73,7 +119,7 @@ export class PrismaMapper {
       channel.name,
       channel.url,
       channel.created_at,
-      userChannel?.map((user) => PrismaMapper.toUserEntity(user)),
+      PrismaMapper.toUsersFromRelation(userChannel),
       message?.map((message) =>
         PrismaMapper.toMessageEntity(message, undefined, channel),
       ),
@@ -119,14 +165,17 @@ export class PrismaMapper {
     );
   }
 
-  static toRoleEntity(role: prisma.Role, users?: prisma.User[]): RoleEntity {
+  static toRoleEntity(
+    role: prisma.Role,
+    users?: Array<prisma.User | (prisma.UserRole & { user: prisma.User })>,
+  ): RoleEntity {
     return new RoleEntity(
       role.id,
       role.platform_id,
       role.name,
       role.created_at,
       role.platform_created_at,
-      users?.map((user) => PrismaMapper.toUserEntity(user)) || [],
+      PrismaMapper.toUsersFromRelation(users),
     );
   }
 

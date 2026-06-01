@@ -31,7 +31,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { id: mockDBRoleValue.id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
 
       expect(role).toHaveProperty("id", 1);
@@ -56,7 +56,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { id: mockDBRoleValue.id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
 
       expect(role).toBeNull();
@@ -112,7 +112,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { platform_id: mockDBRoleValue.platform_id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
       expect(role).toHaveProperty("id", 1);
       expect(role).toHaveProperty("platformId", "1");
@@ -133,7 +133,7 @@ describe("RoleRepository", () => {
       expect(prismaMock.role.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.role.findUnique).toHaveBeenCalledWith({
         where: { platform_id: platform_id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
       expect(role).toBeNull();
     });
@@ -290,7 +290,11 @@ describe("RoleRepository", () => {
         where: { platform_id: mockDBRoleValue.platform_id },
         data: {
           users: {
-            connect: { platform_id: mockDBUserValue.platform_id },
+            create: {
+              user: {
+                connect: { platform_id: mockDBUserValue.platform_id },
+              },
+            },
           },
         },
       });
@@ -325,7 +329,7 @@ describe("RoleRepository", () => {
         where: { platform_id: mockDBRoleValue.platform_id },
         data: {
           users: {
-            disconnect: { platform_id: mockDBUserValue.platform_id },
+            deleteMany: { user_platform_id: mockDBUserValue.platform_id },
           },
         },
       });

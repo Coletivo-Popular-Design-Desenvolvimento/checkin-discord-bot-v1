@@ -29,7 +29,7 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
       if (!result) {
         return null;
@@ -49,8 +49,8 @@ export class RoleRepository implements IRoleRepository {
   async findByUserPlatformId(id: string): Promise<RoleEntity[] | null> {
     try {
       const result = await this.client.role.findMany({
-        where: { users: { some: { platform_id: id } } },
-        include: { users: true },
+        where: { users: { some: { user_platform_id: id } } },
+        include: { users: { include: { user: true } } },
       });
       return result.map((role) => PrismaMapper.toRoleEntity(role, role.users));
     } catch (error) {
@@ -68,7 +68,7 @@ export class RoleRepository implements IRoleRepository {
     try {
       const result = await this.client.role.findUnique({
         where: { platform_id: id },
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
       if (!result) {
         return null;
@@ -89,7 +89,7 @@ export class RoleRepository implements IRoleRepository {
     try {
       const results = await this.client.role.findMany({
         take: limit,
-        include: { users: true },
+        include: { users: { include: { user: true } } },
       });
       return results.map((result) =>
         PrismaMapper.toRoleEntity(result, result.users),
@@ -173,7 +173,13 @@ export class RoleRepository implements IRoleRepository {
         where: { platform_id: rolePlatformId },
         data: {
           users: {
-            connect: { platform_id: userPlatformId },
+            create: {
+              user: {
+                connect: {
+                  platform_id: userPlatformId,
+                },
+              },
+            },
           },
         },
       });
@@ -198,7 +204,9 @@ export class RoleRepository implements IRoleRepository {
         where: { platform_id: rolePlatformId },
         data: {
           users: {
-            disconnect: { platform_id: userPlatformId },
+            deleteMany: {
+              user_platform_id: userPlatformId,
+            },
           },
         },
       });
@@ -219,8 +227,6 @@ export class RoleRepository implements IRoleRepository {
       platform_id: role.platformId,
       name: role.name,
       platform_created_at: role.platformCreatedAt,
-      platformCreated_at: role.platformCreatedAt,
-      user: role.user,
     };
   }
 }
