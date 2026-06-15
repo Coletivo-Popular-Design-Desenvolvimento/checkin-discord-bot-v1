@@ -1,0 +1,70 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - '[0-9]*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine branch for tag
+        id: branch-check
+        run: |
+          TAG_COMMIT=$(git rev-parse HEAD)
+          if git branch -r --contains "$TAG_COMMIT" | grep -qE "origin/main$"; then
+            echo "branch=main" >> $GITHUB_OUTPUT
+          elif git branch -r --contains "$TAG_COMMIT" | grep -qE "origin/homol$"; then
+            echo "branch=homol" >> $GITHUB_OUTPUT
+          else
+            echo "branch=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set image name
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Set image tags
+        id: image-tags
+        if: steps.branch-check.outputs.branch != 'none'
+        run: |
+          GIT_TAG="${GITHUB_REF_NAME}"
+          BRANCH="${{ steps.branch-check.outputs.branch }}"
+          if [ "$BRANCH" = "main" ]; then
+            echo "tags=${IMAGE_NAME}:${GIT_TAG},${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
+          else
+            echo "tags=${IMAGE_NAME}:${GIT_TAG}-${BRANCH},${IMAGE_NAME}:${BRANCH}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: steps.branch-check.outputs.branch != 'none'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.branch-check.outputs.branch != 'none'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        if: steps.branch-check.outputs.branch != 'none'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Containerfile
+          push: true
+          tags: ${{ steps.image-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
