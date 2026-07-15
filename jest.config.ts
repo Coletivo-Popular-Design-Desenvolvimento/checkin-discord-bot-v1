@@ -14,6 +14,7 @@ const config: JestConfigWithTsJest = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths || {}, {
     prefix: "<rootDir>/src/",
   }),
+  maxWorkers: 1,
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
 };
 
