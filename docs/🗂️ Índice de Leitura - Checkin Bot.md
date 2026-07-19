@@ -20,6 +20,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 
 7. **[6 - Entidades Principais](./6%20-%20Entidades%20Principais.md)** - Modelos de domínio e relacionamentos
 8. **[7 - Use Cases](./7%20-%20Use%20Cases.md)** - Casos de uso e regras de negócio
+9. **[8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)** - Backfill de mensagens e eventos de voz via CLI
 
 ## Sequência por Perfil
 
@@ -51,6 +52,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 1. [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md) - Tecnologias utilizadas
 2. [5 - Contexts](./5%20-%20Contexts.md) - Configuração da aplicação
 3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Dependências externas
+4. [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md) - Rodar o backfill via CLI ou GitHub Actions
 
 ## Glossário Rápido
 

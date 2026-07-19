@@ -266,21 +266,18 @@ async execute(input: CreateUserInput): Promise<GenericOutputDto<UserEntity>> {
 - **Action**: Nome do método + erro
 - **Detailed Message**: Stack trace quando necessário
 
-## Future Use Cases
+## Historical Sync Use Cases
 
-### Planned Implementation
+**Localização**: `src/domain/useCases/{message,audioEvent,sync}/`
+**Status**: ✅ **Implementado** — ver [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)
 
-#### Message Use Cases
+Diferente dos use cases acima (que reagem a eventos do gateway Discord em tempo real), estes são acionados sob demanda pelo script `src/historicalSync.ts` para fazer backfill de dados que já existiam antes do bot ficar online. Seguem o mesmo padrão `GenericOutputDto` + try/catch + `ILoggerService`, mas cada um acumula contagens de lote (`fetched`/`created`/`skipped`/`failed`) em vez de retornar uma única entidade.
 
-- **CreateMessage**: Persistir mensagens do Discord
-- **UpdateMessage**: Marcar como deletadas
-- **FindMessages**: Buscar por canal, usuário, período
+- **`ImportMessages`**: pagina o `IDiscordHistoryFetcher` lote a lote, monta canais/usuários únicos e grava via `IHistoricalImportRepository.saveMessagesBatch`.
+- **`ImportAudioEvents`**: busca os eventos de voz disponíveis no intervalo (uma única chamada, sem paginação — limitação da API do Discord) e grava em chunks de `batchSize`.
+- **`SyncHistoryRange`**: orquestra os dois acima sequencialmente, cada um isolado em seu próprio try/catch (falha em um não interrompe o outro), com defaults de "últimos 3 meses" e `batchSize=1000` quando não informados.
 
-#### AudioEvent Use Cases
-
-- **CreateAudioEvent**: Registrar início de evento
-- **UpdateAudioEvent**: Atualizar participantes
-- **CompleteAudioEvent**: Finalizar e calcular métricas
+**Escopo**: só mensagens e eventos de voz — reações, cargos e entrada/saída de usuários não fazem parte do backfill.
 
 #### Analytics Use Cases
 

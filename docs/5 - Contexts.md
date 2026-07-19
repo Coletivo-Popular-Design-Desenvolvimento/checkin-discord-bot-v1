@@ -13,10 +13,11 @@ Os contexts (`src/contexts/`) são responsáveis pela **configuração e inicial
 
 ```
 src/contexts/
-├── app.context.ts           # Orquestrador principal
-├── database.context.ts      # Configuração do banco de dados
-├── discord.context.ts       # Configuração do Discord client
-└── useUserCases.context.ts  # Instanciação dos casos de uso
+├── app.context.ts                     # Orquestrador principal (fluxo em tempo real)
+├── database.context.ts                # Configuração do banco de dados
+├── discord.context.ts                 # Configuração do Discord client
+├── useUserCases.context.ts            # Instanciação dos casos de uso
+└── useHistoricalSyncCases.context.ts  # Wiring do backfill (usado só por historicalSync.ts)
 ```
 
 ## App Context - Orquestrador Principal
@@ -214,6 +215,22 @@ export function initializeUserUseCases(
 - **Agrupamento por entidade** (User, Message, Channel, etc.)
 - **Nomenclatura consistente**: `[verb][Entity]Case`
 - **Injeção explícita** de todas as dependências
+
+## Historical Sync Context
+
+**Arquivo**: `src/contexts/useHistoricalSyncCases.context.ts`
+
+Diferente dos demais contexts, este **não é chamado por `app.context.ts`** — ele é usado apenas por `src/historicalSync.ts` (o CLI de backfill, ver [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)). Por isso ele monta seu próprio `PrismaClient`/`PrismaService` internamente em vez de reaproveitar `initializeDatabase()`, mantendo o caminho do bot em tempo real completamente isolado do script de backfill.
+
+```typescript
+export function initializeHistoricalSyncUseCases(
+  client: Client,
+  logger: ILoggerService,
+): { prismaService: PrismaService; syncHistoryRange: SyncHistoryRange } {
+  // Monta DiscordHistoryFetcher, HistoricalImportRepository,
+  // ImportMessages, ImportAudioEvents e SyncHistoryRange
+}
+```
 
 ## Dependency Injection Pattern
 
