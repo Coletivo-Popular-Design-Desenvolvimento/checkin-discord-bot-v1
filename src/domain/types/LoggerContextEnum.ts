@@ -16,6 +16,7 @@ export enum LoggerContextEntity {
   CHANNEL = "CHANNEL",
   AUDIO_EVENT = "AUDIO_EVENT",
   ROLE = "ROLE",
+  HISTORICAL_SYNC = "HISTORICAL_SYNC",
 }
 
 export enum LoggerContextStatus {
