@@ -95,6 +95,7 @@ model UserEvent {
   user       User       @relation(fields: [user_id], references: [platform_id])
 
   @@index([event_id], map: "user_event_event_id_fkey")
+  @@index([user_id], map: "user_event_user_id_fkey")
   @@map("user_event")
 }
 
