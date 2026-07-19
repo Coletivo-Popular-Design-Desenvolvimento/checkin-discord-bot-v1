@@ -1,0 +1,44 @@
+name: historical-sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Data inicial (YYYY-MM-DD). Deixe em branco para usar os últimos 3 meses."
+        required: false
+        type: string
+      end_date:
+        description: "Data final (YYYY-MM-DD). Deixe em branco para usar a data atual."
+        required: false
+        type: string
+      batch_size:
+        description: "Quantidade de registros por lote."
+        required: false
+        default: "1000"
+        type: string
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar client do Prisma
+        run: npx prisma generate
+
+      - name: Executar sincronização histórica
+        env:
+          TOKEN_BOT: ${{ secrets.TOKEN_BOT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          npm run sync:history -- \
+            ${{ inputs.start_date && format('--start={0}', inputs.start_date) || '' }} \
+            ${{ inputs.end_date && format('--end={0}', inputs.end_date) || '' }} \
+            --batchSize=${{ inputs.batch_size }}
