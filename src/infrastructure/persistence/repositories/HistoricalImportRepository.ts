@@ -1,0 +1,189 @@
+import { Prisma, PrismaClient } from "@prisma/client";
+import {
+  IHistoricalImportRepository,
+  SaveAudioEventsBatchInput,
+  SaveAudioEventsBatchOutput,
+  SaveMessagesBatchInput,
+  SaveMessagesBatchOutput,
+} from "@domain/interfaces/repositories/IHistoricalImportRepository";
+import { ILoggerService } from "@domain/interfaces/services/ILogger";
+import {
+  LoggerContext,
+  LoggerContextEntity,
+  LoggerContextStatus,
+} from "@domain/types/LoggerContextEnum";
+import { PrismaService } from "../prisma/prismaService";
+
+type TransactionClient = Prisma.TransactionClient;
+
+export class HistoricalImportRepository implements IHistoricalImportRepository {
+  private client: PrismaClient;
+
+  constructor(
+    private prisma: PrismaService,
+    private logger: ILoggerService,
+  ) {
+    this.client = this.prisma.getClient();
+  }
+
+  async saveMessagesBatch(
+    input: SaveMessagesBatchInput,
+  ): Promise<SaveMessagesBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const channelsUpserted = await this.upsertChannels(tx, input.channels);
+        const usersUpserted = await this.upsertUsers(tx, input.users);
+
+        const result = await tx.message.createMany({
+          data: input.messages.map((message) => ({
+            platform_id: message.platformId,
+            channel_id: message.channel?.platformId ?? "",
+            user_id: message.user?.platformId ?? "",
+            platform_created_at: message.platformCreatedAt,
+            is_deleted: message.isDeleted,
+          })),
+          skipDuplicates: true,
+        });
+
+        return {
+          channelsUpserted,
+          usersUpserted,
+          messagesCreated: result.count,
+        };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveMessagesBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  async saveAudioEventsBatch(
+    input: SaveAudioEventsBatchInput,
+  ): Promise<SaveAudioEventsBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const channelsUpserted = await this.upsertChannels(tx, input.channels);
+        const usersUpserted = await this.upsertUsers(tx, input.users);
+
+        let audioEventsCreated = 0;
+        for (const event of input.audioEvents) {
+          const eventStatus = await this.findOrCreateEventStatus(
+            tx,
+            event.statusId,
+          );
+
+          await tx.audioEvent.upsert({
+            where: { platform_id: event.platformId },
+            update: {
+              name: event.name,
+              start_at: event.startAt,
+              end_at: event.endAt,
+              user_count: event.userCount,
+              description: event.description,
+              image: event.image,
+              status: { connect: { platform_id: eventStatus.platform_id } },
+            },
+            create: {
+              platform_id: event.platformId,
+              name: event.name,
+              start_at: event.startAt,
+              end_at: event.endAt,
+              user_count: event.userCount,
+              description: event.description,
+              image: event.image,
+              channel: {
+                connect: { platform_id: event.channel?.platformId },
+              },
+              creator: {
+                connect: { platform_id: event.creator?.platformId },
+              },
+              status: { connect: { platform_id: eventStatus.platform_id } },
+            },
+          });
+          audioEventsCreated += 1;
+        }
+
+        return { channelsUpserted, usersUpserted, audioEventsCreated };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveAudioEventsBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  private async upsertChannels(
+    tx: TransactionClient,
+    channels: SaveMessagesBatchInput["channels"],
+  ): Promise<number> {
+    for (const channel of channels) {
+      await tx.channel.upsert({
+        where: { platform_id: channel.platformId },
+        update: { name: channel.name, url: channel.url },
+        create: {
+          platform_id: channel.platformId,
+          name: channel.name,
+          url: channel.url,
+          created_at: channel.createdAt,
+        },
+      });
+    }
+    return channels.length;
+  }
+
+  private async upsertUsers(
+    tx: TransactionClient,
+    users: SaveMessagesBatchInput["users"],
+  ): Promise<number> {
+    for (const user of users) {
+      await tx.user.upsert({
+        where: { platform_id: user.platformId },
+        update: {
+          username: user.username,
+          global_name: user.globalName,
+          bot: user.bot,
+          status: user.status,
+        },
+        create: {
+          platform_id: user.platformId,
+          username: user.username,
+          global_name: user.globalName,
+          bot: user.bot,
+          status: user.status,
+          platform_created_at: user.platformCreatedAt,
+          joined_at: user.joinedAt,
+        },
+      });
+    }
+    return users.length;
+  }
+
+  private async findOrCreateEventStatus(
+    tx: TransactionClient,
+    statusName: string,
+  ): Promise<{ platform_id: string }> {
+    let eventStatus = await tx.eventStatus.findUnique({
+      where: { platform_id: statusName },
+    });
+
+    if (!eventStatus) {
+      eventStatus = await tx.eventStatus.create({
+        data: {
+          name: statusName.toUpperCase(),
+          platform_id: statusName,
+        },
+      });
+    }
+
+    return { platform_id: eventStatus.platform_id };
+  }
+}
