@@ -42,24 +42,6 @@ describe("HistoricalImportRepository", () => {
     );
   });
 
-  afterEach(async () => {
-    await jestPrisma.client.message.deleteMany({
-      where: { platform_id: { startsWith: "hist-message" } },
-    });
-    await jestPrisma.client.audioEvent.deleteMany({
-      where: { platform_id: { startsWith: "hist-event" } },
-    });
-    await jestPrisma.client.channel.deleteMany({
-      where: { platform_id: { startsWith: "hist-channel" } },
-    });
-    await jestPrisma.client.user.deleteMany({
-      where: { platform_id: { startsWith: "hist-user" } },
-    });
-    await jestPrisma.client.eventStatus
-      .deleteMany({ where: { platform_id: "hist-status" } })
-      .catch(() => {});
-  });
-
   describe("saveMessagesBatch", () => {
     it("should upsert channels/users and create messages transactionally", async () => {
       const c = channel();
