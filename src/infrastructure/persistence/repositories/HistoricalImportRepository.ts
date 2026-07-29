@@ -6,6 +6,8 @@ import {
   SaveAudioEventsBatchInput,
   SaveAudioEventsBatchOutput,
   SaveChannelsBatchOutput,
+  SaveMessageReactionsBatchInput,
+  SaveMessageReactionsBatchOutput,
   SaveMessagesBatchInput,
   SaveMessagesBatchOutput,
   SaveUserRolesBatchInput,
@@ -193,6 +195,42 @@ export class HistoricalImportRepository implements IHistoricalImportRepository {
         LoggerContext.REPOSITORY,
         LoggerContextEntity.HISTORICAL_SYNC,
         `saveUserRolesBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  async saveMessageReactionsBatch(
+    input: SaveMessageReactionsBatchInput,
+  ): Promise<SaveMessageReactionsBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const channelsUpserted = await this.upsertChannels(tx, input.channels);
+        const usersUpserted = await this.upsertUsers(tx, input.users);
+
+        const result = await tx.messageReaction.createMany({
+          data: input.reactions.map((reaction) => ({
+            user_id: reaction.userPlatformId,
+            message_id: reaction.messagePlatformId,
+            channel_id: reaction.channelPlatformId,
+            reaction_emoji: reaction.reactionEmoji,
+            reacted_at: reaction.reactedAt,
+          })),
+          skipDuplicates: true,
+        });
+
+        return {
+          channelsUpserted,
+          usersUpserted,
+          reactionsCreated: result.count,
+        };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveMessageReactionsBatch | ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }
