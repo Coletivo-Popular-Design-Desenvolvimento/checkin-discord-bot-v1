@@ -51,6 +51,59 @@ export interface FetchAudioEventsInRangeInput {
   endDate: Date;
 }
 
+export interface RawHistoricalUser {
+  platformId: string;
+  username: string;
+  globalName: string | null;
+  bot: boolean;
+  platformCreatedAt?: Date;
+  joinedAt?: Date | null;
+}
+
+export interface RawHistoricalChannel {
+  platformId: string;
+  name: string;
+  url: string;
+}
+
+export interface RawHistoricalMessageReaction {
+  messageId: string;
+  channelId: string;
+  channelName: string;
+  channelUrl: string;
+  messagePlatformCreatedAt: Date;
+  userId: string;
+  username: string;
+  userGlobalName: string | null;
+  userBot: boolean;
+  userPlatformCreatedAt?: Date;
+  userJoinedAt?: Date | null;
+  reactionEmoji: string;
+}
+
+export interface RawHistoricalUserRoleAssignment {
+  userId: string;
+  username: string;
+  userGlobalName: string | null;
+  userBot: boolean;
+  roleId: string;
+  roleName: string;
+  rolePlatformCreatedAt: Date;
+}
+
+export interface FetchNextMessageReactionsBatchInput {
+  startDate: Date;
+  endDate: Date;
+  batchSize: number;
+  cursor?: MessageHistoryCursor;
+}
+
+export interface FetchNextMessageReactionsBatchOutput {
+  reactions: RawHistoricalMessageReaction[];
+  cursor: MessageHistoryCursor;
+  done: boolean;
+}
+
 export interface IDiscordHistoryFetcher {
   fetchNextMessageBatch(
     input: FetchNextMessageBatchInput,
@@ -59,4 +112,14 @@ export interface IDiscordHistoryFetcher {
   fetchAudioEventsInRange(
     input: FetchAudioEventsInRangeInput,
   ): Promise<RawHistoricalAudioEvent[]>;
+
+  fetchGuildMembers(): Promise<RawHistoricalUser[]>;
+
+  fetchGuildChannels(): Promise<RawHistoricalChannel[]>;
+
+  fetchGuildMemberRoles(): Promise<RawHistoricalUserRoleAssignment[]>;
+
+  fetchNextMessageReactionsBatch(
+    input: FetchNextMessageReactionsBatchInput,
+  ): Promise<FetchNextMessageReactionsBatchOutput>;
 }
