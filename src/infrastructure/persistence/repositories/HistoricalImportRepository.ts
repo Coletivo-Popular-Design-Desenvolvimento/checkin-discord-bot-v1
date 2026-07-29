@@ -1,10 +1,16 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+import { UserEntity } from "@entities/User";
+import { ChannelEntity } from "@entities/Channel";
 import {
   IHistoricalImportRepository,
   SaveAudioEventsBatchInput,
   SaveAudioEventsBatchOutput,
+  SaveChannelsBatchOutput,
   SaveMessagesBatchInput,
   SaveMessagesBatchOutput,
+  SaveUserRolesBatchInput,
+  SaveUserRolesBatchOutput,
+  SaveUsersBatchOutput,
 } from "@domain/interfaces/repositories/IHistoricalImportRepository";
 import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
@@ -121,6 +127,77 @@ export class HistoricalImportRepository implements IHistoricalImportRepository {
     }
   }
 
+  async saveUsersBatch(
+    users: Omit<UserEntity, "id">[],
+  ): Promise<SaveUsersBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const usersUpserted = await this.upsertUsers(tx, users);
+        return { usersUpserted };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveUsersBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  async saveChannelsBatch(
+    channels: Omit<ChannelEntity, "id">[],
+  ): Promise<SaveChannelsBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const channelsUpserted = await this.upsertChannels(tx, channels);
+        return { channelsUpserted };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveChannelsBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  async saveUserRolesBatch(
+    input: SaveUserRolesBatchInput,
+  ): Promise<SaveUserRolesBatchOutput> {
+    try {
+      return await this.client.$transaction(async (tx) => {
+        const usersUpserted = await this.upsertUsers(tx, input.users);
+        const rolesUpserted = await this.upsertRoles(tx, input.roles);
+
+        const result = await tx.userRole.createMany({
+          data: input.assignments.map((assignment) => ({
+            user_platform_id: assignment.userPlatformId,
+            role_platform_id: assignment.rolePlatformId,
+          })),
+          skipDuplicates: true,
+        });
+
+        return {
+          usersUpserted,
+          rolesUpserted,
+          assignmentsCreated: result.count,
+        };
+      });
+    } catch (error) {
+      this.logger.logToConsole(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.HISTORICAL_SYNC,
+        `saveUserRolesBatch | ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
   private async upsertChannels(
     tx: TransactionClient,
     channels: SaveMessagesBatchInput["channels"],
@@ -165,6 +242,24 @@ export class HistoricalImportRepository implements IHistoricalImportRepository {
       });
     }
     return users.length;
+  }
+
+  private async upsertRoles(
+    tx: TransactionClient,
+    roles: SaveUserRolesBatchInput["roles"],
+  ): Promise<number> {
+    for (const role of roles) {
+      await tx.role.upsert({
+        where: { platform_id: role.platformId },
+        update: { name: role.name },
+        create: {
+          platform_id: role.platformId,
+          name: role.name,
+          platform_created_at: role.platformCreatedAt,
+        },
+      });
+    }
+    return roles.length;
   }
 
   private async findOrCreateEventStatus(
