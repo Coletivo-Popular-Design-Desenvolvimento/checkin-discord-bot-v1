@@ -1,11 +1,21 @@
-import { ChannelType, Client, Guild, TextChannel } from "discord.js";
+import {
+  ChannelType,
+  Client,
+  Collection,
+  Guild,
+  GuildMember,
+  TextChannel,
+} from "discord.js";
 import {
   FetchAudioEventsInRangeInput,
   FetchNextMessageBatchInput,
   FetchNextMessageBatchOutput,
   IDiscordHistoryFetcher,
   RawHistoricalAudioEvent,
+  RawHistoricalChannel,
   RawHistoricalMessage,
+  RawHistoricalUser,
+  RawHistoricalUserRoleAssignment,
 } from "@domain/interfaces/services/IDiscordHistoryFetcher";
 import {
   mapDiscordScheduledEventStatus,
@@ -125,12 +135,76 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
     return raw;
   }
 
+  async fetchGuildMembers(): Promise<RawHistoricalUser[]> {
+    const { members } = await this.resolveGuildMembers();
+
+    return [...members.values()]
+      .filter((member) => !member.user.bot)
+      .map((member) => ({
+        platformId: member.user.id,
+        username: member.user.username,
+        globalName: member.user.globalName,
+        bot: member.user.bot,
+        platformCreatedAt: new Date(member.user.createdTimestamp),
+        joinedAt: member.joinedAt,
+      }));
+  }
+
+  async fetchGuildChannels(): Promise<RawHistoricalChannel[]> {
+    const guild = await this.resolveGuild();
+    const channels = this.listTextChannels(guild);
+
+    return channels.map((channel) => ({
+      platformId: channel.id,
+      name: channel.name,
+      url: channel.url,
+    }));
+  }
+
+  async fetchGuildMemberRoles(): Promise<RawHistoricalUserRoleAssignment[]> {
+    const { guild, members } = await this.resolveGuildMembers();
+
+    const assignments: RawHistoricalUserRoleAssignment[] = [];
+    for (const member of members.values()) {
+      if (member.user.bot) {
+        continue;
+      }
+
+      for (const role of member.roles.cache.values()) {
+        if (role.id === guild.id) {
+          continue;
+        }
+
+        assignments.push({
+          userId: member.user.id,
+          username: member.user.username,
+          userGlobalName: member.user.globalName,
+          userBot: member.user.bot,
+          roleId: role.id,
+          roleName: role.name,
+          rolePlatformCreatedAt: role.createdAt,
+        });
+      }
+    }
+
+    return assignments;
+  }
+
   private async resolveGuild(): Promise<Guild> {
     const guildId = [...this.client.guilds.cache.values()][0]?.id;
     if (!guildId) {
       throw new Error("No guild found in client cache");
     }
     return this.client.guilds.fetch(guildId);
+  }
+
+  private async resolveGuildMembers(): Promise<{
+    guild: Guild;
+    members: Collection<string, GuildMember>;
+  }> {
+    const guild = await this.resolveGuild();
+    const members = await guild.members.fetch();
+    return { guild, members };
   }
 
   private listTextChannels(guild: Guild): TextChannel[] {
