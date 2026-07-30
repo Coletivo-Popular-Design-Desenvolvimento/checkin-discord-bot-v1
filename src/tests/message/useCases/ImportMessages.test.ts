@@ -30,10 +30,18 @@ describe("ImportMessages", () => {
     mockFetcher = {
       fetchNextMessageBatch: jest.fn(),
       fetchAudioEventsInRange: jest.fn(),
+      fetchGuildMembers: jest.fn(),
+      fetchGuildChannels: jest.fn(),
+      fetchGuildMemberRoles: jest.fn(),
+      fetchNextMessageReactionsBatch: jest.fn(),
     };
     mockRepository = {
       saveMessagesBatch: jest.fn(),
       saveAudioEventsBatch: jest.fn(),
+      saveUsersBatch: jest.fn(),
+      saveChannelsBatch: jest.fn(),
+      saveMessageReactionsBatch: jest.fn(),
+      saveUserRolesBatch: jest.fn(),
     };
     mockLogger = {
       logToConsole: jest.fn(),
