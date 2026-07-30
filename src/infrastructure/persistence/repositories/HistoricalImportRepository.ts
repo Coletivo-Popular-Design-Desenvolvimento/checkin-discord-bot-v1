@@ -208,6 +208,25 @@ export class HistoricalImportRepository implements IHistoricalImportRepository {
         const channelsUpserted = await this.upsertChannels(tx, input.channels);
         const usersUpserted = await this.upsertUsers(tx, input.users);
 
+        const messageIds = [
+          ...new Set(
+            input.reactions.map((reaction) => reaction.messagePlatformId),
+          ),
+        ];
+        const existingMessages = await tx.message.findMany({
+          where: { platform_id: { in: messageIds } },
+          select: { platform_id: true },
+        });
+        if (existingMessages.length !== messageIds.length) {
+          const foundIds = new Set(
+            existingMessages.map((message) => message.platform_id),
+          );
+          const missingIds = messageIds.filter((id) => !foundIds.has(id));
+          throw new Error(
+            `referenced message(s) not found: ${missingIds.join(", ")}`,
+          );
+        }
+
         const result = await tx.messageReaction.createMany({
           data: input.reactions.map((reaction) => ({
             user_id: reaction.userPlatformId,
