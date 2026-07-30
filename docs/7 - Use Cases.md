@@ -268,16 +268,20 @@ async execute(input: CreateUserInput): Promise<GenericOutputDto<UserEntity>> {
 
 ## Historical Sync Use Cases
 
-**Localização**: `src/domain/useCases/{message,audioEvent,sync}/`
+**Localização**: `src/domain/useCases/{user,role,channel,message,messageReaction,audioEvent,sync}/`
 **Status**: ✅ **Implementado** — ver [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)
 
 Diferente dos use cases acima (que reagem a eventos do gateway Discord em tempo real), estes são acionados sob demanda pelo script `src/historicalSync.ts` para fazer backfill de dados que já existiam antes do bot ficar online. Seguem o mesmo padrão `GenericOutputDto` + try/catch + `ILoggerService`, mas cada um acumula contagens de lote (`fetched`/`created`/`skipped`/`failed`) em vez de retornar uma única entidade.
 
+- **`ImportUsers`**: busca todos os membros não-bot da guild (`IDiscordHistoryFetcher.fetchGuildMembers`, uma única chamada) e grava em chunks de `batchSize` via `IHistoricalImportRepository.saveUsersBatch` — independente de terem mensagem no período.
+- **`ImportUserRoles`**: busca os cargos atuais de todos os membros (`fetchGuildMemberRoles`, reaproveitando o mesmo fetch de membros de `ImportUsers`) e grava em chunks via `saveUserRolesBatch`. Não recebe `startDate`/`endDate` — cargo é estado atual, não recorte por período — e nunca remove uma atribuição existente ausente do lote mais recente (somente aditivo).
+- **`ImportChannels`**: busca todos os canais de texto da guild (`fetchGuildChannels`, uma única chamada) e grava em chunks via `saveChannelsBatch` — independente de terem mensagem no período.
 - **`ImportMessages`**: pagina o `IDiscordHistoryFetcher` lote a lote, monta canais/usuários únicos e grava via `IHistoricalImportRepository.saveMessagesBatch`.
+- **`ImportMessageReactions`**: pagina reações de mensagens no intervalo pedido (`fetchNextMessageReactionsBatch`, mesmo loop por cursor de `ImportMessages`) e grava via `saveMessageReactionsBatch`; reações de bot são descartadas, e uma reação referenciando mensagem ainda não persistida falha isoladamente naquele lote.
 - **`ImportAudioEvents`**: busca os eventos de voz disponíveis no intervalo (uma única chamada, sem paginação — limitação da API do Discord) e grava em chunks de `batchSize`.
-- **`SyncHistoryRange`**: orquestra os dois acima sequencialmente, cada um isolado em seu próprio try/catch (falha em um não interrompe o outro), com defaults de "últimos 3 meses" e `batchSize=1000` quando não informados.
+- **`SyncHistoryRange`**: orquestra os seis acima sequencialmente — Usuários → Cargos → Canais → Mensagens → Reações → Eventos de áudio —, cada um isolado em seu próprio try/catch (falha em um não interrompe os demais), com defaults de "últimos 3 meses" e `batchSize=1000` quando não informados. A ordem é obrigatória pelas FKs do schema (cargos dependem de usuários já persistidos, reações dependem de mensagens já persistidas).
 
-**Escopo**: só mensagens e eventos de voz — reações, cargos e entrada/saída de usuários não fazem parte do backfill.
+**Escopo**: usuários, cargos (estado atual), canais, mensagens, reações de mensagens (`reactedAt` aproximado pela data da mensagem) e eventos de voz — entrada/saída de usuários (`UserEvent`) não faz parte do backfill.
 
 #### Analytics Use Cases
 

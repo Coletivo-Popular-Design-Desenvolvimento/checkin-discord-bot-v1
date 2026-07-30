@@ -228,9 +228,12 @@ export function initializeHistoricalSyncUseCases(
   logger: ILoggerService,
 ): { prismaService: PrismaService; syncHistoryRange: SyncHistoryRange } {
   // Monta DiscordHistoryFetcher, HistoricalImportRepository,
-  // ImportMessages, ImportAudioEvents e SyncHistoryRange
+  // ImportUsers, ImportUserRoles, ImportChannels, ImportMessages,
+  // ImportMessageReactions, ImportAudioEvents e SyncHistoryRange
 }
 ```
+
+Além de `ImportMessages`/`ImportAudioEvents` (já existentes), este context instancia `ImportUsers`, `ImportUserRoles`, `ImportChannels` e `ImportMessageReactions` — os 4 novos use cases do backfill completo — e os passa ao construtor de `SyncHistoryRange`, seguindo o mesmo padrão de instanciação já usado para os passos existentes.
 
 ## Dependency Injection Pattern
 
