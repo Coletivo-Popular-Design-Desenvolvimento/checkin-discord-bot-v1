@@ -9,6 +9,14 @@ import { IImportMessages } from "@interfaces/useCases/message/IImportMessages";
 import { ImportMessagesResult } from "@interfaces/useCases/message/IImportMessages";
 import { IImportAudioEvents } from "@interfaces/useCases/audioEvent/IImportAudioEvents";
 import { ImportAudioEventsResult } from "@interfaces/useCases/audioEvent/IImportAudioEvents";
+import { IImportUsers } from "@interfaces/useCases/user/IImportUsers";
+import { ImportUsersResult } from "@interfaces/useCases/user/IImportUsers";
+import { IImportUserRoles } from "@interfaces/useCases/role/IImportUserRoles";
+import { ImportUserRolesResult } from "@interfaces/useCases/role/IImportUserRoles";
+import { IImportChannels } from "@interfaces/useCases/channel/IImportChannels";
+import { ImportChannelsResult } from "@interfaces/useCases/channel/IImportChannels";
+import { IImportMessageReactions } from "@interfaces/useCases/messageReaction/IImportMessageReactions";
+import { ImportMessageReactionsResult } from "@interfaces/useCases/messageReaction/IImportMessageReactions";
 import {
   ISyncHistoryRange,
   SyncHistoryRangeInput,
@@ -25,9 +33,21 @@ const EMPTY_IMPORT_RESULT = {
   failed: 0,
 };
 
+type IsolatedResult =
+  | ImportMessagesResult
+  | ImportAudioEventsResult
+  | ImportUsersResult
+  | ImportUserRolesResult
+  | ImportChannelsResult
+  | ImportMessageReactionsResult;
+
 export class SyncHistoryRange implements ISyncHistoryRange {
   constructor(
+    private readonly importUsers: IImportUsers,
+    private readonly importUserRoles: IImportUserRoles,
+    private readonly importChannels: IImportChannels,
     private readonly importMessages: IImportMessages,
+    private readonly importMessageReactions: IImportMessageReactions,
     private readonly importAudioEvents: IImportAudioEvents,
     private readonly logger: ILoggerService,
   ) {}
@@ -42,6 +62,27 @@ export class SyncHistoryRange implements ISyncHistoryRange {
 
     const errors: string[] = [];
 
+    const users = await this.runIsolated("users", errors, () =>
+      this.importUsers.execute({
+        batchSize,
+        onProgress: input.onUserProgress,
+      }),
+    );
+
+    const userRoles = await this.runIsolated("userRoles", errors, () =>
+      this.importUserRoles.execute({
+        batchSize,
+        onProgress: input.onUserRoleProgress,
+      }),
+    );
+
+    const channels = await this.runIsolated("channels", errors, () =>
+      this.importChannels.execute({
+        batchSize,
+        onProgress: input.onChannelProgress,
+      }),
+    );
+
     const messages = await this.runIsolated("messages", errors, () =>
       this.importMessages.execute({
         startDate,
@@ -49,6 +90,18 @@ export class SyncHistoryRange implements ISyncHistoryRange {
         batchSize,
         onProgress: input.onMessageProgress,
       }),
+    );
+
+    const messageReactions = await this.runIsolated(
+      "messageReactions",
+      errors,
+      () =>
+        this.importMessageReactions.execute({
+          startDate,
+          endDate,
+          batchSize,
+          onProgress: input.onMessageReactionProgress,
+        }),
     );
 
     const audioEvents = await this.runIsolated("audioEvents", errors, () =>
@@ -61,15 +114,24 @@ export class SyncHistoryRange implements ISyncHistoryRange {
     );
 
     return {
-      data: { startDate, endDate, batchSize, messages, audioEvents, errors },
+      data: {
+        startDate,
+        endDate,
+        batchSize,
+        users,
+        userRoles,
+        channels,
+        messages,
+        messageReactions,
+        audioEvents,
+        errors,
+      },
       success: errors.length === 0,
       message: errors.length > 0 ? errors.join("; ") : undefined,
     };
   }
 
-  private async runIsolated<
-    T extends ImportMessagesResult | ImportAudioEventsResult,
-  >(
+  private async runIsolated<T extends IsolatedResult>(
     label: string,
     errors: string[],
     run: () => Promise<GenericOutputDto<T>>,
