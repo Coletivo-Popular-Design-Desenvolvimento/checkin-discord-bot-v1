@@ -63,9 +63,29 @@ async function main(): Promise<void> {
     startDate,
     endDate,
     batchSize,
+    onUserProgress: (progress) => {
+      console.log(
+        `[USER] lote ${progress.batchNumber} — ${progress.created} registros importados até agora`,
+      );
+    },
+    onUserRoleProgress: (progress) => {
+      console.log(
+        `[USER_ROLE] lote ${progress.batchNumber} — ${progress.created} registros importados até agora`,
+      );
+    },
+    onChannelProgress: (progress) => {
+      console.log(
+        `[CHANNEL] lote ${progress.batchNumber} — ${progress.created} registros importados até agora`,
+      );
+    },
     onMessageProgress: (progress) => {
       console.log(
         `[MESSAGE] lote ${progress.batchNumber} — ${progress.created} registros importados até agora`,
+      );
+    },
+    onMessageReactionProgress: (progress) => {
+      console.log(
+        `[MESSAGE_REACTION] lote ${progress.batchNumber} — ${progress.created} registros importados até agora`,
       );
     },
     onAudioEventProgress: (progress) => {
@@ -77,7 +97,19 @@ async function main(): Promise<void> {
 
   console.log("Resumo final:");
   console.log(
+    `  Usuários: fetched=${result.data.users.fetched} created=${result.data.users.created} skipped=${result.data.users.skipped} failed=${result.data.users.failed}`,
+  );
+  console.log(
+    `  Cargos: fetched=${result.data.userRoles.fetched} created=${result.data.userRoles.created} skipped=${result.data.userRoles.skipped} failed=${result.data.userRoles.failed}`,
+  );
+  console.log(
+    `  Canais: fetched=${result.data.channels.fetched} created=${result.data.channels.created} skipped=${result.data.channels.skipped} failed=${result.data.channels.failed}`,
+  );
+  console.log(
     `  Mensagens: fetched=${result.data.messages.fetched} created=${result.data.messages.created} skipped=${result.data.messages.skipped} failed=${result.data.messages.failed}`,
+  );
+  console.log(
+    `  Reações: fetched=${result.data.messageReactions.fetched} created=${result.data.messageReactions.created} skipped=${result.data.messageReactions.skipped} failed=${result.data.messageReactions.failed}`,
   );
   console.log(
     `  Eventos de áudio: fetched=${result.data.audioEvents.fetched} created=${result.data.audioEvents.created} skipped=${result.data.audioEvents.skipped} failed=${result.data.audioEvents.failed}`,
