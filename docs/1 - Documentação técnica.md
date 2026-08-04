@@ -278,6 +278,12 @@ graph TD
 - Contadores e estatísticas
 - Status e timestamps
 
+### 🕰️ Dados Históricos (Backfill)
+
+Além da coleta em tempo real, um script CLI (`npm run sync:history`) permite **importar retroativamente** mensagens e eventos de voz que já existiam no servidor antes do bot começar a rodar. É um fluxo separado do consumidor em tempo real, sob demanda, e cobre **apenas mensagens e eventos de voz** — reações, cargos e histórico de entrada/saída de usuários continuam existindo só a partir do momento em que o bot está online.
+
+**📖 Ver detalhes**: [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)
+
 ### Relacionamentos
 
 - Users podem ter múltiplos Roles (N:N)
@@ -372,6 +378,7 @@ graph TD
 - [5 - Contexts](./5%20-%20Contexts.md) - Dependency Injection
 - [6 - Entidades Principais](./6%20-%20Entidades%20Principais.md) - Modelos de dados
 - [7 - Use Cases](./7%20-%20Use%20Cases.md) - Casos de uso implementados
+- [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md) - Backfill de mensagens e eventos de voz via CLI
 
 ---
 

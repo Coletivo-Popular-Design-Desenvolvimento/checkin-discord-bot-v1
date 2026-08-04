@@ -17,7 +17,11 @@ import { IRegisterVoiceEvent } from "@interfaces/useCases/audioEvent/IRegisterVo
 import { IFinalizeVoiceEvent } from "@interfaces/useCases/audioEvent/IFinalizeVoiceEvent";
 import { RegisterVoiceEventInput } from "@interfaces/useCases/audioEvent/IRegisterVoiceEvent";
 import { FinalizeVoiceEventInput } from "@interfaces/useCases/audioEvent/IFinalizeVoiceEvent";
-import { DiscordEventStatus } from "@type/DiscordEventTypes";
+import {
+  DiscordEventStatus,
+  mapDiscordScheduledEventStatus,
+  mapEventStatusToPlatformId,
+} from "@type/DiscordEventTypes";
 
 export class VoiceEventCommand {
   constructor(
@@ -127,7 +131,7 @@ export class VoiceEventCommand {
       const input: RegisterVoiceEventInput = {
         platformId: event.id,
         name: event.name,
-        status: VoiceEventCommand.mapStatusToPlatformId(event.status),
+        status: mapEventStatusToPlatformId(event.status),
         startAt: event.scheduledStartAt || new Date(),
         endAt: event.scheduledEndAt,
         userCount: event.userCount || 0,
@@ -227,17 +231,10 @@ export class VoiceEventCommand {
     description: string | null;
     image?: string;
   } {
-    const statusMap = <const>{
-      "1": "SCHEDULED",
-      "2": "ACTIVE",
-      "3": "COMPLETED",
-      "4": "CANCELED",
-    };
-
     return {
       id: event.id,
       name: event.name,
-      status: statusMap[event.status.toString()] || "SCHEDULED",
+      status: mapDiscordScheduledEventStatus(event.status),
       scheduledStartAt: event.scheduledStartAt,
       scheduledEndAt: event.scheduledEndAt,
       userCount: event.userCount,
@@ -246,16 +243,5 @@ export class VoiceEventCommand {
       description: event.description,
       image: event.coverImageURL ? event.coverImageURL() : undefined,
     };
-  }
-
-  static mapStatusToPlatformId(status: DiscordEventStatus): string {
-    const statusMap = <const>{
-      SCHEDULED: "scheduled",
-      ACTIVE: "active",
-      COMPLETED: "completed",
-      CANCELED: "canceled",
-    };
-
-    return statusMap[status] || "scheduled";
   }
 }
