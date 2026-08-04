@@ -1,456 +1,292 @@
-import { ChannelRepository } from "../../infrastructure/persistence/repositories/ChannelRepository";
-import { PrismaService } from "../../infrastructure/persistence/prisma/prismaService";
-import { prismaMock } from "../config/singleton";
-import { ILoggerService } from "../../domain/interfaces/services/ILogger";
+import { ChannelEntity } from "@domain/entities/Channel";
+import { ILoggerService } from "@domain/interfaces/services/ILogger";
 import {
-  mockDbChannelValue,
-  mockChannelUpdatePayload,
-  mockDbChannelUpdatedValue,
-  mockDBUserValue,
-  mockDbMessageValue,
+  LoggerContext,
+  LoggerContextEntity,
+  LoggerContextStatus,
+} from "@domain/types/LoggerContextEnum";
+import { PrismaService } from "@infra/persistence/prisma/prismaService";
+import { ChannelRepository } from "@infra/repositories/ChannelRepository";
+import { MessageRepository } from "@infra/repositories/MessageRepository";
+import { UserRepository } from "@infra/repositories/UserRepository";
+import {
+  createMockChannelEntity,
+  createMockMessageEntity,
+  createMockUserEntity,
 } from "@tests/config/constants";
-import { Message, User } from "@prisma/client";
-import { PrismaMapper } from "@infra/repositories/PrismaMapper";
 
 describe("ChannelRepository", () => {
   let channelRepository: ChannelRepository;
-  const prismaServiceMock = new PrismaService(prismaMock);
-  beforeAll(() => {
-    const mockLogger: ILoggerService = {
+  let mockLogger: ILoggerService;
+  let channelToBeFound: ChannelEntity;
+  let testId: string;
+  let channelSequence: number;
+
+  const buildChannel = (
+    suffix: string,
+    overrides: Partial<ChannelEntity> = {},
+  ): ChannelEntity =>
+    createMockChannelEntity({
+      platformId: `channel-${testId}-${suffix}`,
+      name: `Channel ${suffix}`,
+      url: `https://discord.test/channels/${suffix}`,
+      user: [],
+      message: [],
+      messageReaction: [],
+      ...overrides,
+    });
+
+  const createChannel = async (
+    overrides: Partial<ChannelEntity> = {},
+  ): Promise<ChannelEntity> => {
+    channelSequence += 1;
+    const channel = buildChannel(String(channelSequence), overrides);
+    const createdChannel = await channelRepository.create(channel);
+
+    return createdChannel;
+  };
+
+  beforeEach(async () => {
+    mockLogger = {
       logToConsole: jest.fn(),
       logToDatabase: jest.fn(),
     };
-    mockLogger.logToConsole = jest.fn().mockImplementation((message) => {
-      console.error(message);
-    });
-    channelRepository = new ChannelRepository(prismaServiceMock, mockLogger);
+    channelRepository = new ChannelRepository(
+      new PrismaService(jestPrisma.client),
+      mockLogger,
+    );
+    testId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    channelSequence = 0;
+    channelToBeFound = await createChannel();
   });
 
   describe("findById", () => {
-    it("should return channel by id", async () => {
-      //Arrange
-      const id = 1;
-      prismaMock.channel.findUnique.mockResolvedValue(mockDbChannelValue);
-      //Action
-      const channel = await channelRepository.findById(id);
-      //Assert
-      expect(prismaMock.channel.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findUnique).toHaveBeenCalledWith({
-        where: { id },
-        include: {
-          users: { include: { user: true } },
-          message: true,
-          message_reaction: true,
-        },
+    it("should return a channel by id", async () => {
+      const channel = await channelRepository.findById(channelToBeFound.id);
+
+      expect(channel).toMatchObject({
+        id: channelToBeFound.id,
+        platformId: channelToBeFound.platformId,
+        name: channelToBeFound.name,
+        url: channelToBeFound.url,
+        user: [],
+        message: [],
+        messageReaction: [],
       });
-
-      expect(channel).toHaveProperty("id", 1);
-      expect(channel).toHaveProperty("platformId", "discordId");
-      expect(channel).toHaveProperty("name", "channelName");
-      expect(channel).toHaveProperty("url", "channelUrl");
-      expect(channel).toHaveProperty("user", expect.any(Array));
-      expect(channel).toHaveProperty("message", expect.any(Array));
-      expect(channel).toHaveProperty("messageReaction", expect.any(Array));
     });
 
-    it("should return null if channel not found", async () => {
-      //Arrange
-      const id = 99;
-      prismaMock.channel.findUnique.mockResolvedValue(null);
-      //Action
-      const channel = await channelRepository.findById(id);
-      //Assert
-      expect(prismaMock.channel.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id },
-        }),
+    it("should return null if the channel is not found", async () => {
+      const channel = await channelRepository.findById(
+        channelToBeFound.id + 1_000_000,
       );
+
       expect(channel).toBeNull();
     });
 
-    it("should log an error if findById fails", async () => {
-      const id = 1;
-      prismaMock.channel.findUnique.mockRejectedValue(new Error("DB error"));
-      const channel = await channelRepository.findById(id);
-      expect(channelRepository["logger"].logToConsole).toHaveBeenCalledWith(
-        "ERROR",
-        "REPOSITORY",
-        "CHANNEL",
-        "findById | DB error",
-      );
+    it("should log an error when the id is invalid", async () => {
+      const channel = await channelRepository.findById(Number.NaN);
+
       expect(channel).toBeNull();
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.CHANNEL,
+        expect.stringContaining("findById |"),
+      );
     });
   });
 
   describe("findByPlatformId", () => {
-    it("should return channel by discord id", async () => {
-      const platformId = "discordId";
-      prismaMock.channel.findFirst.mockResolvedValue(mockDbChannelValue);
-      const channel = await channelRepository.findByPlatformId(platformId);
-
-      expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
-        where: { platform_id: platformId },
-        include: {
-          users: { include: { user: true } },
-          message: true,
-          message_reaction: true,
-        },
-      });
-
-      const expectedEntity = PrismaMapper.toChannelEntity(
-        mockDbChannelValue,
-        mockDbChannelValue.users,
-        mockDbChannelValue.message,
-        mockDbChannelValue.message_reaction,
+    it("should return a channel by Discord id", async () => {
+      const channel = await channelRepository.findByPlatformId(
+        channelToBeFound.platformId,
       );
 
-      expect(channel).toEqual(expectedEntity);
+      expect(channel).toMatchObject({
+        id: channelToBeFound.id,
+        platformId: channelToBeFound.platformId,
+        name: channelToBeFound.name,
+        url: channelToBeFound.url,
+      });
     });
 
-    it("should return null if channel not found by discord id", async () => {
-      const platformId = "nonExistentDiscordId";
-      prismaMock.channel.findFirst.mockResolvedValue(null);
-      const channel = await channelRepository.findByPlatformId(platformId);
-
-      expect(prismaMock.channel.findFirst).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findFirst).toHaveBeenCalledWith({
-        where: { platform_id: platformId },
-        include: {
-          users: { include: { user: true } },
-          message: true,
-          message_reaction: true,
-        },
-      });
+    it("should return null if the Discord id is not found", async () => {
+      const channel = await channelRepository.findByPlatformId(
+        `missing-${testId}`,
+      );
 
       expect(channel).toBeNull();
     });
   });
 
   describe("create", () => {
-    it("should create a new channel", async () => {
-      const mockUserEntity = PrismaMapper.toUserEntity(
-        mockDBUserValue as unknown as User,
-      );
-
-      const mockMessageEntity = PrismaMapper.toMessageEntity(
-        mockDbMessageValue as unknown as Message,
-      );
-
-      const channelData = {
-        platformId: "newDiscordId",
-        name: "newChannelName",
-        url: "newChannelUrl",
-        createdAt: new Date(),
-        user: [mockUserEntity],
-        message: [mockMessageEntity],
-        messageReaction: [],
-      };
-      const dbChannelData = {
-        id: 2,
-        platform_id: channelData.platformId,
-        name: channelData.name,
-        url: channelData.url,
-        created_at: channelData.createdAt,
-        users: [mockUserEntity],
-        message: [mockMessageEntity],
-        message_reaction: [],
-      };
-
-      prismaMock.channel.create.mockResolvedValue(dbChannelData);
-
-      const channel = await channelRepository.create(channelData);
-
-      expect(prismaMock.channel.create).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.create).toHaveBeenCalledWith({
-        data: {
-          platform_id: channelData.platformId,
-          name: channelData.name,
-          url: channelData.url,
-          created_at: channelData.createdAt,
-          message: {
-            connect: channelData.message.map((message) => ({
-              platform_id: message.platformId,
-            })),
-          },
-          message_reaction: {
-            connect: [],
-          },
-          users: {
-            create: channelData.user.map((user) => ({
-              user: {
-                connect: { platform_id: user.platformId },
-              },
-            })),
-          },
-        },
-        include: {
-          message: true,
-          message_reaction: true,
-          users: { include: { user: true } },
-        },
+    it("should persist and return a new channel", async () => {
+      const createdChannel = await createChannel({
+        name: "New channel",
+        url: "https://discord.test/channels/new",
       });
 
-      expect(channel).toHaveProperty("id", dbChannelData.id);
-      expect(channel).toHaveProperty("platformId", channelData.platformId);
+      const persistedChannel = await channelRepository.findById(
+        createdChannel.id,
+      );
+
+      expect(persistedChannel).toMatchObject({
+        id: createdChannel.id,
+        platformId: createdChannel.platformId,
+        name: "New channel",
+        url: "https://discord.test/channels/new",
+      });
+    });
+
+    it("should persist users and existing messages", async () => {
+      const prismaService = new PrismaService(jestPrisma.client);
+      const userRepository = new UserRepository(prismaService, mockLogger);
+      const messageRepository = new MessageRepository(
+        prismaService,
+        mockLogger,
+      );
+      const user = await userRepository.create(
+        createMockUserEntity({ platformId: `user-${testId}` }),
+      );
+      const message = await messageRepository.create(
+        createMockMessageEntity({
+          platformId: `message-${testId}`,
+          channel: channelToBeFound,
+          user,
+        }),
+      );
+
+      const createdChannel = await channelRepository.create(
+        buildChannel("relations", {
+          user: [user],
+          message: [message],
+        }),
+      );
+
+      expect(createdChannel.user).toEqual([
+        expect.objectContaining({ platformId: user.platformId }),
+      ]);
+      expect(createdChannel.message).toEqual([
+        expect.objectContaining({ platformId: message.platformId }),
+      ]);
     });
   });
 
   describe("createMany", () => {
-    it("should create multiple channels and return the count", async () => {
-      const channelsData = [
-        {
-          platformId: "id1",
-          name: "name1",
-          url: "url1",
-          createdAt: new Date(),
-          user: [],
-          message: [],
-          messageReaction: [],
-        },
-        {
-          platformId: "id2",
-          name: "name2",
-          url: "url2",
-          createdAt: new Date(),
-          user: [],
-          message: [],
-          messageReaction: [],
-        },
-      ];
-      prismaMock.channel.create
-        .mockResolvedValueOnce({
-          id: 1,
-          platform_id: "id1",
-          name: "",
-          url: "",
-          created_at: undefined,
-        })
-        .mockResolvedValueOnce({
-          id: 2,
-          platform_id: "id2",
-          name: "",
-          url: "",
-          created_at: undefined,
-        });
+    it("should persist multiple channels and return the count", async () => {
+      const channels = [buildChannel("many-1"), buildChannel("many-2")];
 
-      const count = await channelRepository.createMany(channelsData);
+      const count = await channelRepository.createMany(channels);
 
-      expect(prismaMock.channel.create).toHaveBeenCalledTimes(
-        channelsData.length,
-      );
-      channelsData.forEach((ch, i) => {
-        expect(prismaMock.channel.create).toHaveBeenNthCalledWith(i + 1, {
-          data: {
-            platform_id: ch.platformId,
-            name: ch.name,
-            url: ch.url,
-            created_at: ch.createdAt,
-            message: { connect: [] },
-            message_reaction: { connect: [] },
-          },
-        });
+      expect(count).toBe(channels.length);
+      await expect(
+        channelRepository.findByPlatformId(channels[0].platformId),
+      ).resolves.toMatchObject({ platformId: channels[0].platformId });
+      await expect(
+        channelRepository.findByPlatformId(channels[1].platformId),
+      ).resolves.toMatchObject({ platformId: channels[1].platformId });
+    });
+
+    it("should return zero and log when a channel is invalid", async () => {
+      const invalidChannel = buildChannel("invalid");
+      Object.assign(invalidChannel, {
+        platformId: 123,
       });
-      expect(count).toBe(channelsData.length);
+
+      const count = await channelRepository.createMany([invalidChannel]);
+
+      expect(count).toBe(0);
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.CHANNEL,
+        expect.stringContaining("createMany |"),
+      );
     });
   });
 
   describe("listAll", () => {
-    it("should return a list of channels", async () => {
-      const dbChannels = [
-        {
-          ...mockDbChannelValue,
-          users: [mockDBUserValue],
-          message: [
-            {
-              ...mockDbMessageValue,
-              user: mockDBUserValue,
-              channel: mockDbChannelValue,
-              message_reaction: [],
-            },
-          ],
-          message_reaction: [],
-        },
-        {
-          ...mockDbChannelValue,
-          id: 2,
-          platform_id: "discordId2",
-          users: [mockDBUserValue],
-          message: [
-            {
-              ...mockDbMessageValue,
-              user: mockDBUserValue,
-              channel: mockDbChannelValue,
-              message_reaction: [],
-            },
-          ],
-          message_reaction: [],
-        },
-      ];
-      prismaMock.channel.findMany.mockResolvedValue(dbChannels);
-
+    it("should return persisted channels", async () => {
       const channels = await channelRepository.listAll();
+      const persistedChannel = channels.find(
+        (channel) => channel.platformId === channelToBeFound.platformId,
+      );
 
-      expect(prismaMock.channel.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findMany).toHaveBeenCalledWith({
-        where: {},
-        take: undefined,
-        include: {
-          users: { include: { user: true } },
-          message: true,
-          message_reaction: true,
-        },
-      });
-      expect(channels).toHaveLength(2);
-
-      expect(channels[0]).toMatchObject({
-        id: 1,
-        platformId: "discordId",
-        name: "channelName",
-        url: "channelUrl",
-        user: expect.arrayContaining([
-          expect.objectContaining({
-            id: expect.any(Number),
-            platformId: "1234567890",
-            username: "John Doe",
-          }),
-        ]),
-        // Message agora é uma entidade completa, não precisamos validar estrutura interna
-        message: expect.any(Array),
+      expect(persistedChannel).toMatchObject({
+        id: channelToBeFound.id,
+        platformId: channelToBeFound.platformId,
+        name: channelToBeFound.name,
+        url: channelToBeFound.url,
+        user: [],
+        message: [],
         messageReaction: [],
       });
     });
 
-    it("should return a list of channels with limit", async () => {
-      const dbChannels = [
-        {
-          ...mockDbChannelValue,
-          users: [mockDBUserValue],
-          message: [
-            {
-              ...mockDbMessageValue,
-              user: mockDBUserValue,
-              channel: mockDbChannelValue,
-              message_reaction: [],
-            },
-          ],
-          message_reaction: [],
-        },
-      ];
-
-      prismaMock.channel.findMany.mockResolvedValue(dbChannels);
+    it("should respect the provided limit", async () => {
+      await createChannel();
 
       const channels = await channelRepository.listAll(1);
 
-      expect(prismaMock.channel.findMany).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.findMany).toHaveBeenCalledWith({
-        where: {},
-        take: 1,
-        include: {
-          users: { include: { user: true } },
-          message: true,
-          message_reaction: true,
-        },
-      });
       expect(channels).toHaveLength(1);
-
-      expect(channels[0]).toMatchObject({
-        id: 1,
-        platformId: "discordId",
-        name: "channelName",
-        url: "channelUrl",
-        user: expect.arrayContaining([
-          expect.objectContaining({
-            id: expect.any(Number),
-            platformId: "1234567890",
-            username: "John Doe",
-          }),
-        ]),
-        message: expect.arrayContaining([
-          expect.objectContaining({
-            id: expect.any(Number),
-            platformId: "1234567890",
-            // Message agora é uma entidade completa, não precisamos validar channelId
-            channel: expect.any(Object),
-          }),
-        ]),
-        messageReaction: [],
-      });
     });
   });
 
   describe("updateById", () => {
     it("should update a channel by id", async () => {
-      const id = 1;
-
-      prismaMock.channel.update.mockResolvedValue(mockDbChannelUpdatedValue);
-
-      const channel = await channelRepository.updateById(
-        id,
-        mockChannelUpdatePayload,
-      );
-
-      expect(prismaMock.channel.update).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.update).toHaveBeenCalledWith({
-        where: { id },
-        data: {
-          name: mockChannelUpdatePayload.name,
-          url: mockChannelUpdatePayload.url,
-          // platform_id e created_at não devem ser enviados se não estiverem no payload parcial
-        },
+      const channel = await channelRepository.updateById(channelToBeFound.id, {
+        name: "Updated channel",
+        url: "https://discord.test/channels/updated",
       });
-      expect(channel).toHaveProperty("id", id);
-      expect(channel).toHaveProperty("name", mockChannelUpdatePayload.name);
-      expect(channel).toHaveProperty("url", mockChannelUpdatePayload.url);
+
+      expect(channel).toMatchObject({
+        id: channelToBeFound.id,
+        platformId: channelToBeFound.platformId,
+        name: "Updated channel",
+        url: "https://discord.test/channels/updated",
+      });
     });
 
-    it("should return null if channel to update is not found", async () => {
-      const id = 99;
-      prismaMock.channel.update.mockRejectedValue(
-        new Error("Record to update not found."),
-      ); // Prisma comum erro
-
-      // Mock logger para verificar se o erro é logado
-      const spyLogger = jest.spyOn(channelRepository["logger"], "logToConsole");
-
+    it("should log and return undefined if the channel is not found", async () => {
       const channel = await channelRepository.updateById(
-        id,
-        mockChannelUpdatePayload,
+        channelToBeFound.id + 1_000_000,
+        {
+          name: "Missing channel",
+        },
       );
 
-      expect(prismaMock.channel.update).toHaveBeenCalledTimes(1);
-      expect(channel).toBeUndefined(); // Ou null, dependendo da sua lógica de tratamento de erro no repositório
-      expect(spyLogger).toHaveBeenCalled();
+      expect(channel).toBeUndefined();
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.CHANNEL,
+        expect.stringContaining("updateById |"),
+      );
     });
   });
 
   describe("deleteById", () => {
     it("should delete a channel by id and return true", async () => {
-      const id = 1;
-      prismaMock.channel.delete.mockResolvedValue(mockDbChannelValue);
+      const deleted = await channelRepository.deleteById(channelToBeFound.id);
 
-      const result = await channelRepository.deleteById(id);
-
-      expect(prismaMock.channel.delete).toHaveBeenCalledTimes(1);
-      expect(prismaMock.channel.delete).toHaveBeenCalledWith({
-        where: { id },
-      });
-      expect(result).toBe(true);
+      expect(deleted).toBe(true);
+      await expect(
+        channelRepository.findById(channelToBeFound.id),
+      ).resolves.toBeNull();
     });
 
-    it("should return false if channel to delete is not found (or error occurs)", async () => {
-      const id = 99;
-      prismaMock.channel.delete.mockRejectedValue(
-        new Error("Record to delete not found."),
+    it("should log and return undefined if the channel is not found", async () => {
+      const deleted = await channelRepository.deleteById(
+        channelToBeFound.id + 1_000_000,
       );
-      const spyLogger = jest.spyOn(channelRepository["logger"], "logToConsole");
 
-      const result = await channelRepository.deleteById(id);
-
-      expect(prismaMock.channel.delete).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined(); // Ou false, dependendo da sua lógica de tratamento de erro
-      expect(spyLogger).toHaveBeenCalled();
+      expect(deleted).toBeUndefined();
+      expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+        LoggerContextStatus.ERROR,
+        LoggerContext.REPOSITORY,
+        LoggerContextEntity.CHANNEL,
+        expect.stringContaining("deleteById |"),
+      );
     });
   });
 });
