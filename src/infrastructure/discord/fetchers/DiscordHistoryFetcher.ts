@@ -26,11 +26,26 @@ import {
   mapDiscordScheduledEventStatus,
   mapEventStatusToPlatformId,
 } from "@type/DiscordEventTypes";
+import { ILoggerService } from "@services/ILogger";
+import {
+  LoggerContext,
+  LoggerContextEntity,
+  LoggerContextStatus,
+} from "@type/LoggerContextEnum";
 
 const MAX_PAGE_SIZE = 100;
+const MISSING_ACCESS_ERROR_CODE = 50001;
 
 export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
-  constructor(private readonly client: Client) {}
+  private guildMembersPromise?: Promise<{
+    guild: Guild;
+    members: Collection<string, GuildMember>;
+  }>;
+
+  constructor(
+    private readonly client: Client,
+    private readonly logger?: ILoggerService,
+  ) {}
 
   async fetchNextMessageBatch(
     input: FetchNextMessageBatchInput,
@@ -223,19 +238,24 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
     guild: Guild;
     members: Collection<string, GuildMember>;
   }> {
-    const guild = await this.resolveGuild();
-    const members = await guild.members.fetch();
-    return { guild, members };
+    if (!this.guildMembersPromise) {
+      this.guildMembersPromise = (async () => {
+        const guild = await this.resolveGuild();
+        const members = await guild.members.fetch();
+        return { guild, members };
+      })().catch((error) => {
+        this.guildMembersPromise = undefined;
+        throw error;
+      });
+    }
+    return this.guildMembersPromise;
   }
 
   private async walkMessagesInRange(
     channels: TextChannel[],
     range: { startDate: Date; endDate: Date; cursor?: MessageHistoryCursor },
     hasCapacity: () => boolean,
-    onMessage: (
-      message: Message,
-      channel: TextChannel,
-    ) => Promise<void> | void,
+    onMessage: (message: Message, channel: TextChannel) => Promise<void> | void,
   ): Promise<{ cursor: MessageHistoryCursor; done: boolean }> {
     const { startDate, endDate, cursor } = range;
     let channelIndex = cursor?.channelIndex ?? 0;
@@ -243,10 +263,26 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
 
     while (channelIndex < channels.length && hasCapacity()) {
       const channel = channels[channelIndex];
-      const page = await channel.messages.fetch({
-        limit: MAX_PAGE_SIZE,
-        ...(before ? { before } : {}),
-      });
+      let page: Collection<string, Message>;
+      try {
+        page = await channel.messages.fetch({
+          limit: MAX_PAGE_SIZE,
+          ...(before ? { before } : {}),
+        });
+      } catch (error) {
+        if (this.isMissingAccessError(error)) {
+          this.logger?.logToConsole(
+            LoggerContextStatus.ERROR,
+            LoggerContext.USECASE,
+            LoggerContextEntity.HISTORICAL_SYNC,
+            `DiscordHistoryFetcher.walkMessagesInRange | sem acesso ao canal #${channel.name} (${channel.id}), pulando`,
+          );
+          channelIndex += 1;
+          before = undefined;
+          continue;
+        }
+        throw error;
+      }
 
       if (page.size === 0) {
         channelIndex += 1;
@@ -282,6 +318,15 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
 
     const done = channelIndex >= channels.length;
     return { cursor: { channelIndex, before }, done };
+  }
+
+  private isMissingAccessError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: unknown }).code === MISSING_ACCESS_ERROR_CODE
+    );
   }
 
   private listTextChannels(guild: Guild): TextChannel[] {
