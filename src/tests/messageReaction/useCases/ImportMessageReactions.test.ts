@@ -244,6 +244,50 @@ describe("ImportMessageReactions", () => {
     });
   });
 
+  it("should log the failed batch (with referenced message ids) and continue to the next one when saveMessageReactionsBatch throws", async () => {
+    mockFetcher.fetchNextMessageReactionsBatch
+      .mockResolvedValueOnce({
+        reactions: [rawReaction({ messageId: "message-orphan" })],
+        cursor: { channelIndex: 0, before: "message-orphan" },
+        done: false,
+      })
+      .mockResolvedValueOnce({
+        reactions: [rawReaction({ messageId: "message-2" })],
+        cursor: { channelIndex: 1 },
+        done: true,
+      });
+
+    mockRepository.saveMessageReactionsBatch
+      .mockRejectedValueOnce(
+        new Error("referenced message(s) not found: message-orphan"),
+      )
+      .mockResolvedValueOnce({
+        channelsUpserted: 1,
+        usersUpserted: 1,
+        reactionsCreated: 1,
+      });
+
+    const result = await importMessageReactions.execute(input);
+
+    expect(mockFetcher.fetchNextMessageReactionsBatch).toHaveBeenCalledTimes(2);
+    expect(result.success).toBe(false);
+    expect(result.message).toContain("lote(s) 1");
+    expect(result.data).toEqual({
+      fetched: 2,
+      created: 1,
+      skipped: 0,
+      failed: 1,
+    });
+    expect(mockLogger.logToConsole).toHaveBeenCalledWith(
+      "ERROR",
+      "USECASE",
+      "HISTORICAL_SYNC",
+      expect.stringContaining(
+        "lote 1 falhou (mensagens referenciadas: message-orphan)",
+      ),
+    );
+  });
+
   it("should handle fetcher errors and report failure isolated from other batches", async () => {
     mockFetcher.fetchNextMessageReactionsBatch.mockRejectedValue(
       new Error("message not persisted"),
