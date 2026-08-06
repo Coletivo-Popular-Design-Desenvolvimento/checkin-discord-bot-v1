@@ -99,7 +99,7 @@ export class ImportMessageReactions implements IImportMessageReactions {
               LoggerContextStatus.ERROR,
               LoggerContext.USECASE,
               LoggerContextEntity.HISTORICAL_SYNC,
-              `ImportMessageReactions | lote ${batchNumber} falhou (mensagens referenciadas: ${messageIds}) | ${batchError instanceof Error ? batchError.message : String(batchError)}`,
+              `ImportMessageReactions | batch ${batchNumber} failed (referenced messages: ${messageIds}) | ${batchError instanceof Error ? batchError.message : String(batchError)}`,
             );
           }
         }
@@ -113,7 +113,7 @@ export class ImportMessageReactions implements IImportMessageReactions {
         success: failedBatches.length === 0,
         message:
           failedBatches.length > 0
-            ? `lote(s) ${failedBatches.join(", ")} falharam ao salvar (${totals.failed} reações)`
+            ? `batch(es) ${failedBatches.join(", ")} failed to save (${totals.failed} reactions)`
             : undefined,
       };
     } catch (error) {

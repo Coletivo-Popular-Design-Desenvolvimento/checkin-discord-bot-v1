@@ -275,7 +275,7 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
             LoggerContextStatus.ERROR,
             LoggerContext.USECASE,
             LoggerContextEntity.HISTORICAL_SYNC,
-            `DiscordHistoryFetcher.walkMessagesInRange | sem acesso ao canal #${channel.name} (${channel.id}), pulando`,
+            `DiscordHistoryFetcher.walkMessagesInRange | no access to channel #${channel.name} (${channel.id}), skipping`,
           );
           channelIndex += 1;
           before = undefined;

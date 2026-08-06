@@ -271,7 +271,7 @@ describe("ImportMessageReactions", () => {
 
     expect(mockFetcher.fetchNextMessageReactionsBatch).toHaveBeenCalledTimes(2);
     expect(result.success).toBe(false);
-    expect(result.message).toContain("lote(s) 1");
+    expect(result.message).toContain("batch(es) 1");
     expect(result.data).toEqual({
       fetched: 2,
       created: 1,
@@ -283,7 +283,7 @@ describe("ImportMessageReactions", () => {
       "USECASE",
       "HISTORICAL_SYNC",
       expect.stringContaining(
-        "lote 1 falhou (mensagens referenciadas: message-orphan)",
+        "batch 1 failed (referenced messages: message-orphan)",
       ),
     );
   });
