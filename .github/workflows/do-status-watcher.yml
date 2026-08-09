@@ -1,0 +1,41 @@
+name: DigitalOcean Status Watcher
+
+on:
+  schedule:
+    # Roda a cada 10 minutos..
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {} # permite rodar manualmente pela aba Actions, útil para testar
+
+jobs:
+  check-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Restaura o estado salvo da última execução (quais status/incidentes já foram vistos)
+      - name: Restore state cache
+        uses: actions/cache@v4
+        with:
+          path: .do-status-state.json
+          key: do-status-state-${{ github.run_id }}
+          restore-keys: |
+            do-status-state-
+
+      - name: Run status check
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/do-status-watcher.mjs
+
+      # Salva o estado atualizado para a próxima execução (chave sempre nova, restore-keys recupera a mais recente)
+      - name: Save state cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .do-status-state.json
+          key: do-status-state-${{ github.run_id }}
