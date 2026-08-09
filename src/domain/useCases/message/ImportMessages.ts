@@ -39,6 +39,8 @@ export class ImportMessages implements IImportMessages {
       failed: 0,
     };
 
+    const failedBatches: number[] = [];
+
     try {
       let cursor: MessageHistoryCursor | undefined;
       let done = false;
@@ -55,42 +57,63 @@ export class ImportMessages implements IImportMessages {
         totals.fetched += batch.messages.length;
 
         if (batch.messages.length > 0) {
-          const { channels, users } = this.buildUniqueChannelsAndUsers(
-            batch.messages,
-          );
-          const messages = batch.messages.map((raw) =>
-            this.toMessageEntity(raw, channels, users),
-          );
+          try {
+            const { channels, users } = this.buildUniqueChannelsAndUsers(
+              batch.messages,
+            );
+            const messages = batch.messages.map((raw) =>
+              this.toMessageEntity(raw, channels, users),
+            );
 
-          const saveResult =
-            await this.historicalImportRepository.saveMessagesBatch({
-              channels: [...channels.values()],
-              users: [...users.values()],
-              messages,
+            const saveResult =
+              await this.historicalImportRepository.saveMessagesBatch({
+                channels: [...channels.values()],
+                users: [...users.values()],
+                messages,
+              });
+
+            totals.created += saveResult.messagesCreated;
+            totals.skipped += messages.length - saveResult.messagesCreated;
+
+            this.logger.logToConsole(
+              LoggerContextStatus.SUCCESS,
+              LoggerContext.USECASE,
+              LoggerContextEntity.HISTORICAL_SYNC,
+              `ImportMessages | lote ${batchNumber}: fetched=${batch.messages.length} created=${saveResult.messagesCreated}`,
+            );
+
+            input.onProgress?.({
+              batchNumber,
+              fetched: totals.fetched,
+              created: totals.created,
             });
-
-          totals.created += saveResult.messagesCreated;
-          totals.skipped += messages.length - saveResult.messagesCreated;
-
-          this.logger.logToConsole(
-            LoggerContextStatus.SUCCESS,
-            LoggerContext.USECASE,
-            LoggerContextEntity.HISTORICAL_SYNC,
-            `ImportMessages | lote ${batchNumber}: fetched=${batch.messages.length} created=${saveResult.messagesCreated}`,
-          );
-
-          input.onProgress?.({
-            batchNumber,
-            fetched: totals.fetched,
-            created: totals.created,
-          });
+          } catch (batchError) {
+            totals.failed += batch.messages.length;
+            failedBatches.push(batchNumber);
+            const platformIds = batch.messages
+              .map((message) => message.platformId)
+              .join(", ");
+            this.logger.logToConsole(
+              LoggerContextStatus.ERROR,
+              LoggerContext.USECASE,
+              LoggerContextEntity.HISTORICAL_SYNC,
+              `ImportMessages | lote ${batchNumber} falhou (mensagens: ${platformIds}) | ${batchError instanceof Error ? batchError.message : String(batchError)}`,
+            );
+          }
         }
 
         cursor = batch.cursor;
         done = batch.done;
       }
 
-      return { data: totals, success: true };
+      return {
+        data: totals,
+        success: failedBatches.length === 0,
+        message:
+          failedBatches.length > 0
+            ? `lote(s) ${failedBatches.join(", ")} falharam ao salvar (${totals.failed} mensagens)`
+            : undefined,
+      };
     } catch (error) {
       totals.failed = totals.fetched - totals.created - totals.skipped;
       this.logger.logToConsole(

@@ -41,6 +41,8 @@ export class ImportMessageReactions implements IImportMessageReactions {
       failed: 0,
     };
 
+    const failedBatches: number[] = [];
+
     try {
       let cursor: MessageHistoryCursor | undefined;
       let done = false;
@@ -58,42 +60,62 @@ export class ImportMessageReactions implements IImportMessageReactions {
         totals.fetched += batch.reactions.length;
 
         if (batch.reactions.length > 0) {
-          const { channels, users } = this.buildUniqueChannelsAndUsers(
-            batch.reactions,
-          );
-          const reactions: RawMessageReactionAssignment[] = batch.reactions.map(
-            (raw) => this.toReactionAssignment(raw),
-          );
+          try {
+            const { channels, users } = this.buildUniqueChannelsAndUsers(
+              batch.reactions,
+            );
+            const reactions: RawMessageReactionAssignment[] =
+              batch.reactions.map((raw) => this.toReactionAssignment(raw));
 
-          const saveResult =
-            await this.historicalImportRepository.saveMessageReactionsBatch({
-              channels: [...channels.values()],
-              users: [...users.values()],
-              reactions,
+            const saveResult =
+              await this.historicalImportRepository.saveMessageReactionsBatch({
+                channels: [...channels.values()],
+                users: [...users.values()],
+                reactions,
+              });
+
+            totals.created += saveResult.reactionsCreated;
+            totals.skipped += reactions.length - saveResult.reactionsCreated;
+
+            this.logger.logToConsole(
+              LoggerContextStatus.SUCCESS,
+              LoggerContext.USECASE,
+              LoggerContextEntity.HISTORICAL_SYNC,
+              `ImportMessageReactions | lote ${batchNumber}: fetched=${batch.reactions.length} created=${saveResult.reactionsCreated}`,
+            );
+
+            input.onProgress?.({
+              batchNumber,
+              fetched: totals.fetched,
+              created: totals.created,
             });
-
-          totals.created += saveResult.reactionsCreated;
-          totals.skipped += reactions.length - saveResult.reactionsCreated;
-
-          this.logger.logToConsole(
-            LoggerContextStatus.SUCCESS,
-            LoggerContext.USECASE,
-            LoggerContextEntity.HISTORICAL_SYNC,
-            `ImportMessageReactions | lote ${batchNumber}: fetched=${batch.reactions.length} created=${saveResult.reactionsCreated}`,
-          );
-
-          input.onProgress?.({
-            batchNumber,
-            fetched: totals.fetched,
-            created: totals.created,
-          });
+          } catch (batchError) {
+            totals.failed += batch.reactions.length;
+            failedBatches.push(batchNumber);
+            const messageIds = [
+              ...new Set(batch.reactions.map((reaction) => reaction.messageId)),
+            ].join(", ");
+            this.logger.logToConsole(
+              LoggerContextStatus.ERROR,
+              LoggerContext.USECASE,
+              LoggerContextEntity.HISTORICAL_SYNC,
+              `ImportMessageReactions | batch ${batchNumber} failed (referenced messages: ${messageIds}) | ${batchError instanceof Error ? batchError.message : String(batchError)}`,
+            );
+          }
         }
 
         cursor = batch.cursor;
         done = batch.done;
       }
 
-      return { data: totals, success: true };
+      return {
+        data: totals,
+        success: failedBatches.length === 0,
+        message:
+          failedBatches.length > 0
+            ? `batch(es) ${failedBatches.join(", ")} failed to save (${totals.failed} reactions)`
+            : undefined,
+      };
     } catch (error) {
       totals.failed = totals.fetched - totals.created - totals.skipped;
       this.logger.logToConsole(

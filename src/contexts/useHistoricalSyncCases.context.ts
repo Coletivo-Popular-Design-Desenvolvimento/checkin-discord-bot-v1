@@ -22,7 +22,7 @@ export function initializeHistoricalSyncUseCases(
   const prismaClient = new PrismaClient();
   const prismaService = new PrismaService(prismaClient);
 
-  const discordHistoryFetcher = new DiscordHistoryFetcher(client);
+  const discordHistoryFetcher = new DiscordHistoryFetcher(client, logger);
   const historicalImportRepository = new HistoricalImportRepository(
     prismaService,
     logger,
