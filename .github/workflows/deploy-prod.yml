@@ -1,4 +1,4 @@
-name: Deploy to Droplet - Homol
+name: Deploy to Droplet - Prod
 
 on:
   workflow_run:
@@ -31,6 +31,6 @@ jobs:
             set -e
             cd ${PROJECT_PATH}
             git pull origin homol
-            docker compose -f compose.yml -f compose.homol.yml --profile homol pull app
-            docker compose -f compose.yml -f compose.homol.yml --profile homol up -d
+            docker compose -f compose.yml -f compose.prod.yml --profile prod pull app
+            docker compose -f compose.yml -f compose.prod.yml --profile prod up -d
           EOF
