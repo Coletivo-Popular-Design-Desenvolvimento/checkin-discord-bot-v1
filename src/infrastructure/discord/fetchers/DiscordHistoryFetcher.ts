@@ -35,6 +35,10 @@ import {
 
 const MAX_PAGE_SIZE = 100;
 const MISSING_ACCESS_ERROR_CODE = 50001;
+const RETRYABLE_ERROR_PATTERN =
+  /other side closed|ECONNRESET|ETIMEDOUT|ECONNREFUSED|socket hang up/i;
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 500;
 
 export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
   private guildMembersPromise?: Promise<{
@@ -100,7 +104,9 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
             reaction.emoji.name ??
             reaction.emoji.id ??
             "";
-          const reactedUsers = await reaction.users.fetch();
+          const reactedUsers = await this.withRetry(() =>
+            reaction.users.fetch(),
+          );
 
           for (const user of reactedUsers.values()) {
             if (user.bot) {
@@ -265,10 +271,12 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
       const channel = channels[channelIndex];
       let page: Collection<string, Message>;
       try {
-        page = await channel.messages.fetch({
-          limit: MAX_PAGE_SIZE,
-          ...(before ? { before } : {}),
-        });
+        page = await this.withRetry(() =>
+          channel.messages.fetch({
+            limit: MAX_PAGE_SIZE,
+            ...(before ? { before } : {}),
+          }),
+        );
       } catch (error) {
         if (this.isMissingAccessError(error)) {
           this.logger?.logToConsole(
@@ -327,6 +335,37 @@ export class DiscordHistoryFetcher implements IDiscordHistoryFetcher {
       "code" in error &&
       (error as { code: unknown }).code === MISSING_ACCESS_ERROR_CODE
     );
+  }
+
+  private isRetryableError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return RETRYABLE_ERROR_PATTERN.test(message);
+  }
+
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt += 1) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        if (!this.isRetryableError(error) || attempt === MAX_RETRY_ATTEMPTS) {
+          throw error;
+        }
+
+        const delayMs = RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+        this.logger?.logToConsole(
+          LoggerContextStatus.ERROR,
+          LoggerContext.USECASE,
+          LoggerContextEntity.HISTORICAL_SYNC,
+          `DiscordHistoryFetcher.withRetry | attempt ${attempt} failed (${error instanceof Error ? error.message : String(error)}), retrying in ${delayMs}ms`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    throw lastError;
   }
 
   private listTextChannels(guild: Guild): TextChannel[] {
