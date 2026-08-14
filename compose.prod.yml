@@ -1,0 +1,3 @@
+services:
+  app:
+    image: ghcr.io/coletivo-popular-design-desenvolvimento/checkin-discord-bot-v1:homol

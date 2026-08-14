@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '[0-9]*'
+    branches:
+      - homol
 
 permissions:
   contents: read
@@ -38,8 +40,12 @@ jobs:
         id: image-tags
         if: steps.branch-check.outputs.branch != 'none'
         run: |
-          GIT_TAG="${GITHUB_REF_NAME}"
           BRANCH="${{ steps.branch-check.outputs.branch }}"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            GIT_TAG="${GITHUB_REF_NAME}"
+          else
+            GIT_TAG="$(git rev-parse --short HEAD)"
+          fi
           if [ "$BRANCH" = "main" ]; then
             echo "tags=${IMAGE_NAME}:${GIT_TAG},${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
           else

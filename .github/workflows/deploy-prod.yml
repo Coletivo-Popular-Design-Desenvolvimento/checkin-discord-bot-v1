@@ -1,0 +1,36 @@
+name: Deploy to Droplet - Prod
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    branches: [homol]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+
+      - name: Pull latest image and restart
+        env:
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          PROJECT_PATH: ${{ secrets.CHECKIN_PROJECT_PATH }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${DROPLET_USER}@${DROPLET_IP} << EOF
+            set -e
+            cd ${PROJECT_PATH}
+            git pull origin homol
+            docker compose -f compose.yml -f compose.prod.yml --profile prod pull app
+            docker compose -f compose.yml -f compose.prod.yml --profile prod up -d
+          EOF
