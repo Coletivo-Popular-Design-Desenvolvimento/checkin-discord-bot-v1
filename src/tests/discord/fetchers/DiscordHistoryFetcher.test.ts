@@ -245,6 +245,139 @@ describe("DiscordHistoryFetcher", () => {
     });
   });
 
+  describe("fetchNextMessageReactionsBatch retry behavior", () => {
+    let setTimeoutSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      setTimeoutSpy = jest.spyOn(global, "setTimeout").mockImplementation(((
+        fn: () => void,
+      ) => {
+        fn();
+        return 0 as unknown as NodeJS.Timeout;
+      }) as unknown as typeof setTimeout);
+    });
+
+    afterEach(() => {
+      setTimeoutSpy.mockRestore();
+    });
+
+    function createReactingUser(id: string, bot = false) {
+      return {
+        id,
+        username: `user-${id}`,
+        globalName: null,
+        bot,
+        createdTimestamp: undefined,
+      };
+    }
+
+    function createMessageWithReaction(
+      id: string,
+      timestamp: number,
+      usersFetch: jest.Mock,
+    ) {
+      return {
+        id,
+        createdTimestamp: timestamp,
+        author: {
+          id: "author-1",
+          username: "author",
+          globalName: null,
+          bot: false,
+          createdTimestamp: timestamp,
+        },
+        member: null,
+        reactions: {
+          cache: new Map([
+            [
+              "reaction-1",
+              {
+                emoji: { identifier: "👍", name: "👍", id: null },
+                users: { fetch: usersFetch },
+              },
+            ],
+          ]),
+        },
+      };
+    }
+
+    it("should retry a transient error when fetching reaction users and eventually succeed", async () => {
+      const usersFetch = jest
+        .fn()
+        .mockRejectedValueOnce(new Error("other side closed"))
+        .mockResolvedValueOnce(
+          new Map([["user-1", createReactingUser("user-1")]]),
+        );
+      const message = createMessageWithReaction(
+        "msg-1",
+        new Date("2024-01-20").getTime(),
+        usersFetch,
+      );
+      const channel = createTextChannel("channel-1", [message]);
+      const guild = createMockGuild([channel]);
+      const client = createMockClient(guild);
+      const fetcher = new DiscordHistoryFetcher(client);
+
+      const result = await fetcher.fetchNextMessageReactionsBatch({
+        startDate: new Date("2024-01-01"),
+        endDate: new Date("2024-02-01"),
+        batchSize: 100,
+      });
+
+      expect(usersFetch).toHaveBeenCalledTimes(2);
+      expect(result.reactions).toHaveLength(1);
+      expect(result.reactions[0]).toMatchObject({
+        messageId: "msg-1",
+        userId: "user-1",
+        reactionEmoji: "👍",
+      });
+    });
+
+    it("should not retry a non-transient error when fetching reaction users", async () => {
+      const usersFetch = jest.fn().mockRejectedValue(new Error("boom"));
+      const message = createMessageWithReaction(
+        "msg-1",
+        new Date("2024-01-20").getTime(),
+        usersFetch,
+      );
+      const channel = createTextChannel("channel-1", [message]);
+      const guild = createMockGuild([channel]);
+      const client = createMockClient(guild);
+      const fetcher = new DiscordHistoryFetcher(client);
+
+      await expect(
+        fetcher.fetchNextMessageReactionsBatch({
+          startDate: new Date("2024-01-01"),
+          endDate: new Date("2024-02-01"),
+          batchSize: 100,
+        }),
+      ).rejects.toThrow("boom");
+      expect(usersFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should give up after exhausting retry attempts and propagate the last transient error", async () => {
+      const usersFetch = jest.fn().mockRejectedValue(new Error("ECONNRESET"));
+      const message = createMessageWithReaction(
+        "msg-1",
+        new Date("2024-01-20").getTime(),
+        usersFetch,
+      );
+      const channel = createTextChannel("channel-1", [message]);
+      const guild = createMockGuild([channel]);
+      const client = createMockClient(guild);
+      const fetcher = new DiscordHistoryFetcher(client);
+
+      await expect(
+        fetcher.fetchNextMessageReactionsBatch({
+          startDate: new Date("2024-01-01"),
+          endDate: new Date("2024-02-01"),
+          batchSize: 100,
+        }),
+      ).rejects.toThrow("ECONNRESET");
+      expect(usersFetch).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe("fetchAudioEventsInRange", () => {
     function createMockScheduledEvent(overrides: Record<string, unknown> = {}) {
       return {
