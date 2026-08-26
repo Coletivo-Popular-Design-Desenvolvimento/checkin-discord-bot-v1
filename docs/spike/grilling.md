@@ -1,4 +1,15 @@
-Seguindo o `grill-with-docs`, consolidei todas as decisões de uma vez. Cada item traz alternativas, explicação simples e minha recomendação.
+# Decisões do Spike de análise e visualização de dados
+
+**Status:** recomendações aceitas em 26 de agosto de 2026.
+
+Este documento preserva as alternativas consideradas durante a definição do Spike. Todas as opções marcadas como **Recomendada** foram aceitas para orientar a documentação e a futura implementação da PoC.
+
+Documentos resultantes:
+
+- [Relatório do Spike](./0001-ferramenta-analise-dados.md)
+- [ADR proposto](../adr/0001-metabase-para-analise-de-dados.md)
+
+Cada item abaixo traz alternativas, uma explicação simples e a decisão aceita.
 
 ## 1. Escopo desta entrega
 
@@ -240,6 +251,6 @@ O registro deve guardar dificuldades e tempo aproximado, sem identificar publica
 
 **Resposta recomendada: A.**
 
-Para aprovar o conjunto inteiro, responda: `Aceito todas as recomendadas`.
+## Registro da decisão
 
-Para alterar algo, use os códigos, por exemplo: `Aceito as recomendadas, exceto 6B e 11C`.
+Em 26 de agosto de 2026, todas as vinte respostas recomendadas foram aceitas. O aceite define o escopo e a hipótese de trabalho, mas não transforma a escolha do Metabase em decisão arquitetural definitiva: isso depende das evidências da PoC e dos três cenários de homologação.

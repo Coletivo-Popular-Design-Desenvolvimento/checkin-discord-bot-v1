@@ -22,6 +22,11 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 8. **[7 - Use Cases](./7%20-%20Use%20Cases.md)** - Casos de uso e regras de negócio
 9. **[8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)** - Backfill de mensagens e eventos de voz via CLI
 
+### 📊 Análise de Dados e Decisões
+
+10. **[Spike 0001 - Ferramenta de análise de dados](./spike/0001-ferramenta-analise-dados.md)** - Comparativo entre Metabase, Apache Superset e Grafana
+11. **[ADR 0001 - Metabase para análise dos dados](./adr/0001-metabase-para-analise-de-dados.md)** - Decisão proposta e condições para aceitação
+
 ## Sequência por Perfil
 
 ### 👨‍💻 **Para Desenvolvedores Iniciantes**
@@ -46,6 +51,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 2. [6 - Entidades Principais](./6%20-%20Entidades%20Principais.md) - Modelo de dados
 3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Database schema
 4. [7 - Use Cases](./7%20-%20Use%20Cases.md) - Como os dados são coletados
+5. [Spike 0001 - Ferramenta de análise de dados](./spike/0001-ferramenta-analise-dados.md) - Como os dados poderão ser visualizados
 
 ### 🚀 **Para DevOps/Deploy**
 
