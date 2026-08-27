@@ -1,265 +1,184 @@
-# 🚀 Checkin Discord Bot
+# Check-in Discord Bot
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-Checkin Discord Bot é um bot de autenticação e monitoramento de usuários para Discord, construído com **Node.js**, **MariaDB**, **Prisma ORM** e **Docker**.
+O Check-in coleta metadados mínimos de participação em um servidor Discord e os persiste em MariaDB/MySQL. A finalidade é apoiar análises agregadas sobre atividade, retenção, canais, reações e eventos de voz sem armazenar o conteúdo das mensagens.
 
-## 📈 Funcionalidades
+O bot não é um sistema de autenticação, ponto, moderação ou avaliação individual. Telegram, e-mail, servidor HTTP e rotinas antigas permanecem em `src/oldApp/` apenas como legado e não participam do fluxo iniciado por `src/index.ts`.
 
-- Registro automático de usuários no Discord
-- Atribuição de cargos após autenticação
-- Monitoramento de mensagens e chamadas de voz
-- Geração de relatórios de engajamento
+## O que está implementado
 
-## 📚 Tecnologias Utilizadas
+- cadastro, atualização, inativação e reativação de membros;
+- sincronização do estado atual de cargos;
+- criação, alteração e exclusão de canais;
+- registro de metadados de mensagens e reações;
+- registro de eventos agendados e de presença em canais de voz;
+- sincronização histórica sob demanda de usuários, cargos, canais, mensagens, reações e eventos agendados;
+- persistência relacional com Prisma e MariaDB/MySQL;
+- testes automatizados com Jest.
 
-- Node.js v20+
+Não são armazenados texto de mensagens, anexos, mídias ou gravações. O schema ainda contém um campo opcional `email`, herdado da modelagem, mas o fluxo atual do Discord não coleta e-mail.
+
+## Arquitetura em uma visão
+
+```text
+Discord Gateway
+    -> infrastructure/discord/DiscordService
+    -> application/command/*Command
+    -> domain/useCases/*
+    -> domain/interfaces/repositories/*
+    -> infrastructure/persistence/repositories/*
+    -> Prisma
+    -> MariaDB/MySQL
+```
+
+O projeto adota separação inspirada em Clean Architecture. Os casos de uso estão atualmente em `src/domain/useCases`; a camada `application` adapta eventos do Discord e registra handlers. Existe a separação estrutural `command/query`, mas a leitura CQRS ainda não está implementada: `src/application/query/userQuery.ts` está vazio.
+
+Consulte [arquitecture.md](arquitecture.md) para o mapa das camadas e [a documentação técnica](docs/1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md) para os fluxos completos.
+
+## Tecnologias
+
+- Node.js 20+
 - TypeScript
-- Discord.js v14
-- Prisma ORM
-- MariaDB
-- Docker & Docker Compose
-- PM2 (opcional)
+- Discord.js 14
+- Prisma 6
+- MariaDB/MySQL
+- Docker Compose
+- Jest, ESLint e Prettier
 
-## ⚙️ Pré‑requisitos
+## Pré-requisitos
 
-- Node.js v20 ou superior
-- Docker Desktop + WSL2 (caso use Windows)
-- Git instalado
-- Um bot criado no **Discord Developer Portal**
+- Node.js 20 ou superior;
+- Docker com Docker Compose;
+- Git;
+- uma aplicação de bot no Discord com os intents e permissões descritos em [Como criar um bot no Discord](docs/Criar-bot-Discord.md).
 
-## 🔢 Instalação
-
-### 1. Clone o projeto
+## Instalação
 
 ```bash
-git clone https://github.com/seu-usuario/checkin-discord-bot-v1.git
+git clone https://github.com/Coletivo-Popular-Design-Desenvolvimento/checkin-discord-bot-v1.git
 cd checkin-discord-bot-v1
+npm ci
+cp .env.example .env
 ```
 
-### 2. Instale as dependências do Node.js
-
-```bash
-npm install
-```
-
-### 3. Configure o `.env`
-
-Crie um arquivo `.env` na raiz com o seguinte conteúdo — ajuste os valores conforme seu ambiente:
+Preencha `TOKEN_BOT` no `.env`. Para execução dentro do Compose, mantenha `DB_HOST=db` e a porta interna `3306` na `DATABASE_URL`:
 
 ```env
 TOKEN_BOT=seu-token-do-bot
-
-DB_HOST=localhost (dev) / db (prod)
-DB_PORT=3306 (dev *ou qualquer outra porta não utilizada na sua máquina, ex: use 3307 caso 3306 já esteja sendo usada por outro cointainer) / 3306 (prod)
-DB_PASSWORD=Coletivo1917
+PORT=3000
+DB_HOST=db
+DB_PORT=3306
+DB_PASSWORD=troque-esta-senha
 DB_DATABASE=checkindb
-
-DATABASE_URL="mysql://root:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+DATABASE_URL="mysql://root:${DB_PASSWORD}@${DB_HOST}:3306/${DB_DATABASE}?auth_plugin=mysql_native_password"
 ```
 
-> **Nunca** compartilhe seu token publicamente.
+`DB_PORT` controla a porta publicada no host pelo `compose.override.yml`. Dentro da rede Docker, a aplicação sempre alcança o serviço `db` em `db:3306`.
 
-## 🐳 Como configurar Docker & WSL2 (Windows)
+Nunca publique o token do Discord nem credenciais reais do banco.
 
-1. Instalar **Docker Desktop**
+## Desenvolvimento com Docker
 
-   - Acesse: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-   - Baixe e instale normalmente.
-
-2. Instalar **WSL2 (Windows Subsystem for Linux)**
-
-   - No Windows Terminal, rode:
-     ```bash
-     wsl --install
-     ```
-   - Caso já tenha WSL1, atualize para WSL2 com:
-     ```bash
-     wsl --set-default-version 2
-     ```
-   - Siga o tutorial oficial: [Documentação WSL2](https://learn.microsoft.com/pt-br/windows/wsl/install)
-
-3. Configurar o Docker para usar o WSL2
-
-   - Abra o **Docker Desktop**.
-   - Vá em **Settings** > **General** > Marque a opção **Use the WSL 2 based engine**.
-   - Em **Settings** > **Resources** > **WSL Integration**: habilite a distribuição Linux que está usando (ex: Ubuntu).
-
-4. Certificar-se de que o Docker está rodando
-   - Rode:
-     ```bash
-     docker run hello-world
-     ```
-   - Se funcionar e mostrar a versão, está tudo pronto!
-
-## 🐳 Solicitando acesso ao servidor de teste
-
-Antes de configurar o bot, solicite acesso ao servidor de testes Discord:
-
-- Nome do servidor: TPDD - Teste Popular de Desenvolvimento
-- Solicite ao administrador a permissão para adicionar o bot
-
-> **Somente após ter acesso autorizado** prossiga para as etapas seguintes.
-
-## 🚀 Subindo o projeto para desenvolvimento local
-
-Basta executar o comando
+O comando padrão constrói e inicia banco, phpMyAdmin e aplicação, depois acompanha os logs do app:
 
 ```bash
 npm run dev
 ```
 
-Isso subirá a aplicação na sua máquina, utilizando o banco de dados do docker
+Serviços locais:
 
-> **Erro `P1001: Can't reach database server at db:3306`?** O container do banco deve estar parado. Suba a stack e confira: `docker compose --profile dev up -d` e depois `docker compose ps` (o serviço `db` deve estar com status "healthy"). No `.env`, use `DB_HOST=db` quando rodar com Docker.
+| Serviço    | Endereço                     | Observação                                                                                               |
+| ---------- | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Aplicação  | sem interface web            | O código atual é um worker Discord; `PORT` é publicado pelo Compose, mas nenhuma rota HTTP é registrada. |
+| MariaDB    | `localhost:${DB_PORT:-3306}` | Use apenas para clientes executados no host.                                                             |
+| phpMyAdmin | `http://localhost:8090`      | Disponível no perfil `dev`.                                                                              |
 
-> ⚠️ **Atenção Usuários Windows:** Se você possui uma instalação local do MariaDB ou MySQL no seu Windows, você poderá encontrar um erro relacionado ao plugin `auth_gssapi_client` ao tentar rodar `npm run dev` (especificamente durante as etapas do Prisma). Isso ocorre porque o Prisma pode tentar usar o cliente de banco de dados instalado globalmente em vez do esperado.
->
-> **Soluções possíveis:**
->
-> 1.  Configure sua instalação local do MariaDB/MySQL para utilizar `mysql_native_password` como plugin de autenticação padrão.
-> 2.  Considere desinstalar a versão local do MariaDB/MySQL do seu Windows se ela não for estritamente necessária para outros projetos, permitindo que o ambiente Docker funcione sem interferências.
+Comandos úteis:
 
-Em caso de problemas com versões incompatíveis de migrations, caso esteja disposto(a) a resetar o banco de dados completamente, execute os comandos:
+| Ação                                  | Comando                                      |
+| ------------------------------------- | -------------------------------------------- |
+| Subir somente o banco                 | `docker compose --profile dev up -d db`      |
+| Subir toda a stack de desenvolvimento | `docker compose --profile dev up -d --build` |
+| Ver os serviços                       | `docker compose --profile dev ps`            |
+| Acompanhar logs da aplicação          | `docker compose --profile dev logs -f app`   |
+| Parar a stack                         | `docker compose --profile dev down`          |
+| Abrir Prisma Studio                   | `npm run db:studio`                          |
+
+Se o Prisma reportar `P1001`, confirme que o Docker está ativo e que o serviço `db` está saudável com `docker compose --profile dev ps`.
+
+## Execução sem o container da aplicação
+
+Suba o banco e ajuste temporariamente a conexão do processo local para `localhost` e para a porta publicada:
 
 ```bash
-docker compose --profile dev up -d
-npm run db:migrate-reset
+docker compose --profile dev up -d db
+npm start
 ```
 
-Isso alinhará as suas migrations com as migrations do projeto. Tome cuidado para sempre que mexer na definição das tabelas, gerar uma nova migration com o comando
+Nesse modo, `DATABASE_URL` deve apontar para `localhost:${DB_PORT}`; não use `db`, pois esse nome só existe na rede do Compose.
+
+## Sincronização histórica
 
 ```bash
-npm run db:migrate
+npm run sync:history -- --start=2026-01-01 --end=2026-04-01 --batchSize=1000
 ```
 
-## 🚀 Subindo o projeto em produção
+Sem argumentos, o script considera os últimos três meses e lotes de 1000 registros. O fluxo é independente do worker em tempo real. Limites da API, idempotência e execução pelo GitHub Actions estão documentados em [Sincronização Histórica](docs/8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md).
 
-Subir os containers:
+## Qualidade
+
+```bash
+npm run build
+npm run lint
+NODE_ENV=test npm test
+npx prisma format --check
+```
+
+Os testes usam a configuração de `.env.test` e precisam de um MariaDB de teste disponível.
+
+## Produção e homologação
+
+Para construir localmente com o perfil de produção:
 
 ```bash
 docker compose -f compose.yml --profile prod up -d --build
 ```
 
-## 🔧 Comandos úteis
+O deploy automatizado usa `compose.yml` com `compose.prod.yml`, que referencia a imagem `ghcr.io/coletivo-popular-design-desenvolvimento/checkin-discord-bot-v1:homol`. Os workflows vigentes estão em `.github/workflows/`.
 
-| Ação                | Comando                        |
-| ------------------- | ------------------------------ |
-| Subir containers    | `docker compose up -d --build` |
-| Derrubar containers | `docker compose down`          |
-| Logs do bot         | `docker logs -f node_app`      |
-| Acessar terminal    | `docker exec -it node_app sh`  |
+## Estrutura real do projeto
 
-## 🔖 Como criar o Bot no Discord
-
-Guia completo com prints: **[docs/Criar-bot-Discord.md](docs/Criar-bot-Discord.md)**.
-
-| Informação       | Onde obter                | Uso                   |
-| ---------------- | ------------------------- | --------------------- |
-| **Token do bot** | Bot → Token (Reset Token) | `TOKEN_BOT` no `.env` |
-| **Client ID**    | OAuth2 → URL gerada       | URL de convite        |
-
-1. [Discord Developer Portal](https://discord.com/developers/applications)
-   → **New Application** → nome `teste-tpdd-bot-seu-nome`.
-2. **Bot** → **Reset Token** → copie o token → coloque no `.env` como `TOKEN_BOT`.
-3. **OAuth2** → marque o scope **bot** (e **applications.commands**) → copie a **Generated URL** (contém o Client ID).
-4. Abra a URL de convite no navegador, escolha o servidor **TPDD - Teste Popular de Desenvolvimento** e clique em **Authorize**.
-
-URL de convite sugerida:
-
-```
-https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=175921860444159&scope=bot%20applications.commands
+```text
+src/
+├── application/
+│   ├── command/          # Adapta eventos do Discord e chama casos de uso
+│   ├── query/            # Reservado para leituras; ainda sem implementação
+│   └── services/         # Logger atual
+├── contexts/             # Composição manual das dependências
+├── domain/
+│   ├── dtos/
+│   ├── entities/
+│   ├── interfaces/       # Portas de comandos, repositórios, serviços e casos de uso
+│   ├── types/
+│   └── useCases/         # Regras e coordenação das operações
+├── infrastructure/
+│   ├── discord/          # Gateway e fetcher histórico
+│   └── persistence/      # Prisma, migrations, mapeadores e repositórios
+├── oldApp/               # Legado preservado, fora do entry point atual
+├── tests/
+├── historicalSync.ts     # Entry point da sincronização histórica
+└── index.ts              # Entry point do worker em tempo real
 ```
 
-## 📂 Estrutura do Projeto
+## Documentação
 
-```
-checkin-discord-bot-v1
+Comece por [Comece por aqui](docs/-1%20-%20Come%C3%A7e%20por%20aqui.md) ou pelo [índice de leitura](docs/%F0%9F%97%82%EF%B8%8F%20%C3%8Dndice%20de%20Leitura%20-%20Checkin%20Bot.md).
 
-├── src/
-|   │   ├── entities/              # Entidades (User.ts, Event.ts)
-|   │   └── aggregates/            # Agregados (ex.: Engagement.ts)
-|   ├── application/               # Casos de uso
-|   ├── core/                      # Domínio puro (regras de negócio)
-|   │   ├── commands/              # Command handlers (ex.: UpdateEngagementCommand.ts)
-|   │   ├── queries/               # Query handlers (ex.: GenerateReportQuery.ts)
-|   │   └── events/                # Eventos de domínio (ex.: EngagementUpdated.ts)
-|   ├── infrastructure/
-|   │   ├── discord/               # Tudo do Discord
-|   │   │   ├── listeners/         # Antigo bot/events.ts, bot/message.ts
-|   │   │   ├── actions/           # Trechos de bot/report.ts que enviam mensagens
-|   │   │   ├── fetchers/          # Busca de dados do Discord (ex.: cargos de usuário)
-|   │   │   └── client/            # Antigo bot/bot.ts, bot/init.ts
-|   │   ├── telegram/              # Antigo bot/telegram.ts
-|   │   ├── email/                 # Antigo bot/email.ts
-|   │   ├── database/              # Substituirá users.json e evento_teste.json
-|   │   │   ├── repositories/      # Classes para acesso a dados (ex.: UserRepository.ts)
-|   │   │   └── models/            # Schemas (se usar ORM/ODM)
-|   │   ├── server/                # Antigo rotas/server.ts, rotas/health.ts
-|   │   └── cron/                  # Antigo rotas/cron.ts
-|   ├── presentation/
-|   │   ├── discord/               # Formatação de mensagens (ex.: relatórios)
-|   │   └── telegram/              # Formatadores para mensagens do Telegram
-|   ├── services/                  # Camada de serviços (ex.: UserService)
-|   ├── config/                    # Centraliza .env, .env.example
-|   │   └── env.ts                 # Carregador de variáveis de ambiente
-|   ├── shared/                    # Utilitários globais
-|   │   ├── errors/                # Antigo shuterror.ts
-|   │   ├── logger/                # Sistema de logs
-|   │   └── utils/                 # Funções genéricas (ex.: bot/file.ts)
-|   └── tests/                     # Testes
-├── .env
-├── .gitignore
-├── compose.yml
-├── Containerfile (Dockerfile)
-├── eslint.config.js
-├── jest.config.js
-├── package.json
-├── README.md
-└── tsconfig.json
-```
+## Contribuição
 
-## Contribuindo com o projeto
+Crie branches de trabalho a partir de `homol`. Prefixos usados pelo projeto incluem `feature/`, `fix/`, `hotfix/`, `docs/`, `refactor/`, `chore/`, `test/` e `spike/`. Ao concluir, abra um Pull Request para `homol` usando o template do repositório.
 
-Esta seção detalha as informações sobre branches de longa duração e dos passos para contribuir com o projeto.
+## Licença
 
-### Branches the longa duração
-
-| Nome da branch | Propósito                                                | Ambiente de teste |
-| -------------- | -------------------------------------------------------- | ----------------- |
-| main           | Código estável, que vai para produção                    | -                 |
-| homol          | Pré-produção, testes em ambiente similar à produção      | homol             |
-| feature/\*     | Desenvolvimento da funcionalidade. Trabalho em andamento | servidor privado  |
-| fix/*          | Correção de bug em desenvolvimento                       | servidor privado  |
-| hotfix/*       | Correção urgente diretamente relacionada à produção      | -                 |
-| docs/*         | Adição ou atualização de documentação                    | -                 |
-| refactor/*     | Refatoração de código sem mudança de comportamento       | servidor privado  |
-| chore/*        | Tarefas de manutenção (deps, configs, CI/CD)             | -                 |
-| test/*         | Adição ou correção de testes                             | servidor privado  |
-
-### Quero contribuir. Que fazer?
-
-Comece criando uma branch relacionada à sua tarefa. Suponhamos que sua tarefa tenha código CPDD-1917 e se trate de 
-criar documentação sobre testes. Crie uma branch chamada `docs/CPDD-1917-criar-documentacao-testes`.
-Mesmo que o código da tarefa seja o suficiente, adicionar algumas palavras ajuda a contextualizar.
-
-Assim que a suas mudanças estiverem prontas, é hora de criar o Pull Request! 
-
-## 📜 Licença
-
-Este projeto está licenciado sob a [Licença AGPL](LICENSE).
-
-## 🧠 Observação Final
-
-- Nunca compartilhe seu **Token do Discord** publicamente.
-- Adicione o `.env` ao seu `.gitignore`:
-
-```gitignore
-.env
-node_modules/
-dist/
-```
-
----
-
-✅ Projeto pronto para desenvolvimento e deploy, venceremos ☭!
+Este projeto está licenciado sob a [GNU Affero General Public License v3](LICENSE).

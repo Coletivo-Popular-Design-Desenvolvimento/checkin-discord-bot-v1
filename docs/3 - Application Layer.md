@@ -1,293 +1,70 @@
-# Application Layer - Checkin Bot
+# Application Layer
 
-**Status**: ✅ Atualizada - Novembro 2025
-**Versão**: 1.0 (Pré-Alpha)
+## Responsabilidade atual
 
----
+`src/application` liga os eventos externos do Discord aos casos de uso. Os commands registram callbacks no `IDiscordService`, descartam eventos fora do escopo, convertem objetos do Discord.js em entradas neutras e delegam as decisões aos casos de uso.
 
-## Visão Geral
-
-A camada de aplicação (`src/application/`) atua como orquestradora entre a camada de domínio e a infraestrutura. É responsável por implementar o padrão **CQRS** (Command Query Responsibility Segregation) e coordenar a execução dos casos de uso.
-
-## Estrutura
-
-```
+```text
 src/application/
-├── command/          # Command handlers (operações de escrita)
-├── query/            # Query handlers (operações de leitura)
-└── services/         # Serviços da aplicação
+├── command/
+│   ├── channelCommand.ts
+│   ├── messageCommand.ts
+│   ├── messageReactionCommand.ts
+│   ├── roleUpdateCommand.ts
+│   ├── userCommand.ts
+│   ├── userEventCommand.ts
+│   └── voiceEventCommand.ts
+├── query/
+│   └── userQuery.ts       # vazio; leitura ainda não implementada
+└── services/
+    └── Logger.ts
 ```
 
-## CQRS Implementation
+## Commands
 
-### Commands (Operações de Escrita)
+| Command                  | Eventos observados                                 | Delegação                                                                                        |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `UserCommand`            | início do bot, entrada e saída de membro           | criação em lote, criação/reativação e inativação                                                 |
+| `RoleUpdateCommand`      | atualização de membro                              | sincronização do conjunto atual de cargos                                                        |
+| `ChannelCommand`         | criação, atualização e exclusão de canal           | casos de uso de canal                                                                            |
+| `MessageCommand`         | nova mensagem                                      | registro de metadados; ignora bot e mensagem sem guild                                           |
+| `MessageReactionCommand` | adição e remoção de reação                         | registro ou remoção por usuário, mensagem e emoji                                                |
+| `VoiceEventCommand`      | criação, atualização e exclusão de evento agendado | registra evento quando fica ativo e finaliza quando concluído; outros estados são apenas logados |
+| `UserEventCommand`       | mudança de estado de voz                           | criação de evento `JOINED` ou `LEFT`                                                             |
 
-#### UserCommand
+Os commands importam tipos do Discord.js. Isso é intencional na estrutura atual: eles são adapters de entrada, não regras de domínio puras.
 
-**Arquivo**: `src/application/command/userCommand.ts`
+## Commands e listeners
 
-**Responsabilidades**:
+Os constructors chamam métodos como `executeMessage()` ou `handleCreateChannel()`, que registram funções no `DiscordService`. O serviço guarda os handlers em listas. Somente depois de todos os commands serem criados, `app.context.ts` chama `discordService.registerEvents()` para ligar essas listas aos eventos do client.
 
-- Orquestra os casos de uso relacionados a usuários
-- Conecta eventos do Discord aos Use Cases do domínio
-- Gerencia o ciclo de vida dos usuários no sistema
+Essa ordem é relevante: um command criado depois de `registerEvents()` ainda pode acrescentar handlers às listas, mas o fluxo atual cria quase todos antes; `ChannelCommand` é instanciado depois do login e do registro, embora os callbacks continuem usando as mesmas listas mutáveis.
 
-**Métodos principais**:
+## Query e CQRS
 
-##### `executeNewUser()`
+O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` está vazio. Portanto:
 
-- **Trigger**: Evento `GuildMemberAdd` do Discord
-- **Action**: Executa `CreateUser` use case
-- **Fluxo**:
-  1. Recebe evento de novo membro
-  2. Converte `GuildMember` para `CreateUserInput`
-  3. Chama `createUser.execute()`
-  4. Trata erros e logs
+- commands de escrita estão implementados;
+- não há handlers de consulta;
+- não há API, endpoint ou dashboard consumindo queries;
+- chamar a arquitetura de “CQRS completo” seria incorreto.
 
-##### `executeAllUsers()`
+## Logger
 
-- **Trigger**: Evento `ClientReady` do Discord
-- **Action**: Sincroniza todos os membros do servidor
-- **Fluxo**:
-  1. Busca todos os membros do guild
-  2. Converte para array de `CreateUserInput`
-  3. Chama `createUser.executeMany()`
+`Logger` implementa `ILoggerService`. `logToConsole` formata e escreve mensagens em stdout. `logToDatabase` existe para satisfazer o contrato, mas está vazio; logs persistidos não estão implementados.
 
-##### `executeUserLeave()`
+## Fronteiras
 
-- **Trigger**: Evento `GuildMemberRemove` do Discord
-- **Action**: Marca usuário como inativo
-- **Fluxo**:
-  1. Recebe evento de membro saindo
-  2. Chama `updateUser.executeInvertUserStatus()`
+- command valida e adapta o evento externo;
+- caso de uso decide como assegurar dependências e persistir;
+- repositório executa operações Prisma;
+- context monta as dependências concretas.
 
-**Integração com Discord**:
+Os commands não importam `PrismaClient` nem repositórios concretos.
 
-```typescript
-constructor(
-  private readonly discordService: IDiscordService,
-  private readonly logger: ILoggerService,
-  private readonly createUser: ICreateUser,
-  private readonly updateUser: IUpdateUser,
-) {
-  this.executeNewUser();
-  this.executeAllUsers();
-  this.executeUserLeave();
-}
-```
+## Leituras relacionadas
 
-**Mapeamento de Dados**:
-
-```typescript
-static toUserEntity(discordUser: GuildMember): CreateUserInput {
-  return {
-    platformId: discordUser.id,
-    username: discordUser.user.username,
-    globalName: discordUser.user.globalName,
-    bot: discordUser.user.bot,
-    status: UserStatus.ACTIVE,
-    platformCreatedAt: new Date(discordUser.user.createdTimestamp),
-    joinedAt: new Date(discordUser.joinedTimestamp),
-    lastActive: undefined,
-  };
-}
-```
-
-### Queries (Operações de Leitura)
-
-#### UserQuery
-
-**Arquivo**: `src/application/query/userQuery.ts`
-
-**Status**: 🚧 Em desenvolvimento (arquivo quase vazio)
-
-**Responsabilidades planejadas**:
-
-- Orquestrar consultas de usuários
-- Implementar filtros e paginação
-- Retornar dados formatados para apresentação
-
-**Queries planejadas**:
-
-- `getUserById()`
-- `getUsersByStatus()`
-- `getUsersWithActivity()`
-- `getEngagementMetrics()`
-
-## Services
-
-### Logger
-
-**Arquivo**: `src/application/services/Logger.ts`
-
-**Responsabilidades**:
-
-- Sistema de logging estruturado
-- Padronização de logs com contexto
-- Implementa interface `ILoggerService` do domain
-
-**Funcionalidades**:
-
-- Logs contextuais por camada (REPOSITORY, USECASE, COMMAND, APP_CONTEXT)
-- Logs por entidade (USER, CHANNEL, MESSAGE, etc.)
-- Níveis de log (ERROR, INFO, WARNING)
-
-**Estrutura do Log**:
-
-```typescript
-logToConsole(
-  status: LoggerContextStatus,
-  context: LoggerContext,
-  entity: LoggerContextEntity,
-  message: string
-): void
-```
-
-**Exemplo de uso**:
-
-```typescript
-this.logger.logToConsole(
-  LoggerContextStatus.ERROR,
-  LoggerContext.COMMAND,
-  LoggerContextEntity.USER,
-  `executeNewUser | ${error.message}`,
-);
-```
-
-## Fluxo de Execução
-
-### Comando de Criação de Usuário
-
-```mermaid
-sequenceDiagram
-    participant D as Discord API
-    participant DS as DiscordService
-    participant UC as UserCommand
-    participant CU as CreateUser
-    participant UR as UserRepository
-    participant DB as Database
-
-    D->>DS: GuildMemberAdd Event
-    DS->>UC: onNewUser trigger
-    UC->>UC: toUserEntity()
-    UC->>CU: execute(userInput)
-    CU->>CU: validate business rules
-    CU->>UR: findByPlatformId()
-    UR->>DB: SELECT query
-    DB-->>UR: user data
-    UR-->>CU: existing user or null
-    CU->>UR: create() or updateById()
-    UR->>DB: INSERT or UPDATE
-    DB-->>UR: created/updated user
-    UR-->>CU: UserEntity
-    CU-->>UC: GenericOutputDto
-```
-
-## Error Handling
-
-### Padrão de Tratamento
-
-- **Try-catch** em todos os métodos públicos
-- **Logging estruturado** com contexto completo
-- **Não propagação** de exceções para camadas superiores
-- **Logs detalhados** para debugging
-
-### Exemplo:
-
-```typescript
-async executeNewUser(): Promise<void> {
-  try {
-    this.discordService.onNewUser(async (member) => {
-      await this.createUser.execute(UserCommand.toUserEntity(member));
-    });
-  } catch (error) {
-    this.logger.logToConsole(
-      LoggerContextStatus.ERROR,
-      LoggerContext.COMMAND,
-      LoggerContextEntity.USER,
-      `executeNewUser | ${error.message}`,
-    );
-  }
-}
-```
-
-## Dependency Injection
-
-A camada de aplicação recebe suas dependências através do **contexts**:
-
-**Em `app.context.ts`**:
-
-```typescript
-// Dependências externas
-const logger = new Logger();
-const { userRepository } = initializeDatabase(logger);
-const { discordService } = initializeDiscord();
-
-// Dependências internas
-const userUseCases = initializeUserUseCases(userRepository, logger);
-
-// Inicialização da aplicação
-new UserCommand(
-  discordService,
-  logger,
-  userUseCases.createUserCase,
-  userUseCases.updateUserCase,
-);
-```
-
-## Status da Implementação
-
-### ✅ Implementado
-
-- UserCommand com integração Discord completa
-- Sistema de logging estruturado
-- Mapeamento de eventos Discord para Use Cases
-- Error handling padronizado
-
-### 🚧 Em Desenvolvimento
-
-- UserQuery para operações de leitura
-- Métricas de engajamento
-- Relatórios automáticos
-
-### 📋 Planejado
-
-- Commands para outras entidades (Message, Channel, AudioEvent)
-- Queries complexas com agregações
-- Event handlers para relatórios
-- Sistema de notificações
-
-## Padrões Aplicados
-
-### Command Pattern
-
-- Encapsula requisições como objetos
-- Permite logging e auditoria
-- Facilita testing com mocks
-
-### Observer Pattern
-
-- Discord events são observados pelos Commands
-- Desacoplamento entre Discord API e business logic
-
-### Adapter Pattern
-
-- Converte dados do Discord para formato do domínio
-- `toUserEntity()` method adapta GuildMember para CreateUserInput
-
-## Relacionamento com Outras Camadas
-
-- **Domain**: Usa interfaces e Use Cases definidos no domain
-- **Infrastructure**: Recebe implementações via dependency injection
-- **Contexts**: É instanciada e configurada pelos contexts
-
----
-
-**Links Relacionados**:
-
-- [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md)
-- [2 - Domain Layer](./2%20-%20Domain%20Layer.md)
-- [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)
-- [5 - Contexts](./5%20-%20Contexts.md)
-- [3 - Application Layer](./3%20-%20Application%20Layer.md) (Commands são parte desta camada)
-- [7 - Use Cases](./7%20-%20Use%20Cases.md)
+- [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
+- [Domain Layer](./2%20-%20Domain%20Layer.md)
+- [Contexts](./5%20-%20Contexts.md)
+- [Use Cases](./7%20-%20Use%20Cases.md)

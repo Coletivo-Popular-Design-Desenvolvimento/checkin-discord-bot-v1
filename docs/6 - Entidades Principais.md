@@ -1,346 +1,108 @@
-# Entidades Principais - Checkin Bot
+# Entidades e modelo de dados
 
-**Status**: ✅ Atualizada - Novembro 2025
-**Versão**: 1.0 (Pré-Alpha)
+## Fonte canônica
 
----
+As classes em `src/domain/entities` representam os objetos manipulados pela aplicação. O formato persistido, suas chaves e relações são definidos por `src/infrastructure/persistence/prisma/models/schema.prisma`; em caso de divergência sobre o banco, o schema Prisma é a fonte canônica.
 
-## Visão Geral
+## Visão relacional
 
-As entidades representam os conceitos centrais do domínio de negócio do Checkin Bot. Cada entidade encapsula dados e comportamentos relacionados a um conceito específico do Discord e do sistema de engajamento.
+```text
+User ───< Message >─── Channel
+  │          │             │
+  │          └──< MessageReaction >── User
+  │
+  ├──< UserEvent >── AudioEvent >── Channel
+  ├──< UserRole >──── Role
+  └──< UserChannel >─ Channel
 
-## Estrutura das Entidades
-
-```
-src/domain/entities/
-├── User.ts              # Usuários do Discord
-├── Channel.ts           # Canais do servidor
-├── Message.ts           # Mensagens enviadas
-├── AudioEvent.ts        # Eventos de áudio/voz
-├── MessageReaction.ts   # Reações em mensagens
-├── Role.ts              # Cargos dos usuários
-├── EventStatus.ts       # Status dos eventos
-└── LogEvent.ts          # Eventos de log
+AudioEvent >── EventStatus
+AudioEvent >── User (creator)
 ```
 
-## Core Entities
-
-### 👤 User Entity
-
-**Arquivo**: `src/domain/entities/User.ts`
-
-**Propósito**: Representa um usuário do Discord no sistema de engajamento.
-
-#### Propriedades
-
-| Campo               | Tipo         | Descrição                         |
-| ------------------- | ------------ | --------------------------------- |
-| `id`                | `number`     | Identificador interno único       |
-| `platformId`        | `string`     | ID do usuário no Discord          |
-| `username`          | `string`     | Nome de usuário do Discord        |
-| `globalName`        | `string?`    | Nome global do Discord            |
-| `bot`               | `boolean`    | Se é um bot ou usuário real       |
-| `status`            | `UserStatus` | Status no sistema (ativo/inativo) |
-| `joinedAt`          | `Date?`      | Data de entrada no servidor       |
-| `platformCreatedAt` | `Date?`      | Data de criação da conta Discord  |
-| `createAt`          | `Date?`      | Data de criação no sistema        |
-| `updateAt`          | `Date?`      | Data da última atualização        |
-| `lastActive`        | `Date?`      | Última atividade registrada       |
-| `email`             | `string?`    | Email do usuário (opcional)       |
-
-#### Regras de Negócio
-
-- **Bots são filtrados**: Não são persistidos no sistema
-- **Platform ID é único**: Não permite duplicatas
-- **Status padrão**: Novos usuários são marcados como ACTIVE
-- **Reativação automática**: Usuários inativos são reativados ao retornar
-
-#### Factory Method
-
-```typescript
-public static fromPersistence(user: User): UserEntity {
-  return new UserEntity(
-    user.id,
-    user.platform_id,
-    user.username,
-    user.bot,
-    user.status,
-    user.global_name,
-    user.joined_at,
-    user.platform_created_at,
-    user.create_at,
-    user.update_at,
-    user.last_active,
-    user.email,
-  );
-}
-```
-
-### 🎵 AudioEvent Entity
-
-**Arquivo**: `src/domain/entities/AudioEvent.ts`
+## Tabelas
 
-**Propósito**: Representa eventos de áudio/voz (reuniões, calls) no Discord.
+### `User`
 
-#### Propriedades
+Representa um membro conhecido do Discord.
 
-| Campo         | Tipo             | Descrição               |
-| ------------- | ---------------- | ----------------------- |
-| `id`          | `number`         | Identificador interno   |
-| `platformId`  | `string`         | ID do evento no Discord |
-| `name`        | `string`         | Nome do evento          |
-| `description` | `string?`        | Descrição opcional      |
-| `statusId`    | `string`         | Status do evento (FK)   |
-| `startAt`     | `Date`           | Data/hora de início     |
-| `endAt`       | `Date`           | Data/hora de fim        |
-| `userCount`   | `number`         | Número de participantes |
-| `image`       | `string?`        | Imagem associada        |
-| `createdAt`   | `Date`           | Data de criação         |
-| `channel`     | `ChannelEntity?` | Canal onde ocorreu      |
-| `creator`     | `UserEntity?`    | Usuário criador         |
+| Campo relevante           | Significado                                                   |
+| ------------------------- | ------------------------------------------------------------- |
+| `platform_id`             | identificador único no Discord                                |
+| `username`, `global_name` | nomes públicos disponíveis                                    |
+| `bot`                     | identifica conta automatizada                                 |
+| `status`                  | `1` ativo, `2` inativo                                        |
+| `joined_at`               | entrada conhecida no servidor                                 |
+| `platform_created_at`     | criação da conta no Discord                                   |
+| `last_active`             | última atividade atualizada pelos fluxos que a informam       |
+| `create_at`, `update_at`  | criação e atualização do registro local                       |
+| `email`                   | campo opcional herdado; não coletado pelo fluxo Discord atual |
 
-#### Relacionamentos
+O cadastro não é apagado quando a pessoa sai; o status é invertido para inativo.
 
-- **Creator**: Muitos eventos para um usuário (N:1)
-- **Channel**: Muitos eventos para um canal (N:1)
-- **Status**: Muitos eventos para um status (N:1)
-- **Participants**: Many-to-Many com usuários via `userEvent`
+### `Role` e `UserRole`
 
-### 💬 Message Entity
+`Role` guarda identificador, nome e data original do cargo. `UserRole` mantém a associação atual entre usuário e cargo com chave composta. Não há campos temporais na associação, portanto ela não representa histórico de mudanças.
 
-**Arquivo**: `src/domain/entities/Message.ts`
+### `Channel` e `UserChannel`
 
-**Propósito**: Representa mensagens enviadas nos canais do Discord.
+`Channel` guarda identificador, nome, URL e criação local. A classe de domínio também recebe uma data de criação na construção, mas o schema não mantém uma coluna `platform_created_at` para canal.
 
-#### Propriedades
+`UserChannel` é uma relação de chave composta. Ela não possui datas e não deve ser interpretada automaticamente como histórico de participação.
 
-| Campo               | Tipo                      | Descrição                  |
-| ------------------- | ------------------------- | -------------------------- |
-| `id`                | `number?`                 | Identificador interno      |
-| `platformId`        | `string`                  | ID da mensagem no Discord  |
-| `platformCreatedAt` | `Date`                    | Data de criação no Discord |
-| `isDeleted`         | `boolean`                 | Se foi deletada            |
-| `createdAt`         | `Date?`                   | Data de criação no sistema |
-| `channel`           | `ChannelEntity?`          | Canal onde foi enviada     |
-| `user`              | `UserEntity?`             | Usuário que enviou         |
-| `messageReactions`  | `MessageReactionEntity[]` | Reações na mensagem        |
+### `Message`
 
-#### Características
+Guarda autor, canal, identificador Discord, `platform_created_at`, criação local e `is_deleted`. Não há coluna para texto, anexos ou mídia.
 
-- **Soft Delete**: Mensagens deletadas são marcadas, não removidas
-- **Platform Tracking**: Data original do Discord é preservada
-- **Rich Relationships**: Conecta usuários, canais e reações
+Para atividade histórica, use `platform_created_at`; `created_at` pode ser apenas a data em que um backfill inseriu o registro.
 
-### 📺 Channel Entity
+### `MessageReaction`
 
-**Arquivo**: `src/domain/entities/Channel.ts`
+Relaciona usuário, mensagem e canal, com emoji opcional e `reacted_at`. A constraint única é `(user_id, message_id, reaction_emoji)`.
 
-**Propósito**: Representa canais do servidor Discord.
+No fluxo em tempo real, `reacted_at` usa o momento observado. No backfill, a API não fornece a data real da reação e o fetcher usa a data da mensagem como aproximação.
 
-#### Propriedades
+### `AudioEvent` e `EventStatus`
 
-| Campo             | Tipo                       | Descrição              |
-| ----------------- | -------------------------- | ---------------------- |
-| `id`              | `number`                   | Identificador interno  |
-| `platformId`      | `string`                   | ID do canal no Discord |
-| `name`            | `string`                   | Nome do canal          |
-| `url`             | `string`                   | URL do canal           |
-| `createdAt`       | `Date`                     | Data de criação        |
-| `user`            | `UserEntity[]?`            | Usuários do canal      |
-| `message`         | `MessageEntity[]?`         | Mensagens do canal     |
-| `messageReaction` | `MessageReactionEntity[]?` | Reações do canal       |
+`AudioEvent` representa evento agendado ou sessão de voz conhecida, com:
 
-#### Agregações
+- identificador Discord ou identificador `auto-*` para sessão criada a partir de presença;
+- canal e criador;
+- nome e descrição opcional;
+- status (`scheduled`, `active`, `completed` ou `canceled`);
+- início, fim opcional e contagem de usuários;
+- imagem opcional e criação local.
 
-- **Message Count**: Quantidade de mensagens
-- **Active Users**: Usuários ativos no canal
-- **Engagement Metrics**: Métricas de interação
+`EventStatus` normaliza o status em tabela própria e é criado sob demanda pelos repositórios.
 
-### 🎭 Role Entity
+### `UserEvent`
 
-**Arquivo**: `src/domain/entities/Role.ts`
+Registra uma entrada (`JOINED`) ou saída (`LEFT`) observada em uma sessão de voz, relacionando usuário, evento e data. Não possui constraint de idempotência e não é importado pelo backfill.
 
-**Propósito**: Representa cargos/funções dos usuários no Discord.
+### `LogEventEntity`
 
-#### Propriedades
+Existe como entidade do domínio, porém não existe tabela correspondente no schema atual e `Logger.logToDatabase` não está implementado. Logs persistidos não fazem parte do sistema executável.
 
-| Campo               | Tipo     | Descrição                  |
-| ------------------- | -------- | -------------------------- |
-| `id`                | `number` | Identificador interno      |
-| `name`              | `string` | Nome do cargo              |
-| `platformId`        | `string` | ID do cargo no Discord     |
-| `platformCreatedAt` | `Date`   | Data de criação no Discord |
-| `createdAt`         | `Date`   | Data de criação no sistema |
+## Datas analíticas
 
-#### Relacionamentos
+| Pergunta                         | Campo recomendado             | Limite                                                                |
+| -------------------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| Quando a mensagem ocorreu?       | `Message.platform_created_at` | data original disponível                                              |
+| Quando a reação ocorreu?         | `MessageReaction.reacted_at`  | aproximada no backfill                                                |
+| Quando o evento começou?         | `AudioEvent.start_at`         | eventos antigos podem não estar disponíveis                           |
+| Quando a presença foi observada? | `UserEvent.created_at`        | somente enquanto o gateway estava ativo                               |
+| Quando o membro entrou?          | `User.joined_at`              | estado obtido do Discord; não é trilha completa de entradas repetidas |
 
-- **Users**: Many-to-Many através de `UserRole`
-- **Permissions**: Diferentes níveis de acesso
+## Cuidados para análise
 
-### 👍 MessageReaction Entity
+- filtrar contas com `bot = false`;
+- não expor `email`, nomes ou IDs em painéis agregados;
+- não tratar `UserRole` e `UserChannel` como séries históricas;
+- mostrar cobertura do bot e do backfill junto às métricas;
+- documentar a aproximação de datas de reação;
+- aplicar limiar mínimo para grupos pequenos.
 
-**Arquivo**: `src/domain/entities/MessageReaction.ts`
+## Leituras relacionadas
 
-**Propósito**: Representa reações (emojis) em mensagens.
-
-#### Propriedades
-
-| Campo       | Tipo     | Descrição             |
-| ----------- | -------- | --------------------- |
-| `id`        | `number` | Identificador interno |
-| `userId`    | `string` | ID do usuário (FK)    |
-| `messageId` | `string` | ID da mensagem (FK)   |
-| `channelId` | `string` | ID do canal (FK)      |
-
-#### Características
-
-- **Engagement Tracking**: Mede interação dos usuários
-- **Analytics**: Base para métricas de engajamento
-- **Unique Constraint**: Um usuário, uma reação por mensagem
-
-## Supporting Entities
-
-### 🏷️ EventStatus Entity
-
-**Arquivo**: `src/domain/entities/EventStatus.ts`
-
-**Propósito**: Define os possíveis status dos eventos de áudio.
-
-#### Status Típicos
-
-- `SCHEDULED`: Evento agendado
-- `ACTIVE`: Evento em andamento
-- `COMPLETED`: Evento finalizado
-- `CANCELLED`: Evento cancelado
-
-### 📝 LogEvent Entity
-
-**Arquivo**: `src/domain/entities/LogEvent.ts`
-
-**Propósito**: Representa eventos de log estruturado do sistema.
-
-## Padrões de Design Aplicados
-
-### Entity Pattern
-
-- **Identity**: Cada entidade tem um ID único
-- **Encapsulation**: Dados e comportamentos juntos
-- **Business Rules**: Regras de negócio na entidade
-
-### Factory Pattern
-
-- **fromPersistence()**: Cria entidade a partir de dados do banco
-- **Type Safety**: Garante tipos corretos na criação
-- **Mapping Logic**: Centraliza conversão de dados
-
-### Value Objects
-
-- **UserStatus**: Enum para status do usuário
-- **LoggerContext**: Contextos para logging
-- **Immutability**: Propriedades readonly quando apropriado
-
-## Relacionamentos Entre Entidades
-
-```mermaid
-erDiagram
-    User ||--o{ Message : sends
-    User ||--o{ AudioEvent : creates
-    User }o--o{ Role : has
-    User }o--o{ Channel : participates
-    User ||--o{ MessageReaction : makes
-
-    Channel ||--o{ Message : contains
-    Channel ||--o{ AudioEvent : hosts
-    Channel ||--o{ MessageReaction : tracks
-
-    Message ||--o{ MessageReaction : receives
-
-    AudioEvent }o--|| EventStatus : has
-    AudioEvent }o--o{ User : includes
-
-    User {
-        int id PK
-        string platform_id UK
-        string username
-        string global_name
-        boolean bot
-        int status
-        datetime joined_at
-        datetime last_active
-    }
-
-    Channel {
-        int id PK
-        string platform_id UK
-        string name
-        string url
-        datetime created_at
-    }
-
-    Message {
-        int id PK
-        string platform_id UK
-        string user_id FK
-        string channel_id FK
-        boolean is_deleted
-        datetime platform_created_at
-    }
-
-    AudioEvent {
-        int id PK
-        string platform_id UK
-        string name
-        string creator_id FK
-        string channel_id FK
-        string status_id FK
-        datetime start_at
-        datetime end_at
-        int user_count
-    }
-```
-
-## Mapeamento Domain ↔ Database
-
-### Naming Convention
-
-- **Domain**: `camelCase` (platformId, createdAt)
-- **Database**: `snake_case` (platform_id, created_at)
-- **Mapping**: Feito nos repositories via métodos `toDomain()` e `toPersistence()`
-
-### Type Mapping
-
-- **Domain**: `Date` objects
-- **Database**: `DateTime` fields
-- **Domain**: `boolean`
-- **Database**: `Boolean`
-- **Domain**: `number`
-- **Database**: `Int`
-
-## Evolution Strategy
-
-### Adding New Entities
-
-1. **Create entity class** em `domain/entities/`
-2. **Define interface** em `domain/interfaces/repositories/`
-3. **Implement repository** em `infrastructure/persistence/repositories/`
-4. **Update schema** em `schema.prisma`
-5. **Create migration** com Prisma
-6. **Add to contexts** para DI
-
-### Modifying Existing Entities
-
-1. **Update entity class** (manter backward compatibility)
-2. **Update database schema**
-3. **Create migration**
-4. **Update mapping methods** em repositories
-5. **Update tests**
-
----
-
-**Links Relacionados**:
-
-- [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md)
-- [2 - Domain Layer](./2%20-%20Domain%20Layer.md)
-- [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)
-- [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) (Database schema está documentado aqui)
-- [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) (Repository pattern está documentado aqui)
+- [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md)
+- [Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)
+- [Use Cases](./7%20-%20Use%20Cases.md)

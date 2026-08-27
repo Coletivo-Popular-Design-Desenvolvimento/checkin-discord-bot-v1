@@ -1,124 +1,57 @@
-# 🗂️ Índice de Leitura - Checkin Bot
+# Índice de leitura — Check-in Bot
 
-## Ordem Recomendada de Leitura
+## Ordem recomendada
 
-Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seguir esta sequência:
+1. [Comece por aqui](./-1%20-%20Come%C3%A7e%20por%20aqui.md) — propósito, limites e estado atual.
+2. [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md) — intenção comunitária e uso responsável.
+3. [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md) — arquitetura executável e fluxos.
+4. [Domain Layer](./2%20-%20Domain%20Layer.md) — entidades, contratos e fronteiras atuais.
+5. [Application Layer](./3%20-%20Application%20Layer.md) — adaptação dos eventos do Discord.
+6. [Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) — Discord.js, Prisma e repositórios.
+7. [Contexts](./5%20-%20Contexts.md) — composição manual das dependências.
+8. [Entidades Principais](./6%20-%20Entidades%20Principais.md) — schema, relações e cuidados analíticos.
+9. [Use Cases](./7%20-%20Use%20Cases.md) — operações implementadas e entradas disponíveis.
+10. [Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md) — execução, idempotência e limites do backfill.
+11. [Como criar um bot no Discord](./Criar-bot-Discord.md) — configuração no Developer Portal.
 
-### 📚 Documentação Básica
+## Por perfil
 
-1. **[0 - Documentação de Produto](./0%20-%20Documentação%20de%20Produto.md)** - Visão de produto e objetivos
-2. **[1 - Documentação técnica](./1%20-%20Documentação%20técnica.md)** - Overview técnico completo e arquitetura
+### Produto e comunidade
 
-### 🏗️ Arquitetura e Estrutura
+Leia “Comece por aqui”, Produto e Entidades. Esses documentos explicam o que os sinais permitem observar e quais interpretações devem ser evitadas.
 
-3. **[2 - Domain Layer](./2%20-%20Domain%20Layer.md)** - Camada de domínio (regras de negócio)
-4. **[3 - Application Layer](./3%20-%20Application%20Layer.md)** - Camada de aplicação (CQRS)
-5. **[4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)** - Camada de infraestrutura (Discord + DB)
-6. **[5 - Contexts](./5%20-%20Contexts.md)** - Dependency Injection e configuração
+### Desenvolvimento
 
-### 🧩 Componentes Específicos
+Leia a documentação técnica, as quatro notas de camadas/contexts e Casos de Uso. Use o código e o schema Prisma como fontes finais para detalhes de implementação.
 
-7. **[6 - Entidades Principais](./6%20-%20Entidades%20Principais.md)** - Modelos de domínio e relacionamentos
-8. **[7 - Use Cases](./7%20-%20Use%20Cases.md)** - Casos de uso e regras de negócio
-9. **[8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md)** - Backfill de mensagens e eventos de voz via CLI
+### Dados
 
-## Sequência por Perfil
+Leia Produto, Entidades, Sincronização Histórica e Infrastructure. Dê atenção especial a `platform_created_at`, à ausência de dimensão temporal em cargos/canais e às lacunas do backfill.
 
-### 👨‍💻 **Para Desenvolvedores Iniciantes**
+### Operação
 
-1. [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md) - Entender o contexto
-2. [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md) - Visão macro (arquitetura)
-3. [6 - Entidades Principais](./6%20-%20Entidades%20Principais.md) - Entender os dados
-4. [7 - Use Cases](./7%20-%20Use%20Cases.md) - Entender as operações
-5. [2 - Domain Layer](./2%20-%20Domain%20Layer.md) - Aprofundar no domínio
+Leia o [README](../README.md), Contexts, Infrastructure e Sincronização Histórica. Os workflows atuais ficam em `.github/workflows`.
 
-### 🏗️ **Para Arquitetos de Software**
+## Glossário
 
-1. [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md) - Arquitetura macro
-2. [2 - Domain Layer](./2%20-%20Domain%20Layer.md) - Regras de negócio
-3. [3 - Application Layer](./3%20-%20Application%20Layer.md) - CQRS implementation
-4. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Detalhes técnicos
-5. [5 - Contexts](./5%20-%20Contexts.md) - Dependency Injection
+| Termo                 | Uso neste projeto                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| Clean Architecture    | inspiração para separar contratos e adapters; a estrutura atual possui ressalvas documentadas |
+| Command               | adapter que recebe evento do Discord e delega a um caso de uso                                |
+| Query                 | direção futura; ainda não há handler de leitura implementado                                  |
+| Caso de uso           | operação que coordena regras e portas do domínio                                              |
+| Repositório           | adapter de persistência que implementa uma interface do domínio                               |
+| Context               | função que instancia e conecta dependências concretas                                         |
+| `platform_id`         | identificador do objeto no Discord                                                            |
+| `platform_created_at` | data original disponível na plataforma, preferível à data de importação                       |
+| Backfill              | sincronização histórica manual dentro dos limites da API Discord                              |
 
-### 📊 **Para Analistas de Dados**
+## Fonte de verdade
 
-1. [0 - Documentação de Produto](./0%20-%20Documentação%20de%20Produto.md) - Objetivos de negócio
-2. [6 - Entidades Principais](./6%20-%20Entidades%20Principais.md) - Modelo de dados
-3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Database schema
-4. [7 - Use Cases](./7%20-%20Use%20Cases.md) - Como os dados são coletados
+- comportamento: código em `src`, exceto `src/oldApp`;
+- modelo persistido: `schema.prisma` e migrations;
+- comandos: `package.json` e arquivos Compose;
+- automação: `.github/workflows`;
+- intenção e limites: documentação de produto.
 
-### 🚀 **Para DevOps/Deploy**
-
-1. [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md) - Tecnologias utilizadas
-2. [5 - Contexts](./5%20-%20Contexts.md) - Configuração da aplicação
-3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Dependências externas
-4. [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md) - Rodar o backfill via CLI ou GitHub Actions
-
-## Glossário Rápido
-
-| Termo                  | Significado                                                                  |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| **Clean Architecture** | Arquitetura em camadas com dependências direcionadas para dentro             |
-| **CQRS**               | Command Query Responsibility Segregation - separação entre leitura e escrita |
-| **Domain Entity**      | Objetos que representam conceitos de negócio                                 |
-| **Use Case**           | Implementação de uma regra de negócio específica                             |
-| **Repository**         | Padrão para acesso a dados abstraindo a persistência                         |
-| **Context**            | Sistema de Dependency Injection manual                                       |
-| **Discord.js**         | Biblioteca para integração com Discord API                                   |
-| **Prisma**             | ORM para TypeScript/JavaScript                                               |
-
-## Status da Documentação
-
-### ✅ Completo
-
-- Arquitetura geral
-- Domain Layer
-- Application Layer
-- Infrastructure Layer
-- Contexts
-- Entidades principais
-- Use Cases principais
-
-### 🔄 Em Desenvolvimento
-
-- Guias de desenvolvimento
-- Exemplos de código
-- Troubleshooting
-- Performance guidelines
-
-### 📋 Planejado
-
-- API documentation
-- Deployment guides
-- Monitoring setup
-- Backup strategies
-
-## Convenções da Documentação
-
-### 🎯 **Símbolos Utilizados**
-
-- ✅ = Implementado/Completo
-- 🔄 = Em desenvolvimento
-- 📋 = Planejado
-- 🚧 = Em migração
-- ⚠️ = Atenção necessária
-
-### 📝 **Estrutura das Notas**
-
-- **Visão Geral**: Propósito e contexto
-- **Estrutura**: Organização de arquivos/pastas
-- **Implementação**: Detalhes técnicos
-- **Padrões**: Design patterns aplicados
-- **Links Relacionados**: Navegação entre notas
-
-### 🔗 **Navegação**
-
-- Links bidirecionais entre notas relacionadas
-- Referências específicas com linha de código quando relevante
-- Índice de navegação em cada nota principal
-
----
-
-**💡 Dica**: Use o Obsidian Graph View para visualizar as conexões entre os conceitos!
-
-**🤝 Contribuições**: Esta documentação evolui com o projeto. Mantenha-a atualizada conforme implementa novas funcionalidades.
+Se a documentação divergir dessas fontes, corrija-a na mesma entrega que alterar o comportamento.

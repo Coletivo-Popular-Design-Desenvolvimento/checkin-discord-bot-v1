@@ -1,123 +1,48 @@
-# 👋 Começe por aqui - Checkin Bot
+# Comece por aqui — Check-in Bot
 
-**Bem-vindo ao projeto Checkin Bot!**
+## Por que este projeto existe
 
----
+O Check-in transforma sinais mínimos de participação no Discord em dados relacionais que ajudam o CPDD a compreender a saúde da comunidade. Ele permite observar tendências coletivas — por exemplo, atividade por período, canais mobilizadores e participação em voz — sem guardar o conteúdo das conversas.
 
-## 🎯 O que é este projeto?
+O projeto não é ponto, autenticação, moderação nem ferramenta de avaliação individual.
 
-O **Checkin Bot** é um bot Discord desenvolvido para o **Coletivo Popular de Design e Desenvolvimento (CPDD)** que coleta **metadados de engajamento** dos membros do servidor Discord.
+## O que ele coleta
 
-### Propósito
+- membros e seu estado atual no servidor;
+- canais e cargos;
+- data, autoria e canal de mensagens, sem o texto;
+- emoji, autoria, mensagem e data disponível de reações;
+- eventos agendados de voz e entradas/saídas observadas em tempo real.
 
-- 📊 **Medir engajamento** através de dados objetivos
-- 🎯 **Apoiar decisões estratégicas** baseadas em evidências
-- 📈 **Melhorar retenção** de membros do coletivo
-- 🔍 **Gerar insights** sobre comportamento da comunidade
+O schema possui um campo opcional de e-mail por herança da modelagem, mas o fluxo atual não obtém e-mail do Discord. Dados analíticos devem excluir esse campo e privilegiar agregações.
 
-### O que coletamos
+## Como ele funciona
 
-✅ **Metadados apenas** - IDs, timestamps, contadores
-❌ **Nunca** - conteúdo de mensagens, mídias, dados pessoais
+```text
+Discord -> comandos da aplicação -> casos de uso -> repositórios -> Prisma -> MariaDB
+```
 
----
+Há dois entry points:
 
-## 🏗️ Arquitetura
+- `src/index.ts`: coleta contínua enquanto o bot está conectado;
+- `src/historicalSync.ts`: importação manual de parte do histórico disponível pela API.
 
-Este projeto segue **Clean Architecture + CQRS**, garantindo:
+O código ativo está organizado em `domain`, `application`, `infrastructure` e `contexts`. A pasta `src/oldApp` é legado preservado e não participa da inicialização atual.
 
-- 🧩 **Separação clara** de responsabilidades
-- 🧪 **Alta testabilidade** e manutenibilidade
-- 🔄 **Independência** de frameworks externos
-- 📖 **Código legível** e bem estruturado
+## Ordem recomendada
 
-### Stack Tecnológica
+1. [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md)
+2. [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
+3. [Entidades Principais](./6%20-%20Entidades%20Principais.md)
+4. [Casos de Uso](./7%20-%20Use%20Cases.md)
+5. [Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md)
 
-- **Runtime**: Node.js + TypeScript
-- **Framework**: Discord.js v14
-- **Database**: MySQL + Prisma ORM
-- **Testing**: Jest
-- **Containerização**: Docker
+Para navegar por perfil, use o [Índice de Leitura](./%F0%9F%97%82%EF%B8%8F%20%C3%8Dndice%20de%20Leitura%20-%20Checkin%20Bot.md).
 
----
+## Estado atual, sem promessas
 
-## 🗂️ Documentação
+Estão implementados os fluxos de coleta em tempo real, o backfill parcial, a persistência Prisma e os testes. Não existe API de consulta, interface web, dashboard ou geração de relatórios no código atual. `application/query/userQuery.ts` está reservado para leituras futuras.
 
-### 📚 **Primeiros Passos**
+## Primeira execução
 
-- [📋 Documentação de Produto](./0%20-%20Documentação%20de%20Produto.md) - Visão de negócio e objetivos
-- [🔧 Documentação Técnica](./1%20-%20Documentação%20técnica.md) - Overview completo da implementação
-- [🤖 Criar bot no Discord](./Criar-bot-Discord.md) - Passo a passo com prints (token, OAuth2, convite)
-- [🗂️ Índice de Leitura](./🗂️%20Índice%20de%20Leitura%20-%20Checkin%20Bot.md) - Guia de navegação por perfil
-
-### 🏛️ **Arquitetura Detalhada**
-
-- [🏗️ Domain Layer](./2%20-%20Domain%20Layer.md) - Regras de negócio e entidades
-- [⚙️ Application Layer](./3%20-%20Application%20Layer.md) - CQRS e orquestração
-- [🔧 Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Discord + Database
-- [🔌 Contexts](./5%20-%20Contexts.md) - Dependency Injection
-
-### 📊 **Modelos e Casos de Uso**
-
-- [📋 Entidades Principais](./6%20-%20Entidades%20Principais.md) - Modelos de dados
-- [🔄 Use Cases](./7%20-%20Use%20Cases.md) - Regras de negócio implementadas
-
----
-
-## 🚀 Status do Projeto
-
-### ✅ **Fase 1 - Concluída**
-
-- Clean Architecture implementada
-- Sistema de usuários (CRUD completo)
-- Integração básica Discord
-- Testes automatizados
-
-### 🔄 **Fase 2 - Em Andamento**
-
-- Coleta de mensagens e eventos
-- Migração de código legado
-- Testes de integração
-
-### 📋 **Próximos Passos**
-
-- Deploy em produção
-- Relatórios de engajamento
-- Integração com projeto "Dados"
-
----
-
-## 🎯 Por onde começar?
-
-### 👨‍💻 **Se você é desenvolvedor:**
-
-1. Leia a [Documentação Técnica](./1%20-%20Documentação%20técnica.md) para entender o contexto
-2. Explore as [Entidades Principais](./6%20-%20Entidades%20Principais.md) para entender os dados
-3. Veja os [Use Cases](./7%20-%20Use%20Cases.md) para entender as operações
-4. Mergulhe no [Domain Layer](./2%20-%20Domain%20Layer.md) para as regras de negócio
-
-### 🏗️ **Se você é arquiteto:**
-
-1. Comece pela [Documentação Técnica](./1%20-%20Documentação%20técnica.md) para visão macro
-2. Aprofunde-se nas camadas: [Domain](./2%20-%20Domain%20Layer.md) → [Application](./3%20-%20Application%20Layer.md) → [Infrastructure](./4%20-%20Infrastructure%20Layer.md)
-3. Entenda a [Dependency Injection](./5%20-%20Contexts.md)
-
-### 📊 **Se você trabalha com dados:**
-
-1. Veja a [Documentação de Produto](./0%20-%20Documentação%20de%20Produto.md) para objetivos
-2. Entenda o [modelo de dados](./6%20-%20Entidades%20Principais.md)
-3. Veja como [dados são coletados](./7%20-%20Use%20Cases.md)
-
----
-
-## 💡 Dicas
-
-- 🔍 Use o **Obsidian Graph View** para visualizar conexões entre conceitos
-- 📝 Todos os links são **relativos** e funcionam tanto no GitHub quanto no Obsidian
-- 🤝 Esta documentação evolui com o projeto - mantenha-a atualizada!
-
----
-
-**Boa codada! 🚀**
-
-_Qualquer dúvida, consulte o [Índice de Leitura](./🗂️%20Índice%20de%20Leitura%20-%20Checkin%20Bot.md) ou entre em contato via Discord do CPDD._
+Siga o [README](../README.md) para instalar e executar. Se ainda não possui uma aplicação Discord, consulte [Como criar um bot no Discord](./Criar-bot-Discord.md).
