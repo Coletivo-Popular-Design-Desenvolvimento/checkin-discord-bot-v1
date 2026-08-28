@@ -1,281 +1,80 @@
 # Domain Layer - Checkin Bot
 
-**Status**: ✅ Atualizada - Novembro 2025
-**Versão**: 1.0 (Pré-Alpha)
-
----
-
 ## Visão Geral
 
-A camada de domínio (`src/domain/`) é o coração da aplicação, contendo todas as regras de negócio e definições das entidades. Esta camada é completamente independente de frameworks e tecnologias externas.
+A camada de domínio (`src/domain`) reúne o vocabulário do sistema, os contratos que isolam dependências e os casos de uso. É aqui que as operações de criação, atualização, busca e importação dos metadados ganham significado dentro do projeto.
 
 ## Estrutura
 
-```
+```text
 src/domain/
-├── entities/          # Entidades do domínio
-├── interfaces/        # Contratos (ports)
-├── useCases/         # Implementação das regras de negócio
-├── types/            # Enums e tipos personalizados
-└── dtos/             # Data Transfer Objects
+├── dtos/          # Formatos genéricos de saída e entradas auxiliares
+├── entities/      # Objetos do domínio
+├── interfaces/
+│   ├── commands/
+│   ├── repositories/
+│   ├── services/
+│   └── useCases/
+├── types/         # Enums e tipos compartilhados
+└── useCases/      # Implementações dos casos de uso
 ```
 
 ## Entidades do Domínio
 
-### User Entity
+As classes atuais são:
 
-**Arquivo**: `src/domain/entities/User.ts`
+- `UserEntity`;
+- `RoleEntity`;
+- `ChannelEntity`;
+- `MessageEntity`;
+- `MessageReactionEntity`;
+- `AudioEventEntity`;
+- `EventStatusEntity`;
+- `UserEventEntity`;
+- `LogEventEntity`.
 
-Representa um usuário do Discord no sistema.
-
-**Propriedades principais**:
-
-- `id`: Identificador interno único
-- `platformId`: ID do usuário no Discord
-- `username`: Nome de usuário
-- `globalName`: Nome global do Discord
-- `status`: Status do usuário (ativo/inativo)
-- `bot`: Se é um bot ou usuário real
-- `joinedAt`: Data de entrada no servidor
-- `lastActive`: Última atividade registrada
-
-**Métodos**:
-
-- `fromPersistence()`: Factory method para criar entidade a partir dos dados do banco
-
-### Channel Entity
-
-**Arquivo**: `src/domain/entities/Channel.ts`
-
-Representa um canal do Discord.
-
-**Propriedades principais**:
-
-- `id`: Identificador interno
-- `platformId`: ID do canal no Discord
-- `name`: Nome do canal
-- `url`: URL do canal
-- `createdAt`: Data de criação
-
-### Message Entity
-
-**Arquivo**: `src/domain/entities/Message.ts`
-
-Representa uma mensagem enviada em um canal.
-
-**Propriedades principais**:
-
-- `platformId`: ID da mensagem no Discord
-- `platformCreatedAt`: Data de criação no Discord
-- `isDeleted`: Se a mensagem foi deletada
-- `channel`: Canal onde foi enviada
-- `user`: Usuário que enviou
-- `messageReactions`: Reações na mensagem
-
-### AudioEvent Entity
-
-**Arquivo**: `src/domain/entities/AudioEvent.ts`
-
-Representa um evento de áudio/voz no Discord.
-
-**Propriedades principais**:
-
-- `name`: Nome do evento
-- `description`: Descrição opcional
-- `startAt`: Data/hora de início
-- `endAt`: Data/hora de fim
-- `userCount`: Número de participantes
-- `statusId`: Status do evento
-- `channel`: Canal onde ocorreu
-- `creator`: Usuário criador
-
-### Outras Entidades
-
-- **Role Entity**: Cargos dos usuários
-- **MessageReaction Entity**: Reações em mensagens
-- **EventStatus Entity**: Status dos eventos
+Essas classes são estruturas de dados construídas pelos casos de uso e pelo `PrismaMapper`; a maior parte das regras está nos casos de uso, não em métodos das entidades.
 
 ## Interfaces (Ports)
 
 ### Repositórios
 
-**Localização**: `src/domain/interfaces/repositories/`
+As interfaces em `interfaces/repositories` descrevem persistência sem importar Prisma:
 
-Define contratos para persistência de dados:
-
-- **`IUserRepository`**: Operações CRUD para usuários
-- **`IChannelRepository`**: Operações para canais
-- **`IMessageRepository`**: Operações para mensagens
-- **`IAudioEventRepository`**: Operações para eventos de áudio
-- **`IRoleRepository`**: Operações para cargos
-
-#### Exemplo - IUserRepository
-
-```typescript
-interface IUserRepository {
-  create(user: Omit<UserEntity, "id">): Promise<UserEntity>;
-  findById(id: number): Promise<UserEntity | null>;
-  findByPlatformId(id: string): Promise<UserEntity | null>;
-  updateById(id: number, user: Partial<UserEntity>): Promise<UserEntity | null>;
-  // ... outros métodos
-}
-```
+- usuários, cargos, canais, mensagens e reações;
+- eventos de áudio e eventos de usuário;
+- importação histórica em lote;
+- contrato de logger legado em `repositories/ILogger.ts`.
 
 ### Serviços
 
-**Localização**: `src/domain/interfaces/services/`
+- `IDiscordService`: eventos necessários do gateway e acesso ao client abstrato;
+- `IDiscordHistoryFetcher`: paginação e leitura histórica;
+- `ILoggerService`: registro no console e contrato de registro em banco.
 
-- **`IDiscordService`**: Abstração para integração com Discord
-- **`ILoggerService`**: Abstração para sistema de logs
+### Use Cases e Commands
 
-### Use Cases
-
-**Localização**: `src/domain/interfaces/useCases/`
-
-Define contratos para cada caso de uso:
-
-- **User Use Cases**:
-  - `ICreateUser`: Criação de usuários
-  - `IFindUser`: Busca de usuários
-  - `IUpdateUser`: Atualização de usuários
-  - `IDeleteUser`: Exclusão de usuários
-
-### Commands
-
-**Localização**: `src/domain/interfaces/commands/`
-
-- **`IUserCommand`**: Interface para comandos relacionados a usuários
-
-## Use Cases (Regras de Negócio)
-
-### User Use Cases
-
-**Localização**: `src/domain/useCases/user/`
-
-#### CreateUser
-
-**Arquivo**: `src/domain/useCases/user/CreateUser.ts`
-
-**Responsabilidades**:
-
-- Validar se não é um bot
-- Verificar se usuário já existe
-- Reativar usuário inativo se necessário
-- Criar novo usuário
-
-**Regras de Negócio**:
-
-- Bots não são persistidos no sistema
-- Usuários inativos são reativados automaticamente
-- Não permite duplicação de usuários ativos
-
-#### UpdateUser
-
-**Arquivo**: `src/domain/useCases/user/UpdateUser.ts`
-
-**Responsabilidades**:
-
-- Atualizar dados do usuário
-- Alterar status (ativo/inativo)
-
-#### FindUser
-
-**Arquivo**: `src/domain/useCases/user/FindUser.ts`
-
-**Responsabilidades**:
-
-- Buscar usuários por diferentes critérios
-- Aplicar filtros de status
-
-#### DeleteUser
-
-**Arquivo**: `src/domain/useCases/user/DeleteUser.ts`
-
-**Responsabilidades**:
-
-- Exclusão lógica de usuários (soft delete)
+Cada operação pública possui uma interface própria em `interfaces/useCases`. Alguns commands implementam interfaces em `interfaces/commands`; outros ainda são classes concretas sem porta equivalente. A documentação não assume uniformidade que o código não possui.
 
 ## Types e Enums
 
-### UserStatusEnum
-
-**Arquivo**: `src/domain/types/UserStatusEnum.ts`
-
-```typescript
-export enum UserStatus {
-  ACTIVE = 1,
-  INACTIVE = 0,
-}
-```
-
-### LoggerContextEnum
-
-**Arquivo**: `src/domain/types/LoggerContextEnum.ts`
-
-Define contextos para logging estruturado:
-
-- `APP_CONTEXT`: Contexto da aplicação
-- `REPOSITORY`: Contexto de repositórios
-- `USECASE`: Contexto de casos de uso
-- `COMMAND`: Contexto de comandos
-
-### Messages
-
-- **`CommonMessages.ts`**: Mensagens comuns do sistema
-- **`ErrorMessages.ts`**: Mensagens de erro padronizadas
-
-## DTOs (Data Transfer Objects)
-
-### CreateManyUserOutputDto
-
-**Arquivo**: `src/domain/dtos/CreateManyUserOutputDto.ts`
-
-Usado para retornar resultado de criação em lote de usuários.
-
-### GenericOutputDto
-
-**Arquivo**: `src/domain/dtos/GenericOutputDto.ts`
-
-DTO genérico para padronizar retornos de operações:
-
-```typescript
-interface GenericOutputDto<T> {
-  data: T | null;
-  success: boolean;
-  message?: string;
-}
-```
+- `UserStatus`: `ACTIVE = 1` e `INACTIVE = 2`;
+- `EventType`: `JOINED` e `LEFT`;
+- `DiscordEventTypes`: formato neutro de evento agendado/voz e seus estados;
+- `LoggerContextEnum`: contexto, entidade e status de log;
+- `GenericOutputDto<T>`: retorno com `data`, `success` e mensagem opcional.
 
 ## Princípios Aplicados
 
 ### Dependency Inversion
 
-- Interfaces definem contratos
-- Implementações ficam nas camadas externas
-- Domain não depende de infraestrutura
+O código fora de `oldApp` em `src/domain` não importa Prisma, Discord.js, Express nem variáveis de ambiente. Ele depende de seus próprios contratos e tipos.
 
-### Single Responsibility
-
-- Cada Use Case tem uma responsabilidade específica
-- Entidades focam em representar conceitos de negócio
-
-### Open/Closed
-
-- Extensível através de novas implementações de interfaces
-- Fechado para modificação das regras centrais
+Há uma ressalva arquitetural: em uma Clean Architecture mais estrita, implementações de casos de uso costumam ficar na camada de aplicação. Neste repositório elas vivem em `domain/useCases`; qualquer futura mudança dessa fronteira deve ser tratada como refatoração deliberada, não como descrição retroativa.
 
 ## Relacionamento com Outras Camadas
 
-- **Application Layer**: Usa as interfaces e Use Cases definidos aqui
-- **Infrastructure Layer**: Implementa as interfaces de repositórios e serviços
-- **Contexts**: Injeta implementações concretas nos Use Cases
-
----
-
-**Links Relacionados**:
-
-- [1 - Documentação técnica](./1%20-%20Documentação%20técnica.md)
-- [3 - Application Layer](./3%20-%20Application%20Layer.md)
-- [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)
-- [6 - Entidades Principais](./6%20-%20Entidades%20Principais.md)
-- [7 - Use Cases](./7%20-%20Use%20Cases.md)
+- [Entidades Principais](./6%20-%20Entidades%20Principais.md)
+- [Use Cases](./7%20-%20Use%20Cases.md)
+- [Application Layer](./3%20-%20Application%20Layer.md)
+- [Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)
