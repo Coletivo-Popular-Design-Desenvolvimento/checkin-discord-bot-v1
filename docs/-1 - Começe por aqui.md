@@ -1,12 +1,14 @@
-# Comece por aqui — Check-in Bot
+# 👋 Começe por aqui - Checkin Bot
 
-## Por que este projeto existe
+## 🎯 O que é este projeto?
 
-O Check-in transforma sinais mínimos de participação no Discord em dados relacionais que ajudam o CPDD a compreender a saúde da comunidade. Ele permite observar tendências coletivas — por exemplo, atividade por período, canais mobilizadores e participação em voz — sem guardar o conteúdo das conversas.
+O **Checkin Bot** é um projeto open source do CPDD que transforma sinais mínimos de participação no Discord em dados relacionais. A ideia é simples: oferecer à comunidade um jeito de enxergar sua própria dinâmica, observando tendências como atividade por período, canais mobilizadores e participação em voz sem guardar o conteúdo das conversas.
 
 O projeto não é ponto, autenticação, moderação nem ferramenta de avaliação individual.
 
-## O que ele coleta
+### 📊 O que coletamos
+
+Para cumprir esse propósito, o bot registra somente os metadados necessários para relacionar pessoas, momentos e espaços de participação:
 
 - membros e seu estado atual no servidor;
 - canais e cargos;
@@ -16,7 +18,7 @@ O projeto não é ponto, autenticação, moderação nem ferramenta de avaliaç�
 
 O schema possui um campo opcional de e-mail por herança da modelagem, mas o fluxo atual não obtém e-mail do Discord. Dados analíticos devem excluir esse campo e privilegiar agregações.
 
-## Como ele funciona
+## 🏗️ Como ele funciona
 
 ```text
 Discord -> comandos da aplicação -> casos de uso -> repositórios -> Prisma -> MariaDB
@@ -29,7 +31,9 @@ Há dois entry points:
 
 O código ativo está organizado em `domain`, `application`, `infrastructure` e `contexts`. A pasta `src/oldApp` é legado preservado e não participa da inicialização atual.
 
-## Ordem recomendada
+## 🗂️ Documentação
+
+A documentação foi organizada para começar pelo propósito e avançar, pouco a pouco, até os detalhes técnicos. A ordem recomendada é:
 
 1. [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md)
 2. [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
@@ -39,10 +43,26 @@ O código ativo está organizado em `domain`, `application`, `infrastructure` e 
 
 Para navegar por perfil, use o [Índice de Leitura](./%F0%9F%97%82%EF%B8%8F%20%C3%8Dndice%20de%20Leitura%20-%20Checkin%20Bot.md).
 
-## Estado atual, sem promessas
+## 🚀 Status do Projeto
 
-Estão implementados os fluxos de coleta em tempo real, o backfill parcial, a persistência Prisma e os testes. Não existe API de consulta, interface web, dashboard ou geração de relatórios no código atual. `application/query/userQuery.ts` está reservado para leituras futuras.
+Os fluxos de coleta em tempo real, o backfill parcial, a persistência com Prisma e os testes automatizados já estão implementados. Esse conjunto forma a base de dados do projeto.
 
-## Primeira execução
+A camada de leitura ainda é um próximo passo: não existe API de consulta, interface web, dashboard ou geração de relatórios no código atual. O arquivo `application/query/userQuery.ts` está reservado para essa evolução futura.
 
-Siga o [README](../README.md) para instalar e executar. Se ainda não possui uma aplicação Discord, consulte [Como criar um bot no Discord](./Criar-bot-Discord.md).
+## 💡 Por onde começar?
+
+### 👨‍💻 Se você é desenvolvedor
+
+Comece pela [Documentação Técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md), percorra os [Use Cases](./7%20-%20Use%20Cases.md) e depois aprofunde as camadas que mais se relacionam à sua tarefa.
+
+### 🏗️ Se você quer entender a arquitetura
+
+Use o mapa em [`arquitecture.md`](../arquitecture.md) para formar uma visão rápida e, em seguida, percorra Domain, Application, Infrastructure e Contexts. As notas deixam explícitas tanto as fronteiras desejadas quanto as particularidades do código atual.
+
+### 📊 Se você trabalha com dados
+
+Leia primeiro a [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md) e as [Entidades Principais](./6%20-%20Entidades%20Principais.md). Depois, consulte a [Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md) para compreender a cobertura e as limitações dos dados.
+
+### 🚀 Se você quer executar o projeto
+
+Siga o [README](../README.md) para instalar e subir o ambiente. Se ainda não possui uma aplicação Discord, consulte [Como criar um bot no Discord](./Criar-bot-Discord.md).

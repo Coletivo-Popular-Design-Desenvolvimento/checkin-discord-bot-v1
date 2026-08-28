@@ -1,8 +1,10 @@
-# Application Layer
+# Application Layer - Checkin Bot
 
-## Responsabilidade atual
+## Visão Geral
 
-`src/application` liga os eventos externos do Discord aos casos de uso. Os commands registram callbacks no `IDiscordService`, descartam eventos fora do escopo, convertem objetos do Discord.js em entradas neutras e delegam as decisões aos casos de uso.
+A camada de aplicação (`src/application`) faz a ponte entre os eventos externos do Discord e os casos de uso. Os commands registram callbacks no `IDiscordService`, descartam eventos fora do escopo, convertem objetos do Discord.js em entradas compreendidas pelo domínio e então delegam as decisões.
+
+## Estrutura
 
 ```text
 src/application/
@@ -20,7 +22,9 @@ src/application/
     └── Logger.ts
 ```
 
-## Commands
+## CQRS Implementation
+
+### Commands (Operações de Escrita)
 
 | Command                  | Eventos observados                                 | Delegação                                                                                        |
 | ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -34,13 +38,15 @@ src/application/
 
 Os commands importam tipos do Discord.js. Isso é intencional na estrutura atual: eles são adapters de entrada, não regras de domínio puras.
 
-## Commands e listeners
+## 🔄 Fluxo de Execução
+
+### Commands e listeners
 
 Os constructors chamam métodos como `executeMessage()` ou `handleCreateChannel()`, que registram funções no `DiscordService`. O serviço guarda os handlers em listas. Somente depois de todos os commands serem criados, `app.context.ts` chama `discordService.registerEvents()` para ligar essas listas aos eventos do client.
 
 Essa ordem é relevante: um command criado depois de `registerEvents()` ainda pode acrescentar handlers às listas, mas o fluxo atual cria quase todos antes; `ChannelCommand` é instanciado depois do login e do registro, embora os callbacks continuem usando as mesmas listas mutáveis.
 
-## Query e CQRS
+### Queries (Operações de Leitura)
 
 O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` está vazio. Portanto:
 
@@ -49,11 +55,15 @@ O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` est
 - não há API, endpoint ou dashboard consumindo queries;
 - chamar a arquitetura de “CQRS completo” seria incorreto.
 
-## Logger
+## Services
+
+### Logger
 
 `Logger` implementa `ILoggerService`. `logToConsole` formata e escreve mensagens em stdout. `logToDatabase` existe para satisfazer o contrato, mas está vazio; logs persistidos não estão implementados.
 
-## Fronteiras
+## Padrões Aplicados
+
+### Fronteiras
 
 - command valida e adapta o evento externo;
 - caso de uso decide como assegurar dependências e persistir;
@@ -62,7 +72,7 @@ O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` est
 
 Os commands não importam `PrismaClient` nem repositórios concretos.
 
-## Leituras relacionadas
+## Relacionamento com Outras Camadas
 
 - [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
 - [Domain Layer](./2%20-%20Domain%20Layer.md)

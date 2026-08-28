@@ -1,8 +1,10 @@
-# Contexts — composição de dependências
+# Contexts - Dependency Injection
 
-## Responsabilidade
+## Visão Geral
 
-`src/contexts` é o composition root do projeto. Esses arquivos conhecem implementações concretas e as conectam aos contratos esperados pelos casos de uso e commands.
+Os contexts (`src/contexts`) formam o ponto de composição do projeto. Eles conhecem as implementações concretas e conectam cada repository, service, use case e command ao contrato que espera receber.
+
+## Estrutura
 
 ```text
 src/contexts/
@@ -19,7 +21,9 @@ src/contexts/
 └── userEventUseCases.context.ts
 ```
 
-## Inicialização do worker
+## App Context - Orquestrador Principal
+
+### Fluxo de Inicialização
 
 `initializeApp()` executa, em essência:
 
@@ -34,7 +38,7 @@ src/contexts/
 
 Se `TOKEN_BOT` não existir, o context registra o erro, mas não interrompe explicitamente a função antes de chamar `login`. Esse é o comportamento real atual.
 
-## Database context
+## Database Context
 
 `initializeDatabase(logger, prismaService?)` devolve:
 
@@ -48,7 +52,7 @@ Se `TOKEN_BOT` não existir, o context registra o erro, mas não interrompe expl
 
 O parâmetro opcional permite injetar um `PrismaService` em testes. Mesmo quando ele é fornecido, o código atual também instancia um `PrismaClient` que fica sem uso; isso é uma característica existente, não uma recomendação.
 
-## Discord context
+## Discord Context
 
 `initializeDiscord()`:
 
@@ -59,7 +63,7 @@ O parâmetro opcional permite injetar um `PrismaService` em testes. Mesmo quando
 
 Ele não faz login; o login pertence ao entry point/context que controla o ciclo de vida.
 
-## Contexts de casos de uso
+## Use Cases Context
 
 | Context                   | Casos montados                                     |
 | ------------------------- | -------------------------------------------------- |
@@ -73,19 +77,19 @@ Ele não faz login; o login pertence ao entry point/context que controla o ciclo
 
 Alguns casos existem no código, mas não fazem parte do worker em tempo real, como `FindUser` retornado pelo context e os casos de importação histórica.
 
-## Context histórico
+## Historical Sync Context
 
 `initializeHistoricalSyncUseCases(client, logger)` é chamado apenas por `historicalSync.ts`. Ele cria um `PrismaClient` próprio, `DiscordHistoryFetcher`, `HistoricalImportRepository`, os seis importadores e `SyncHistoryRange`.
 
 Esse isolamento mantém o ciclo de vida do backfill separado do `initializeApp()` e permite desconectar explicitamente Prisma e Discord ao final.
 
-## Dependências de ambiente
+## Environment Configuration
 
 - `TOKEN_BOT` é lido pelos entry points/contexts antes do login;
 - `DATABASE_URL` é lido internamente pelo Prisma;
 - as demais variáveis `DB_*` são usadas pelo Compose e para compor a URL no ambiente.
 
-## Leituras relacionadas
+## Relacionamento com Outras Camadas
 
 - [Application Layer](./3%20-%20Application%20Layer.md)
 - [Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md)

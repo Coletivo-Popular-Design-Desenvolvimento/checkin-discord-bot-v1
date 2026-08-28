@@ -1,6 +1,8 @@
-# Índice de leitura — Check-in Bot
+# 🗂️ Índice de Leitura - Checkin Bot
 
-## Ordem recomendada
+## Ordem Recomendada de Leitura
+
+Cada documento aprofunda uma parte do projeto sem exigir que a pessoa conheça toda a base de código de antemão. Para construir uma visão gradual, siga esta sequência:
 
 1. [Comece por aqui](./-1%20-%20Come%C3%A7e%20por%20aqui.md) — propósito, limites e estado atual.
 2. [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md) — intenção comunitária e uso responsável.
@@ -14,25 +16,25 @@
 10. [Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md) — execução, idempotência e limites do backfill.
 11. [Como criar um bot no Discord](./Criar-bot-Discord.md) — configuração no Developer Portal.
 
-## Por perfil
+## Sequência por Perfil
 
-### Produto e comunidade
+### 🤝 **Para Produto e Comunidade**
 
 Leia “Comece por aqui”, Produto e Entidades. Esses documentos explicam o que os sinais permitem observar e quais interpretações devem ser evitadas.
 
-### Desenvolvimento
+### 👨‍💻 **Para Desenvolvedores**
 
 Leia a documentação técnica, as quatro notas de camadas/contexts e Casos de Uso. Use o código e o schema Prisma como fontes finais para detalhes de implementação.
 
-### Dados
+### 📊 **Para Analistas de Dados**
 
 Leia Produto, Entidades, Sincronização Histórica e Infrastructure. Dê atenção especial a `platform_created_at`, à ausência de dimensão temporal em cargos/canais e às lacunas do backfill.
 
-### Operação
+### 🚀 **Para DevOps/Deploy**
 
 Leia o [README](../README.md), Contexts, Infrastructure e Sincronização Histórica. Os workflows atuais ficam em `.github/workflows`.
 
-## Glossário
+## Glossário Rápido
 
 | Termo                 | Uso neste projeto                                                                             |
 | --------------------- | --------------------------------------------------------------------------------------------- |
@@ -46,7 +48,7 @@ Leia o [README](../README.md), Contexts, Infrastructure e Sincronização Histó
 | `platform_created_at` | data original disponível na plataforma, preferível à data de importação                       |
 | Backfill              | sincronização histórica manual dentro dos limites da API Discord                              |
 
-## Fonte de verdade
+## 🧭 Fonte de verdade
 
 - comportamento: código em `src`, exceto `src/oldApp`;
 - modelo persistido: `schema.prisma` e migrations;

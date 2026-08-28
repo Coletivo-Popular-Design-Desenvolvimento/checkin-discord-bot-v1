@@ -1,12 +1,20 @@
-# Documentação de Produto — Check-in Bot
+# Documentação de Produto - Checkin Bot
 
-## O que é
+## 📋 Visão Geral do Projeto
 
-O Check-in é um bot open source do CPDD que coleta metadados de participação no Discord e os organiza em um banco relacional. Sua intenção é fornecer uma base factual para conversas sobre retenção, eventos, conteúdos e comunicação da comunidade.
+### O que é o Checkin Bot
+
+O **Checkin Bot** é um bot open source do CPDD que coleta metadados de participação no Discord e os organiza em um banco relacional. Sua intenção é oferecer uma base concreta para conversas sobre retenção, eventos, conteúdos e comunicação da comunidade.
 
 A analogia adequada é um termômetro comunitário: ele indica mudanças de atividade, mas não explica sozinho motivações, opiniões, sentimentos ou a qualidade das relações.
 
-## Objetivo
+### Contexto e Motivação
+
+O Discord é um espaço onde a comunidade conversa, organiza reuniões, compartilha atividades e também convive de maneira informal. Quando esses sinais são observados de forma responsável e agregada, eles podem ajudar a perceber mudanças na participação e orientar novos diálogos.
+
+## 🎯 Objetivos de Negócio
+
+### Objetivo Principal
 
 Permitir análises coletivas como:
 
@@ -17,9 +25,9 @@ Permitir análises coletivas como:
 - reação da comunidade às mensagens, sem ler seu conteúdo;
 - cobertura e qualidade da própria coleta.
 
-## Limites do produto
+## 🚫 Limitações Explícitas
 
-O Check-in não é:
+O Checkin Bot não é:
 
 - sistema de autenticação ou atribuição de acesso;
 - mecanismo de ponto ou presença obrigatória;
@@ -30,7 +38,9 @@ O Check-in não é:
 
 O código atual não oferece API, dashboard ou relatórios prontos. Ele coleta e persiste a matéria-prima; uma camada de leitura analítica ainda precisa ser construída.
 
-## Dados coletados
+## 🛠️ Escopo do Produto
+
+### Dados coletados
 
 | Sinal    | Dados persistidos                                                                           | Dados não persistidos                   |
 | -------- | ------------------------------------------------------------------------------------------- | --------------------------------------- |
@@ -43,7 +53,7 @@ O código atual não oferece API, dashboard ou relatórios prontos. Ele coleta e
 
 O campo opcional `User.email` existe no schema, mas não é preenchido pelos adaptadores atuais do Discord. Ele não deve ser exposto em análises.
 
-## Princípios de uso responsável
+## ⚖️ Princípios de uso responsável
 
 - minimização: coletar somente o necessário;
 - finalidade: usar os dados para compreender fenômenos coletivos;
@@ -55,9 +65,11 @@ O campo opcional `User.email` existe no schema, mas não é preenchido pelos ada
 
 Esta documentação descreve princípios do produto, não certifica conformidade jurídica. Base legal, retenção, atendimento a titulares, descarte e controles de acesso precisam de definição e revisão organizacional próprias.
 
-## Regras observáveis no código
+## 📐 Regras de Negócio Observáveis no Código
 
-### Membros
+As regras abaixo mantêm a nomenclatura de negócio do projeto, mas descrevem somente o comportamento que pode ser confirmado no código atual.
+
+### RN001 - Registro Automático de Usuários
 
 - bots são ignorados nos principais fluxos de criação e atividade;
 - uma entrada cria o membro ou reativa um cadastro inativo;
@@ -65,7 +77,7 @@ Esta documentação descreve princípios do produto, não certifica conformidade
 - o evento `ClientReady` sincroniza os membros que o Discord disponibiliza;
 - alterações de membro sincronizam o conjunto atual de cargos.
 
-### Participação
+### RN002 - Coleta de Interações
 
 - mensagens de bots e mensagens sem guild são ignoradas;
 - mensagens asseguram a existência de autor e canal antes da persistência;
@@ -73,7 +85,15 @@ Esta documentação descreve princípios do produto, não certifica conformidade
 - eventos agendados são observados; o fluxo atual persiste o início ativo e finaliza eventos concluídos, enquanto outros estados são apenas registrados no log;
 - mudanças de voz criam `UserEvent` de entrada ou saída e podem criar uma sessão de voz automática quando não existe evento ativo para o canal.
 
-### Histórico
+### RN003 - Transparência e Proteção dos Dados
+
+O produto assume transparência, minimização e acesso responsável como princípios. A aplicação, sozinha, não implementa todo o processo organizacional necessário para afirmar conformidade jurídica: base legal, retenção, descarte e atendimento a titulares continuam sendo decisões de governança.
+
+### RN004 - Minimização de Dados
+
+O fluxo não persiste texto, anexos, mídia ou gravações. O campo opcional `email` permanece no schema por herança da modelagem, mas não é coletado pelos adapters atuais e não deve ser exposto na camada analítica.
+
+### 🕰️ Sincronização Histórica
 
 - usuários, cargos e canais representam o estado disponível no momento da importação;
 - mensagens, reações e eventos agendados respeitam o intervalo solicitado dentro dos limites da API;
@@ -81,7 +101,7 @@ Esta documentação descreve princípios do produto, não certifica conformidade
 - reações históricas não possuem timestamp real e usam uma aproximação documentada;
 - a importação é aditiva/idempotente e não reconstrói toda a história do servidor.
 
-## Critérios de sucesso recomendados
+## 📈 Critérios de Sucesso
 
 O sucesso deve ser avaliado por evidências, não por percentuais presumidos:
 
@@ -92,7 +112,7 @@ O sucesso deve ser avaliado por evidências, não por percentuais presumidos:
 - análises agregadas ajudam pessoas técnicas e não técnicas a dialogar;
 - acesso e exposição respeitam as decisões de governança da comunidade.
 
-## Próximas decisões de produto
+## 🚀 Roadmap e Próximos Passos
 
 - definir dicionário de métricas: membro ativo, retenção, reativação e presença;
 - definir política de retenção e descarte;
@@ -101,7 +121,7 @@ O sucesso deve ser avaliado por evidências, não por percentuais presumidos:
 - validar visualizações com pessoas de diferentes níveis técnicos;
 - documentar responsáveis e processo para solicitações sobre dados.
 
-## Leituras relacionadas
+## 📚 Links Relacionados
 
 - [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
 - [Entidades Principais](./6%20-%20Entidades%20Principais.md)

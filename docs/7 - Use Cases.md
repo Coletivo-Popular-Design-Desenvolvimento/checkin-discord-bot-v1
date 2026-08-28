@@ -1,10 +1,12 @@
-# Casos de uso
+# Use Cases - Checkin Bot
 
-## Organização
+## Visão Geral
 
-As implementações vivem em `src/domain/useCases`, separadas por assunto. Elas dependem das interfaces de repositório, fetcher e logger, nunca de `PrismaClient` diretamente.
+Os Use Cases traduzem as regras do Checkin Bot em operações pequenas e testáveis. Suas implementações vivem em `src/domain/useCases`, separadas por assunto, e dependem das interfaces de repository, fetcher e logger — nunca de `PrismaClient` diretamente.
 
-## Usuários
+## Estrutura
+
+## User Use Cases
 
 | Caso          | Comportamento atual                                                                            |
 | ------------- | ---------------------------------------------------------------------------------------------- |
@@ -16,7 +18,7 @@ As implementações vivem em `src/domain/useCases`, separadas por assunto. Elas 
 
 No fluxo em tempo real, a saída usa `UpdateUser.executeInvertUserStatus`; não ocorre exclusão física.
 
-## Canais
+## 📺 Channel Use Cases
 
 | Caso             | Comportamento atual                                          |
 | ---------------- | ------------------------------------------------------------ |
@@ -25,13 +27,13 @@ No fluxo em tempo real, a saída usa `UpdateUser.executeInvertUserStatus`; não 
 | `DeleteChannel`  | encontra pelo ID de plataforma e exclui o registro           |
 | `ImportChannels` | busca todos os canais de texto atuais e grava em lote        |
 
-## Mensagens
+## 💬 Message Use Cases
 
 `RegisterMessage` assegura que usuário e canal existam, cria os registros ausentes com os dados recebidos e persiste apenas metadados da mensagem. O command descarta bots e mensagens fora de guild antes da chamada.
 
 `ImportMessages` controla a paginação histórica por cursor, grava cada lote e acumula contagens de registros buscados, criados, ignorados e falhos.
 
-## Reações
+## 👍 MessageReaction Use Cases
 
 `RegisterMessageReaction` assegura usuário, canal e mensagem, normaliza o emoji e evita duplicidade pela combinação usuário/mensagem/emoji.
 
@@ -39,7 +41,7 @@ No fluxo em tempo real, a saída usa `UpdateUser.executeInvertUserStatus`; não 
 
 `ImportMessageReactions` percorre lotes do fetcher e grava reações históricas. O timestamp é aproximado quando a API não fornece a data real.
 
-## Cargos
+## 🎭 Role Use Cases
 
 `UpdateUserRole.syncUserRoles`:
 
@@ -51,7 +53,7 @@ No fluxo em tempo real, a saída usa `UpdateUser.executeInvertUserStatus`; não 
 
 Esse comportamento vale para eventos em tempo real. `ImportUserRoles`, usado no backfill, é aditivo: importa o estado atual disponível sem reconstruir datas ou remover associações antigas.
 
-## Eventos de voz
+## 🎵 AudioEvent e UserEvent Use Cases
 
 `RegisterVoiceEvent` valida o status, assegura canal e criador, cria o status se necessário via repositório e persiste o evento.
 
@@ -61,7 +63,7 @@ Esse comportamento vale para eventos em tempo real. `ImportUserRoles`, usado no 
 
 `ImportAudioEvents` importa os eventos agendados que a API ainda retorna no intervalo solicitado.
 
-## Orquestração histórica
+## Historical Sync Use Cases
 
 `SyncHistoryRange` executa em sequência:
 
@@ -74,7 +76,9 @@ Esse comportamento vale para eventos em tempo real. `ImportUserRoles`, usado no 
 
 Cada etapa é isolada para que uma falha não impeça as seguintes. O resultado final agrega contagens e mensagens de erro. A ordem protege dependências de chave estrangeira, especialmente usuários antes de cargos e mensagens antes de reações.
 
-## Casos existentes versus ligados ao runtime
+## Status da Implementação
+
+### Casos existentes versus ligados ao runtime
 
 | Situação                                  | Casos                                                                                     |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -84,7 +88,7 @@ Cada etapa é isolada para que uma falha não impeça as seguintes. O resultado 
 
 Ter uma classe implementada não significa que exista endpoint ou comando público para acioná-la.
 
-## Leituras relacionadas
+## Relacionamento com Outras Camadas
 
 - [Domain Layer](./2%20-%20Domain%20Layer.md)
 - [Application Layer](./3%20-%20Application%20Layer.md)

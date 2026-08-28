@@ -2,6 +2,19 @@
 
 Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
+## [1.2.3] - 2026-08-28
+
+### Documentado
+
+- Reconverte a documentação para um estilo mais narrativo, acolhedor e condizente com a identidade comunitária do Checkin Bot, sem perder precisão técnica.
+- Recupera emojis, nomenclaturas, títulos familiares, regras de negócio e percursos de leitura presentes no estilo original do projeto.
+- Cria o `AGENTS.md` como especificação permanente de tom, arquitetura, privacidade, fontes de verdade, validação e fluxo de entrega.
+
+### Mantido
+
+- Preserva as correções sobre arquitetura executável, CQRS parcial, código legado, modelo de dados e limitações da sincronização histórica.
+- Mantém explícita a separação entre funcionalidades implementadas, planejadas e legadas.
+
 ## [1.2.2] - 2026-08-27
 
 ### Corrigido

@@ -1,6 +1,6 @@
-# Arquitetura atual
+# 🏗️ Arquitetura Atual - Checkin Bot
 
-Este arquivo é um mapa rápido da estrutura executada hoje. A descrição detalhada está em [docs/1 - Documentação técnica.md](docs/1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md).
+Este arquivo funciona como um mapa rápido da estrutura executada hoje. Ele ajuda quem chega ao projeto a localizar cada responsabilidade antes de avançar para a [Documentação Técnica](docs/1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md), onde os fluxos são apresentados com mais contexto.
 
 ```text
 src/
@@ -28,7 +28,7 @@ src/
 └── index.ts              # Entry point do worker em tempo real
 ```
 
-## Direção das dependências
+## 🧭 Direção das dependências
 
 ```text
 contexts -> application commands -> domain use cases -> domain interfaces
@@ -44,16 +44,16 @@ contexts -> application commands -> domain use cases -> domain interfaces
 
 Essa organização é inspirada em Clean Architecture, mas não é uma implementação estrita: os casos de uso concretos vivem em `domain/useCases` e os comandos da aplicação importam tipos do Discord.js. A documentação registra essa realidade em vez de atribuir fronteiras que o código ainda não possui.
 
-## Fluxos executáveis
+## 🔄 Fluxos executáveis
 
-### Tempo real
+### ⚡ Tempo real
 
 `src/index.ts` carrega o ambiente e chama `initializeApp()`. O composition root cria os repositórios e casos de uso, registra os comandos no `DiscordService`, registra os listeners e efetua login no Discord.
 
-### Histórico
+### 🕰️ Histórico
 
 `src/historicalSync.ts` autentica um cliente Discord separado, monta `DiscordHistoryFetcher`, `HistoricalImportRepository` e os casos de importação, executa o intervalo solicitado e encerra as conexões.
 
-### Legado
+### 📦 Legado
 
 `src/oldApp` contém integrações antigas com Telegram, e-mail, Express, cron e arquivos locais. Nenhum arquivo dessa pasta é importado por `src/index.ts`, `src/historicalSync.ts` ou pelos contexts atuais; portanto, não compõe a arquitetura em execução.

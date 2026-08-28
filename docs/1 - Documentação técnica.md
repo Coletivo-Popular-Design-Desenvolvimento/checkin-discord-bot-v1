@@ -1,8 +1,8 @@
-# Documentação técnica — Check-in Bot
+# Documentação Técnica - Checkin Bot
 
-## Visão geral
+## 📋 Visão Geral
 
-O sistema é um worker Node.js/TypeScript que recebe eventos do Discord Gateway e grava metadados em MariaDB/MySQL por meio do Prisma. Um segundo entry point executa sincronização histórica sob demanda.
+O **Checkin Bot** funciona como um worker em Node.js e TypeScript: ele recebe eventos do Discord Gateway, transforma cada evento em uma operação do domínio e grava os metadados em MariaDB/MySQL por meio do Prisma. Quando é necessário recuperar dados anteriores ao início do bot, um segundo entry point executa a sincronização histórica sob demanda.
 
 O repositório usa uma separação inspirada em Clean Architecture:
 
@@ -17,9 +17,9 @@ O repositório usa uma separação inspirada em Clean Architecture:
 
 Os casos de uso concretos ficam em `domain/useCases`, portanto a fronteira atual não é uma Clean Architecture estrita. A pasta `application/query` existe, mas sua única unidade, `userQuery.ts`, está vazia; assim, CQRS é uma direção estrutural, não uma camada de leitura implementada.
 
-## Entry points
+## 🚪 Entry Points
 
-### Worker em tempo real
+### ⚡ Worker em tempo real
 
 `src/index.ts` carrega `.env` e chama `initializeApp()`.
 
@@ -36,7 +36,7 @@ index.ts
 
 Os constructors dos commands registram callbacks no `DiscordService`. Depois disso, `registerEvents()` conecta esses callbacks aos eventos do Discord.js.
 
-### Sincronização histórica
+### 🕰️ Sincronização histórica
 
 `src/historicalSync.ts` possui ciclo de vida separado:
 
@@ -51,7 +51,9 @@ historicalSync.ts
 
 Veja [8 - Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md).
 
-## Fluxo em tempo real
+## 🔄 Fluxo em tempo real
+
+No dia a dia, o Discord emite um evento e o command correspondente converte os dados externos antes de chamar o caso de uso. A tabela abaixo mostra esse percurso de ponta a ponta:
 
 | Evento Discord                            | Command                  | Caso de uso principal                             | Efeito persistido                                                          |
 | ----------------------------------------- | ------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -67,7 +69,9 @@ Veja [8 - Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C
 
 O conteúdo de `Message.content` não é enviado aos casos de uso nem ao banco.
 
-## Estrutura
+## 🏗️ Arquitetura
+
+### Estrutura
 
 ```text
 src/
@@ -91,7 +95,7 @@ src/
 └── index.ts
 ```
 
-## Direção de dependências observada
+### 🧭 Direção de dependências observada
 
 - os casos de uso dependem de interfaces de repositório e serviço;
 - os repositórios Prisma implementam as interfaces do domínio;
@@ -100,7 +104,7 @@ src/
 - o domínio não importa Prisma, Express ou configuração de ambiente;
 - `src/oldApp` não é importado pelo fluxo novo.
 
-## Discord Gateway
+## 🤖 Discord Gateway
 
 `discord.context.ts` deriva as intents do mapa de eventos e habilita partials de mensagem, canal, reação e usuário. Os fluxos atuais precisam de:
 
@@ -113,7 +117,7 @@ src/
 
 O Server Members Intent também precisa ser habilitado no Discord Developer Portal. Permissões de leitura de canais e histórico dependem da configuração do bot no servidor.
 
-## Persistência
+## 🗄️ Persistência
 
 O schema canônico está em `src/infrastructure/persistence/prisma/models/schema.prisma`. Ele usa o provider Prisma `mysql`, compatível com MariaDB/MySQL, e gera também um DBML em `models/dbml/`.
 
@@ -129,7 +133,7 @@ Repositórios de tempo real:
 
 O backfill usa `HistoricalImportRepository`, separado dos repositórios acima, para gravar lotes em transações e suportar reexecução.
 
-## Configuração
+## ⚙️ Configuração
 
 | Variável                 | Uso                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------ |
@@ -140,7 +144,7 @@ O backfill usa `HistoricalImportRepository`, separado dos repositórios acima, p
 | `PORT`                   | porta publicada para o container app; o worker atual não abre servidor HTTP          |
 | `DB_HOST`, `DB_DATABASE` | auxiliam a composição documentada da URL, mas o Prisma lê `DATABASE_URL` diretamente |
 
-## Docker Compose
+## 🐳 Docker Compose
 
 - `compose.yml`: serviços base `db` e `app`, volume e perfis;
 - `compose.override.yml`: portas, phpMyAdmin, bind mount e comando de desenvolvimento;
@@ -148,7 +152,7 @@ O backfill usa `HistoricalImportRepository`, separado dos repositórios acima, p
 
 O comando `npm run dev` sobe o perfil `dev` e acompanha os logs. Dentro do Compose, o host do banco é `db:3306`; processos executados no host usam `localhost` e a porta publicada.
 
-## Testes e CI
+## 🧪 Testes e CI
 
 Os testes vivem em `src/tests` e cobrem repositórios, casos de uso, commands, contexts e o fetcher histórico. A pipeline de Pull Request para `homol` executa:
 
@@ -161,7 +165,7 @@ Os testes vivem em `src/tests` e cobrem repositórios, casos de uso, commands, c
 
 Não há teste arquitetural automatizado ou regra de lint de fronteiras no repositório.
 
-## Entrega
+## 🚀 Entrega
 
 - pushes em `homol` constroem e publicam a imagem no GHCR;
 - tags presentes em `main` ou `homol` recebem tags de imagem conforme o workflow;
@@ -170,7 +174,7 @@ Não há teste arquitetural automatizado ou regra de lint de fronteiras no repos
 
 Apesar do nome `deploy-prod.yml`, o fluxo observado acompanha `homol` e usa a imagem `:homol`; a documentação não o apresenta como deploy de `main`.
 
-## Lacunas atuais
+## 📋 Próximos Passos e Lacunas Atuais
 
 - a camada de query analítica não está implementada;
 - não existe API ou interface web ativa;
@@ -179,7 +183,7 @@ Apesar do nome `deploy-prod.yml`, o fluxo observado acompanha `homol` e usa a im
 - o logger possui contrato para banco, mas a implementação atual apenas registra no console;
 - políticas de retenção, autorização analítica e descarte não estão implementadas nesta aplicação.
 
-## Leituras relacionadas
+## 📚 Documentação Relacionada
 
 - [Domain Layer](./2%20-%20Domain%20Layer.md)
 - [Application Layer](./3%20-%20Application%20Layer.md)

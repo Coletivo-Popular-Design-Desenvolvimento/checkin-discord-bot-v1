@@ -1,8 +1,10 @@
-# Infrastructure Layer
+# Infrastructure Layer - Checkin Bot
 
-## Responsabilidade atual
+## Visão Geral
 
-`src/infrastructure` contém os adapters concretos para Discord.js e Prisma.
+A camada de infraestrutura (`src/infrastructure`) é onde o projeto conversa com o mundo externo. Ela contém os adapters concretos para Discord.js e Prisma, traduzindo os contratos definidos pelo domínio em integração com o gateway e com o banco de dados.
+
+## Estrutura
 
 ```text
 src/infrastructure/
@@ -28,7 +30,9 @@ src/infrastructure/
         └── UserRepository.ts
 ```
 
-## DiscordService
+## Discord Integration
+
+### DiscordService
 
 `DiscordService` implementa `IDiscordService` sobre um `Client` do Discord.js. Ele:
 
@@ -48,7 +52,7 @@ Eventos conectados atualmente:
 - `MessageReactionAdd` e `MessageReactionRemove`;
 - `ChannelCreate`, `ChannelUpdate` e `ChannelDelete`.
 
-## DiscordHistoryFetcher
+### DiscordHistoryFetcher
 
 O fetcher histórico usa a API Discord.js de forma ativa, em vez de esperar eventos do gateway. Ele oferece:
 
@@ -61,19 +65,23 @@ O fetcher histórico usa a API Discord.js de forma ativa, em vez de esperar even
 
 Ele não recupera conteúdo para persistência. Mensagens e reações de bots são descartadas. Limitações e paginação estão detalhadas em [Sincronização Histórica](./8%20-%20Sincroniza%C3%A7%C3%A3o%20Hist%C3%B3rica.md).
 
-## Prisma
+## Database Layer
+
+### Prisma
 
 `PrismaService` apenas encapsula uma instância de `PrismaClient`, expõe `getClient()` e `disconnect()`. A conexão é configurada exclusivamente por `DATABASE_URL`.
 
 `schema.prisma` é a fonte canônica do modelo persistido. Migrations versionam sua evolução e o gerador `prisma-dbml-generator` mantém a representação DBML usada pelo CI.
 
-## Repositórios
+## Repository Pattern
+
+### Repositórios
 
 Os repositórios de tempo real implementam as portas do domínio e convertem registros Prisma por meio de `PrismaMapper` ou mapeadores locais. Em geral, capturam erros, registram no logger e retornam `null`, `false` ou lista vazia conforme o contrato.
 
 `HistoricalImportRepository` é exclusivo do backfill. Ele grava lotes em transações, usa upserts e `skipDuplicates` e não substitui os repositórios do fluxo contínuo.
 
-## Integridade e chaves
+## 🔐 Integridade e chaves
 
 - entidades vindas do Discord possuem `platform_id` único;
 - relacionamentos usam `platform_id` como chave estrangeira em várias tabelas;
@@ -81,7 +89,9 @@ Os repositórios de tempo real implementam as portas do domínio e convertem reg
 - reação é única por usuário, mensagem e emoji;
 - índices existem para as principais chaves estrangeiras de mensagem, evento e reação.
 
-## O que não está nesta camada atual
+## 📦 Legacy Migration Status
+
+### O que não está nesta camada atual
 
 - integração ativa com Telegram;
 - envio de e-mail;
@@ -92,7 +102,7 @@ Os repositórios de tempo real implementam as portas do domínio e convertem reg
 
 Esses itens podem aparecer em dependências ou em `src/oldApp`, mas não são importados pelos entry points atuais.
 
-## Leituras relacionadas
+## Relacionamento com Outras Camadas
 
 - [Documentação técnica](./1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md)
 - [Entidades Principais](./6%20-%20Entidades%20Principais.md)

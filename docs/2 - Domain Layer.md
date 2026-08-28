@@ -1,8 +1,10 @@
-# Domain Layer
+# Domain Layer - Checkin Bot
 
-## Responsabilidade atual
+## Visão Geral
 
-`src/domain` reúne o vocabulário do sistema, os contratos que isolam dependências e os casos de uso. Essa é a camada que concentra as decisões de criação, atualização, busca e importação dos metadados.
+A camada de domínio (`src/domain`) reúne o vocabulário do sistema, os contratos que isolam dependências e os casos de uso. É aqui que as operações de criação, atualização, busca e importação dos metadados ganham significado dentro do projeto.
+
+## Estrutura
 
 ```text
 src/domain/
@@ -17,7 +19,7 @@ src/domain/
 └── useCases/      # Implementações dos casos de uso
 ```
 
-## Entidades
+## Entidades do Domínio
 
 As classes atuais são:
 
@@ -33,7 +35,7 @@ As classes atuais são:
 
 Essas classes são estruturas de dados construídas pelos casos de uso e pelo `PrismaMapper`; a maior parte das regras está nos casos de uso, não em métodos das entidades.
 
-## Contratos
+## Interfaces (Ports)
 
 ### Repositórios
 
@@ -50,11 +52,11 @@ As interfaces em `interfaces/repositories` descrevem persistência sem importar 
 - `IDiscordHistoryFetcher`: paginação e leitura histórica;
 - `ILoggerService`: registro no console e contrato de registro em banco.
 
-### Casos de uso e commands
+### Use Cases e Commands
 
 Cada operação pública possui uma interface própria em `interfaces/useCases`. Alguns commands implementam interfaces em `interfaces/commands`; outros ainda são classes concretas sem porta equivalente. A documentação não assume uniformidade que o código não possui.
 
-## Tipos relevantes
+## Types e Enums
 
 - `UserStatus`: `ACTIVE = 1` e `INACTIVE = 2`;
 - `EventType`: `JOINED` e `LEFT`;
@@ -62,13 +64,15 @@ Cada operação pública possui uma interface própria em `interfaces/useCases`.
 - `LoggerContextEnum`: contexto, entidade e status de log;
 - `GenericOutputDto<T>`: retorno com `data`, `success` e mensagem opcional.
 
-## Dependências
+## Princípios Aplicados
+
+### Dependency Inversion
 
 O código fora de `oldApp` em `src/domain` não importa Prisma, Discord.js, Express nem variáveis de ambiente. Ele depende de seus próprios contratos e tipos.
 
 Há uma ressalva arquitetural: em uma Clean Architecture mais estrita, implementações de casos de uso costumam ficar na camada de aplicação. Neste repositório elas vivem em `domain/useCases`; qualquer futura mudança dessa fronteira deve ser tratada como refatoração deliberada, não como descrição retroativa.
 
-## Onde aprofundar
+## Relacionamento com Outras Camadas
 
 - [Entidades Principais](./6%20-%20Entidades%20Principais.md)
 - [Use Cases](./7%20-%20Use%20Cases.md)
