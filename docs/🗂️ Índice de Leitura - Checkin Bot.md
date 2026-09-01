@@ -26,6 +26,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 
 10. **[Spike 0001 - Ferramenta de análise de dados](./spike/0001-ferramenta-analise-dados.md)** - Comparativo entre Metabase, Apache Superset e Grafana
 11. **[ADR 0001 - Metabase para análise dos dados](./adr/0001-metabase-para-analise-de-dados.md)** - Decisão proposta e condições para aceitação
+12. **[Plano de implantação do Metabase](./9%20-%20Plano%20de%20implantação%20do%20Metabase.md)** - Caminho planejado da PoC local até homologação e produção privadas
 
 ## Sequência por Perfil
 
@@ -52,6 +53,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Database schema
 4. [7 - Use Cases](./7%20-%20Use%20Cases.md) - Como os dados são coletados
 5. [Spike 0001 - Ferramenta de análise de dados](./spike/0001-ferramenta-analise-dados.md) - Como os dados poderão ser visualizados
+6. [Plano de implantação do Metabase](./9%20-%20Plano%20de%20implantação%20do%20Metabase.md) - Como a PoC poderá chegar a um ambiente compartilhado
 
 ### 🚀 **Para DevOps/Deploy**
 
@@ -59,6 +61,7 @@ Para desenvolvedores que querem entender o projeto Checkin Bot, recomendamos seg
 2. [5 - Contexts](./5%20-%20Contexts.md) - Configuração da aplicação
 3. [4 - Infrastructure Layer](./4%20-%20Infrastructure%20Layer.md) - Dependências externas
 4. [8 - Sincronização Histórica](./8%20-%20Sincronização%20Histórica.md) - Rodar o backfill via CLI ou GitHub Actions
+5. [Plano de implantação do Metabase](./9%20-%20Plano%20de%20implantação%20do%20Metabase.md) - Infraestrutura, segurança, deploy e retorno planejados
 
 ## Glossário Rápido
 

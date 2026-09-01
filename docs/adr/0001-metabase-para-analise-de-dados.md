@@ -24,4 +24,4 @@ Os cenários técnicos de reprodutibilidade, conexão, filtros, somente leitura 
 - Permissões de coleção serão usadas para testar administração, curadoria e visualização; permissões granulares de dados e da aplicação, disponíveis nos planos pagos, não serão tratadas como capacidades da PoC.
 - Se qualquer um dos três cenários de homologação falhar de forma relevante, o Metabase não será aceito e o Apache Superset será a alternativa seguinte.
 
-As evidências, a matriz comparativa, o dicionário de métricas e o protocolo de validação estão no [relatório do Spike](../spike/0001-ferramenta-analise-dados.md).
+As evidências, a matriz comparativa, o dicionário de métricas e o protocolo de validação estão no [relatório do Spike](../spike/0001-ferramenta-analise-dados.md). As entregas ainda necessárias para homologação e produção estão descritas no [Plano de implantação do Metabase](../9%20-%20Plano%20de%20implantação%20do%20Metabase.md).

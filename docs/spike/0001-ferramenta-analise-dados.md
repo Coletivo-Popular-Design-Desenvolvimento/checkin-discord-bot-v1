@@ -329,6 +329,8 @@ Próxima sequência:
 3. decidir coletivamente se o consumo aproximado de 1,4 GiB é aceitável;
 4. aceitar o ADR somente se os três cenários forem aprovados.
 
+O caminho proposto para levar a PoC a um ambiente compartilhado está registrado no [Plano de implantação do Metabase](../9%20-%20Plano%20de%20implantação%20do%20Metabase.md). O plano separa o que já foi comprovado localmente das entregas ainda necessárias para homologação e produção.
+
 ## Fontes oficiais
 
 ### Metabase
@@ -358,6 +360,7 @@ Próxima sequência:
 
 - [Decisões aceitas durante o grilling](./grilling.md)
 - [ADR proposto: Metabase para análise dos dados](../adr/0001-metabase-para-analise-de-dados.md)
+- [Plano de implantação do Metabase](../9%20-%20Plano%20de%20implantação%20do%20Metabase.md)
 - [Documentação de Produto](../0%20-%20Documentação%20de%20Produto.md)
 - [Entidades Principais](../6%20-%20Entidades%20Principais.md)
 - [Sincronização Histórica](../8%20-%20Sincronização%20Histórica.md)
