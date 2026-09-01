@@ -32,5 +32,68 @@ services:
       sh -c "npx prisma migrate deploy && npm start"
     profiles: ["dev", "homol", "prod"]
 
+  analytics-init:
+    image: mariadb:latest
+    restart: "no"
+    environment:
+      DB_PASSWORD: "${DB_PASSWORD}"
+      ANALYTICS_READER_PASSWORD: "${ANALYTICS_READER_PASSWORD:-analytics_local_only}"
+      METABASE_APP_DB_PASSWORD: "${METABASE_APP_DB_PASSWORD:-metabase_local_only}"
+    volumes:
+      - ./analytics/database:/analytics/database:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "/analytics/database/bootstrap.sh"]
+    profiles: ["analytics"]
+
+  metabase:
+    image: metabase/metabase:v0.63.14
+    restart: unless-stopped
+    environment:
+      MB_DB_TYPE: mysql
+      MB_DB_DBNAME: metabase_poc
+      MB_DB_PORT: 3306
+      MB_DB_USER: metabase_app
+      MB_DB_PASS: "${METABASE_APP_DB_PASSWORD:-metabase_local_only}"
+      MB_DB_HOST: db
+      MB_LOAD_SAMPLE_CONTENT: "false"
+      MB_INSTALL_ANALYTICS_DATABASE: "false"
+      MB_LOAD_ANALYTICS_CONTENT: "false"
+      MB_ANON_TRACKING_ENABLED: "false"
+      JAVA_TIMEZONE: America/Sao_Paulo
+    ports:
+      - "127.0.0.1:${METABASE_PORT:-3001}:3000"
+    depends_on:
+      analytics-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    profiles: ["analytics"]
+
+  metabase-bootstrap:
+    image: node:20-alpine
+    restart: "no"
+    environment:
+      METABASE_URL: http://metabase:3000
+      METABASE_ADMIN_EMAIL: "${METABASE_ADMIN_EMAIL:-admin@checkin.local}"
+      METABASE_ADMIN_PASSWORD: "${METABASE_ADMIN_PASSWORD:-CheckinLocal123!}"
+      METABASE_EDITOR_EMAIL: "${METABASE_EDITOR_EMAIL:-editora@checkin.local}"
+      METABASE_EDITOR_PASSWORD: "${METABASE_EDITOR_PASSWORD:-CheckinLocal123!}"
+      METABASE_VIEWER_EMAIL: "${METABASE_VIEWER_EMAIL:-leitora@checkin.local}"
+      METABASE_VIEWER_PASSWORD: "${METABASE_VIEWER_PASSWORD:-CheckinLocal123!}"
+      ANALYTICS_READER_PASSWORD: "${ANALYTICS_READER_PASSWORD:-analytics_local_only}"
+    volumes:
+      - ./analytics/metabase:/analytics/metabase:ro
+    depends_on:
+      metabase:
+        condition: service_healthy
+    command: ["node", "/analytics/metabase/bootstrap.mjs"]
+    profiles: ["analytics"]
+
 volumes:
   db_data:
