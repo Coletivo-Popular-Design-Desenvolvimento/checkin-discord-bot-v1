@@ -141,7 +141,7 @@ Subir os containers:
 docker compose -f compose.yml --profile prod up -d --build
 ```
 
-## Healthcheck (rota `/health`)
+## 🩺 Healthcheck (rota `/health`)
 
 A aplicação expõe uma rota HTTP `GET /health` para verificação de saúde do serviço e de suas dependências essenciais (hoje, o banco de dados).
 
@@ -183,8 +183,6 @@ Retornado quando alguma dependência essencial está inacessível. O payload ind
 
 Suba o projeto normalmente ([desenvolvimento local](#-subindo-o-projeto-para-desenvolvimento-local)) e faça `GET /health` (via Postman, curl, etc.). Para simular uma falha de banco, pare o container do banco e repita a requisição.
 
-```
-
 ## 🔧 Comandos úteis
 
 | Ação                | Comando                        |
@@ -212,49 +210,46 @@ Guia completo com prints: **[docs/Criar-bot-Discord.md](docs/Criar-bot-Discord.m
 URL de convite sugerida:
 
 ```
-
 https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=175921860444159&scope=bot%20applications.commands
-
 ```
 
 ## 📂 Estrutura do Projeto
 
 ```
-
 checkin-discord-bot-v1
 
 ├── src/
-| │ ├── entities/ # Entidades (User.ts, Event.ts)
-| │ └── aggregates/ # Agregados (ex.: Engagement.ts)
-| ├── application/ # Casos de uso
-| ├── core/ # Domínio puro (regras de negócio)
-| │ ├── commands/ # Command handlers (ex.: UpdateEngagementCommand.ts)
-| │ ├── queries/ # Query handlers (ex.: GenerateReportQuery.ts)
-| │ └── events/ # Eventos de domínio (ex.: EngagementUpdated.ts)
-| ├── infrastructure/
-| │ ├── discord/ # Tudo do Discord
-| │ │ ├── listeners/ # Antigo bot/events.ts, bot/message.ts
-| │ │ ├── actions/ # Trechos de bot/report.ts que enviam mensagens
-| │ │ ├── fetchers/ # Busca de dados do Discord (ex.: cargos de usuário)
-| │ │ └── client/ # Antigo bot/bot.ts, bot/init.ts
-| │ ├── telegram/ # Antigo bot/telegram.ts
-| │ ├── email/ # Antigo bot/email.ts
-| │ ├── database/ # Substituirá users.json e evento_teste.json
-| │ │ ├── repositories/ # Classes para acesso a dados (ex.: UserRepository.ts)
-| │ │ └── models/ # Schemas (se usar ORM/ODM)
-| │ ├── server/ # Antigo rotas/server.ts, rotas/health.ts
-| │ └── cron/ # Antigo rotas/cron.ts
-| ├── presentation/
-| │ ├── discord/ # Formatação de mensagens (ex.: relatórios)
-| │ └── telegram/ # Formatadores para mensagens do Telegram
-| ├── services/ # Camada de serviços (ex.: UserService)
-| ├── config/ # Centraliza .env, .env.example
-| │ └── env.ts # Carregador de variáveis de ambiente
-| ├── shared/ # Utilitários globais
-| │ ├── errors/ # Antigo shuterror.ts
-| │ ├── logger/ # Sistema de logs
-| │ └── utils/ # Funções genéricas (ex.: bot/file.ts)
-| └── tests/ # Testes
+|   │   ├── entities/              # Entidades (User.ts, Event.ts)
+|   │   └── aggregates/            # Agregados (ex.: Engagement.ts)
+|   ├── application/               # Casos de uso
+|   ├── core/                      # Domínio puro (regras de negócio)
+|   │   ├── commands/              # Command handlers (ex.: UpdateEngagementCommand.ts)
+|   │   ├── queries/               # Query handlers (ex.: GenerateReportQuery.ts)
+|   │   └── events/                # Eventos de domínio (ex.: EngagementUpdated.ts)
+|   ├── infrastructure/
+|   │   ├── discord/               # Tudo do Discord
+|   │   │   ├── listeners/         # Antigo bot/events.ts, bot/message.ts
+|   │   │   ├── actions/           # Trechos de bot/report.ts que enviam mensagens
+|   │   │   ├── fetchers/          # Busca de dados do Discord (ex.: cargos de usuário)
+|   │   │   └── client/            # Antigo bot/bot.ts, bot/init.ts
+|   │   ├── telegram/              # Antigo bot/telegram.ts
+|   │   ├── email/                 # Antigo bot/email.ts
+|   │   ├── database/              # Substituirá users.json e evento_teste.json
+|   │   │   ├── repositories/      # Classes para acesso a dados (ex.: UserRepository.ts)
+|   │   │   └── models/            # Schemas (se usar ORM/ODM)
+|   │   ├── server/                # Antigo rotas/server.ts, rotas/health.ts
+|   │   └── cron/                  # Antigo rotas/cron.ts
+|   ├── presentation/
+|   │   ├── discord/               # Formatação de mensagens (ex.: relatórios)
+|   │   └── telegram/              # Formatadores para mensagens do Telegram
+|   ├── services/                  # Camada de serviços (ex.: UserService)
+|   ├── config/                    # Centraliza .env, .env.example
+|   │   └── env.ts                 # Carregador de variáveis de ambiente
+|   ├── shared/                    # Utilitários globais
+|   │   ├── errors/                # Antigo shuterror.ts
+|   │   ├── logger/                # Sistema de logs
+|   │   └── utils/                 # Funções genéricas (ex.: bot/file.ts)
+|   └── tests/                     # Testes
 ├── .env
 ├── .gitignore
 ├── compose.yml
@@ -264,8 +259,7 @@ checkin-discord-bot-v1
 ├── package.json
 ├── README.md
 └── tsconfig.json
-
-````
+```
 
 ## Contribuindo com o projeto
 
@@ -278,12 +272,12 @@ Esta seção detalha as informações sobre branches de longa duração e dos pa
 | main           | Código estável, que vai para produção                    | -                 |
 | homol          | Pré-produção, testes em ambiente similar à produção      | homol             |
 | feature/\*     | Desenvolvimento da funcionalidade. Trabalho em andamento | servidor privado  |
-| fix/*          | Correção de bug em desenvolvimento                       | servidor privado  |
-| hotfix/*       | Correção urgente diretamente relacionada à produção      | -                 |
-| docs/*         | Adição ou atualização de documentação                    | -                 |
-| refactor/*     | Refatoração de código sem mudança de comportamento       | servidor privado  |
-| chore/*        | Tarefas de manutenção (deps, configs, CI/CD)             | -                 |
-| test/*         | Adição ou correção de testes                             | servidor privado  |
+| fix/\*         | Correção de bug em desenvolvimento                       | servidor privado  |
+| hotfix/\*      | Correção urgente diretamente relacionada à produção      | -                 |
+| docs/\*        | Adição ou atualização de documentação                    | -                 |
+| refactor/\*    | Refatoração de código sem mudança de comportamento       | servidor privado  |
+| chore/\*       | Tarefas de manutenção (deps, configs, CI/CD)             | -                 |
+| test/\*        | Adição ou correção de testes                             | servidor privado  |
 
 ### Quero contribuir. Que fazer?
 
@@ -306,7 +300,7 @@ Este projeto está licenciado sob a [Licença AGPL](LICENSE).
 .env
 node_modules/
 dist/
-````
+```
 
 ---
 
