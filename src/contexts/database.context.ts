@@ -31,6 +31,7 @@ export function initializeDatabase(
   logger: ILoggerService,
   prismaService?: PrismaService,
 ): {
+  prismaService: PrismaService;
   userRepository: IUserRepository;
   messageRepository: IMessageRepository;
   messageReactionRepository: IMessageReactionRepository;
@@ -72,6 +73,7 @@ export function initializeDatabase(
   );
 
   return {
+    prismaService: prismaService ?? newPrismaService,
     userRepository,
     messageRepository,
     messageReactionRepository,
