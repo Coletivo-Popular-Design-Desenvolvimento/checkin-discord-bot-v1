@@ -141,7 +141,7 @@ O backfill usa `HistoricalImportRepository`, separado dos repositórios acima, p
 | `DATABASE_URL`           | conexão usada pelo Prisma                                                            |
 | `DB_PASSWORD`            | senha root fornecida ao container MariaDB                                            |
 | `DB_PORT`                | porta do banco publicada no host no override local                                   |
-| `PORT`                   | porta publicada para o container app; o worker atual não abre servidor HTTP          |
+| `PORT`                   | porta do servidor HTTP usado pelo healthcheck e publicada no host; padrão `3000`     |
 | `DB_HOST`, `DB_DATABASE` | auxiliam a composição documentada da URL, mas o Prisma lê `DATABASE_URL` diretamente |
 
 ## 🐳 Docker Compose

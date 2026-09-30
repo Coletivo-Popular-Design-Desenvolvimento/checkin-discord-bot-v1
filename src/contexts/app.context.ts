@@ -13,6 +13,7 @@ import {
 } from "@type/LoggerContextEnum";
 import { initializeDatabase } from "./database.context";
 import { initializeDiscord } from "./discord.context";
+import { initializeHttp } from "./http.context";
 import { initializeChannelUseCases } from "./useChannelCases.context";
 import { initializeMessageUseCases } from "./useMessageCases.context";
 import { initializeMessageReactionUseCases } from "./useMessageReactionCases.context";
@@ -26,6 +27,7 @@ export function initializeApp() {
   // Aqui vao as dependencias externas
   const logger = new Logger();
   const {
+    prismaService,
     userRepository,
     userEventRepository,
     audioEventRepository,
@@ -35,6 +37,7 @@ export function initializeApp() {
     roleRepository,
   } = initializeDatabase(logger);
   const { discordService } = initializeDiscord();
+  initializeHttp(prismaService, logger);
   const { TOKEN_BOT } = process.env;
 
   if (!TOKEN_BOT) {

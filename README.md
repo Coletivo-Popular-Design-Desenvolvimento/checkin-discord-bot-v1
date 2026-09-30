@@ -4,7 +4,7 @@
 
 O **Checkin Discord Bot** transforma sinais mínimos de participação em um servidor Discord em dados relacionais que podem ajudar a comunidade a compreender sua própria dinâmica. Construído com **Node.js**, **TypeScript**, **Discord.js**, **Prisma** e **MariaDB**, ele oferece uma base para análises agregadas sobre atividade, retenção, canais, reações e eventos de voz sem armazenar o conteúdo das mensagens.
 
-O bot não é um sistema de autenticação, ponto, moderação ou avaliação individual. Telegram, e-mail, servidor HTTP e rotinas antigas permanecem em `src/oldApp/` apenas como legado e não participam do fluxo iniciado por `src/index.ts`.
+O Checkin Bot não é um sistema de ponto para controlar jornada de trabalho, nem uma ferramenta de autenticação, moderação ou avaliação individual. `src/index.ts` inicia o worker do Discord e um servidor HTTP que oferece a rota operacional `/health`. As integrações antigas com Telegram, e-mail e outras rotinas preservadas em `src/oldApp/` não participam desse fluxo.
 
 ## 📈 Funcionalidades
 
@@ -92,11 +92,11 @@ npm run dev
 
 Serviços locais:
 
-| Serviço    | Endereço                     | Observação                                                                                               |
-| ---------- | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Aplicação  | sem interface web            | O código atual é um worker Discord; `PORT` é publicado pelo Compose, mas nenhuma rota HTTP é registrada. |
-| MariaDB    | `localhost:${DB_PORT:-3306}` | Use apenas para clientes executados no host.                                                             |
-| phpMyAdmin | `http://localhost:8090`      | Disponível no perfil `dev`.                                                                              |
+| Serviço    | Endereço                                | Observação                                                                                         |
+| ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Aplicação  | `http://localhost:${PORT:-3000}/health` | Worker do Discord e rota operacional de saúde; não há interface web nem API de consulta dos dados. |
+| MariaDB    | `localhost:${DB_PORT:-3306}`            | Use apenas para clientes executados no host.                                                       |
+| phpMyAdmin | `http://localhost:8090`                 | Disponível no perfil `dev`.                                                                        |
 
 Comandos úteis:
 
@@ -150,6 +150,48 @@ docker compose -f compose.yml --profile prod up -d --build
 ```
 
 O deploy automatizado usa `compose.yml` com `compose.prod.yml`, que referencia a imagem `ghcr.io/coletivo-popular-design-desenvolvimento/checkin-discord-bot-v1:homol`. Os workflows vigentes estão em `.github/workflows/`.
+
+## 🩺 Healthcheck (rota `/health`)
+
+A aplicação expõe uma rota HTTP `GET /health` para verificação de saúde do serviço e de suas dependências essenciais (hoje, o banco de dados).
+
+- **Porta**: a definida em `PORT` no `.env` (padrão `3000`).
+- **URL local**: `http://localhost:${PORT}/health` (ex.: `http://localhost:3000/health`).
+
+### Sucesso — `200 OK`
+
+Retornado quando a aplicação e o banco de dados estão acessíveis:
+
+```json
+{
+  "status": "UP",
+  "database": "HEALTHY",
+  "timestamp": "2026-08-25T21:00:00.000Z"
+}
+```
+
+### Falha — `503 Service Unavailable`
+
+Retornado quando alguma dependência essencial está inacessível. O payload indica qual dependência falhou:
+
+```json
+{
+  "status": "DOWN",
+  "database": "UNREACHABLE"
+}
+```
+
+### Onde está implementado
+
+| Responsabilidade               | Arquivo                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| Handler da rota                | `src/infrastructure/http/routes/health.route.ts`                       |
+| Servidor HTTP (`app.listen`)   | `src/contexts/http.context.ts`                                         |
+| Checagem do banco (`SELECT 1`) | `src/infrastructure/persistence/prisma/prismaService.ts` (`isHealthy`) |
+
+### Como testar
+
+Suba o projeto normalmente ([desenvolvimento local](#-subindo-o-projeto-para-desenvolvimento-local)) e faça `GET /health` (via Postman, curl, etc.). Para simular uma falha de banco, pare o container do banco e repita a requisição.
 
 ## 📂 Estrutura do Projeto
 
