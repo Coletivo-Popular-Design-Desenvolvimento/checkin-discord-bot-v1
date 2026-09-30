@@ -54,7 +54,9 @@ A **URL de convite** é gerada no OAuth2 e usada para adicionar o bot ao servido
 ## 4. Permissões de Intents
 
 1. No menu lateral da aplicação, clique em **Bot**.
-2. Na seção **Privileged Gateway Intents**, ative às intents necessárias para o bot de acordo com a imagem.
+2. Na seção **Privileged Gateway Intents**, ative **Server Members Intent**. O projeto usa `guild.members.fetch()` tanto na inicialização quanto na sincronização histórica.
+
+O código também solicita intents não privilegiados para servidores, mensagens, reações, eventos agendados e estados de voz. Não há leitura do conteúdo textual das mensagens, portanto o projeto atual não solicita `MessageContent`.
 
 ![Página Bot — Intent Permissions](./criar-bot-discord/07-intents-permissions.png)
 
@@ -64,10 +66,9 @@ A **URL de convite** é gerada no OAuth2 e usada para adicionar o bot ao servido
 
 1. No menu lateral, clique em **OAuth2**.
 2. Em **OAuth2 URL Generator**:
-   - Em **Scopes**, marque pelo menos:
-     - **bot** — para adicionar o bot ao servidor.
-     - **applications.commands** — para usar slash commands (recomendado para este projeto).
-3. Mais abaixo, em **Bot Permissions**, marque as permissões que o bot precisa (ex.: View Channels, Send Messages, Manage Roles, etc.). O valor de `permissions` na URL será atualizado automaticamente.
+   - Em **Scopes**, marque **bot** para adicionar o bot ao servidor.
+   - `applications.commands` não é necessário no código atual, pois não há slash commands implementados.
+3. Mais abaixo, em **Bot Permissions**, conceda somente o necessário para os canais que serão coletados, especialmente **View Channels** e **Read Message History**. O bot atual não envia mensagens nem administra cargos no Discord.
 
 ![OAuth2 — Scopes (bot marcado)](./criar-bot-discord/04-oauth2-scopes.png)
 
@@ -79,19 +80,13 @@ A **URL de convite** é gerada no OAuth2 e usada para adicionar o bot ao servido
 2. Em **Integration Type**, deixe **Guild Install** (instalação por servidor).
 3. A **Generated URL** será algo como:
    ```text
-   https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=...&integration_type=0&scope=bot%20applications.commands
+   https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=...&integration_type=0&scope=bot
    ```
 4. **Copie o Client ID** da URL (número após `client_id=`). Você pode precisar dele para outras integrações.
 
 ![OAuth2 — Bot Permissions e Generated URL](./criar-bot-discord/05-oauth2-url-permissions.png)
 
-**URL de convite sugerida** (com permissões comuns para este bot):
-
-```text
-https://discord.com/oauth2/authorize?client_id=SEU_CLIENT_ID&permissions=175921860444159&scope=bot%20applications.commands
-```
-
-Substitua `SEU_CLIENT_ID` pelo Client ID da sua aplicação.
+Use a URL gerada pelo portal depois de selecionar apenas as permissões necessárias. Evite copiar um número fixo de `permissions`, pois ele é difícil de auditar e pode conceder acessos além do escopo atual.
 
 ---
 
@@ -99,7 +94,7 @@ Substitua `SEU_CLIENT_ID` pelo Client ID da sua aplicação.
 
 1. Abra a **URL de convite** gerada no navegador (com seu `client_id`).
 2. Na tela de autorização:
-   - Revise as permissões (ex.: _Add a bot to a server_, _Create commands_).
+   - Revise as permissões solicitadas para o bot.
    - Em **Add to server**, escolha o servidor **TPDD - Teste Popular de Desenvolvimento** (é necessário ter permissão **Manage Server** nesse servidor).
 3. Clique em **Authorize** e conclua o captcha, se aparecer.
 
@@ -124,7 +119,7 @@ Depois disso, você pode subir o bot com `npm run dev` ou via Docker conforme a 
 
 1. **Discord Developer Portal** → New Application → nome `teste-tpdd-bot-seu-nome`.
 2. **Bot** → Reset Token → copiar token → `TOKEN_BOT` no `.env`.
-3. **OAuth2** → marcar scope **bot** (e **applications.commands**) → ajustar Bot Permissions → copiar **Generated URL** e **Client ID**.
+3. **OAuth2** → marcar scope **bot** → ajustar as permissões mínimas → copiar **Generated URL** e **Client ID**.
 4. Abrir a URL de convite → selecionar servidor TPDD → **Authorize**.
 5. Configurar `.env` e rodar o bot.
 
