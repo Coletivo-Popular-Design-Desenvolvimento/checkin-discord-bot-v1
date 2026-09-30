@@ -4,7 +4,17 @@
 
 O **Checkin Bot** é um projeto open source do CPDD que transforma sinais mínimos de participação no Discord em dados relacionais. A ideia é simples: oferecer à comunidade um jeito de enxergar sua própria dinâmica, observando tendências como atividade por período, canais mobilizadores e participação em voz sem guardar o conteúdo das conversas.
 
-O projeto não é ponto, autenticação, moderação nem ferramenta de avaliação individual.
+### 🎯 Propósito
+
+O projeto busca ajudar a comunidade a:
+
+- acompanhar como a participação muda ao longo do tempo;
+- perceber quais canais, horários e eventos mobilizam as pessoas;
+- apoiar conversas e decisões sobre eventos, conteúdos e comunicação.
+
+Esses dados servem como ponto de partida para conversas coletivas. Por si só, não explicam por que a participação mudou.
+
+O Checkin Bot não é um sistema de ponto para controlar jornada de trabalho ou exigir presença. Também não é uma ferramenta de autenticação, moderação ou avaliação individual.
 
 ### 📊 O que coletamos
 
@@ -48,6 +58,14 @@ Para navegar por perfil, use o [Índice de Leitura](./%F0%9F%97%82%EF%B8%8F%20%C
 Os fluxos de coleta em tempo real, o backfill parcial, a persistência com Prisma e os testes automatizados já estão implementados. Esse conjunto forma a base de dados do projeto.
 
 A camada de leitura ainda é um próximo passo: não existe API de consulta, interface web, dashboard ou geração de relatórios no código atual. O arquivo `application/query/userQuery.ts` está reservado para essa evolução futura.
+
+### 🧭 Roadmap
+
+- **Base implementada:** coleta em tempo real, importação manual de parte do histórico, persistência dos dados e testes automatizados.
+- **Próximos passos propostos:** combinar definições para as métricas, definir regras de retenção dos dados e construir uma camada analítica somente para leitura.
+- **Etapas futuras:** validar visualizações com a comunidade e documentar responsáveis e processos para solicitações sobre dados.
+
+O roadmap detalhado está na [Documentação de Produto](./0%20-%20Documenta%C3%A7%C3%A3o%20de%20Produto.md).
 
 ## 💡 Por onde começar?
 
