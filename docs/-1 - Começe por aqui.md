@@ -1,4 +1,4 @@
-# 👋 Começe por aqui - Checkin Bot
+# 👋 Comece por aqui - Checkin Bot
 
 ## 🎯 O que é este projeto?
 

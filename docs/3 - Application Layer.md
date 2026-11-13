@@ -17,7 +17,7 @@ src/application/
 │   ├── userEventCommand.ts
 │   └── voiceEventCommand.ts
 ├── query/
-│   └── userQuery.ts       # vazio; leitura ainda não implementada
+│   └── userQuery.ts       # leitura ainda não implementada
 └── services/
     └── Logger.ts
 ```
@@ -48,7 +48,7 @@ Essa ordem é relevante: um command criado depois de `registerEvents()` ainda po
 
 ### Queries (Operações de Leitura)
 
-O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` está vazio. Portanto:
+O diretório separa nominalmente `command` de `query`, porém `userQuery.ts` está sem implementação. Portanto:
 
 - commands de escrita estão implementados;
 - não há handlers de consulta;

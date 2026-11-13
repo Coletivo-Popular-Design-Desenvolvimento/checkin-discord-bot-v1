@@ -15,7 +15,7 @@ O repositório usa uma separação inspirada em Clean Architecture:
 | `tests`          | Testes de casos de uso, commands, adapters, repositórios e contexts.         |
 | `oldApp`         | Código legado preservado, fora dos entry points atuais.                      |
 
-Os casos de uso concretos ficam em `domain/useCases`, portanto a fronteira atual não é uma Clean Architecture estrita. A pasta `application/query` existe, mas sua única unidade, `userQuery.ts`, está vazia; assim, CQRS é uma direção estrutural, não uma camada de leitura implementada.
+Os casos de uso concretos ficam em `domain/useCases`, portanto a fronteira atual não é uma Clean Architecture estrita. A pasta `application/query` existe, mas sua única unidade, `userQuery.ts`, está sem implementação; assim, CQRS é uma direção estrutural, não uma camada de leitura implementada.
 
 ## 🚪 Entry Points
 

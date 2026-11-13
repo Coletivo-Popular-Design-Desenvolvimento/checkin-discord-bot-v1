@@ -6,7 +6,7 @@ Este arquivo funciona como um mapa rápido da estrutura executada hoje. Ele ajud
 src/
 ├── application/
 │   ├── command/          # Handlers: eventos Discord -> entradas dos casos de uso
-│   ├── query/            # Espaço para leitura CQRS; userQuery.ts ainda está vazio
+│   ├── query/            # Espaço para leitura CQRS; userQuery.ts ainda está sem implementação
 │   └── services/         # Implementação atual do logger
 ├── contexts/             # Composition root e injeção manual de dependências
 ├── domain/

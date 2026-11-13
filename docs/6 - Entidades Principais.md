@@ -30,7 +30,7 @@ Representa um membro conhecido do Discord.
 | `platform_id`             | identificador único no Discord                                |
 | `username`, `global_name` | nomes públicos disponíveis                                    |
 | `bot`                     | identifica conta automatizada                                 |
-| `status`                  | `1` ativo, `2` inativo                                        |
+| `status`                  | `1` ativo, `0` inativo                                        |
 | `joined_at`               | entrada conhecida no servidor                                 |
 | `platform_created_at`     | criação da conta no Discord                                   |
 | `last_active`             | última atividade atualizada pelos fluxos que a informam       |

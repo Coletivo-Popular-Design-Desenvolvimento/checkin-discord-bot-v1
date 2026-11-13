@@ -28,7 +28,7 @@ Estas instruções valem para todo o repositório. Toda alteração de código, 
 - Diferencie explicitamente o que está **implementado**, o que está **planejado** e o que existe apenas como **legado**.
 - Não descreva intenção arquitetural como capacidade entregue.
 - Não afirme que existem API de consulta, interface web, dashboard ou relatórios prontos enquanto eles não estiverem no código executável.
-- Não descreva CQRS como completo: há commands implementados, mas `src/application/query/userQuery.ts` ainda está vazio.
+- Não descreva CQRS como completo: há commands implementados, mas `src/application/query/userQuery.ts` ainda está sem implementação.
 - Não apresente conformidade jurídica como garantida pelo software. Base legal, retenção, descarte, atendimento a titulares e governança exigem decisões organizacionais próprias.
 - Ao alterar comportamento, atualize a documentação correspondente na mesma entrega.
 
@@ -109,5 +109,3 @@ npx prisma format --check
 - Crie branches de trabalho a partir de `homol` e abra Pull Requests para `homol`, salvo orientação diferente.
 - Use o template em `.github/pull_request_template.md` e descreva comportamento, motivação, validações e documentação relacionada.
 - Preserve alterações paralelas do usuário e prepare no commit somente os arquivos da entrega.
-- `$finalizar` autoriza validação, changelog, versão e commit local.
-- `$finalizar e subir` também autoriza push e publicação da entrega solicitada.

@@ -58,7 +58,7 @@ Cada operação pública possui uma interface própria em `interfaces/useCases`.
 
 ## Types e Enums
 
-- `UserStatus`: `ACTIVE = 1` e `INACTIVE = 2`;
+- `UserStatus`: `ACTIVE = 1` e `INACTIVE = 0`;
 - `EventType`: `JOINED` e `LEFT`;
 - `DiscordEventTypes`: formato neutro de evento agendado/voz e seus estados;
 - `LoggerContextEnum`: contexto, entidade e status de log;

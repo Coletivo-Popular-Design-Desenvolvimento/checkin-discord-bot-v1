@@ -36,7 +36,7 @@ Discord Gateway
 
 O projeto adota uma separação inspirada em **Clean Architecture**. Na prática, cada evento percorre um caminho previsível: o Discord entrega o sinal, a aplicação o traduz, o domínio decide o que fazer e a infraestrutura cuida da persistência. Os casos de uso estão atualmente em `src/domain/useCases`, enquanto a camada `application` adapta eventos do Discord e registra handlers.
 
-A estrutura também reserva espaços distintos para commands e queries. Essa separação indica a direção de CQRS escolhida pelo projeto, mas a leitura ainda não está implementada: `src/application/query/userQuery.ts` permanece vazio.
+A estrutura também reserva espaços distintos para commands e queries. Essa separação indica a direção de CQRS escolhida pelo projeto, mas a leitura ainda não está implementada: `src/application/query/userQuery.ts` permanece sem implementação.
 
 Consulte [arquitecture.md](arquitecture.md) para o mapa das camadas e [a documentação técnica](docs/1%20-%20Documenta%C3%A7%C3%A3o%20t%C3%A9cnica.md) para os fluxos completos.
 
@@ -110,6 +110,10 @@ Comandos úteis:
 | Abrir Prisma Studio                   | `npm run db:studio`                          |
 
 Se o Prisma reportar `P1001`, confirme que o Docker está ativo e que o serviço `db` está saudável com `docker compose --profile dev ps`.
+
+No Windows, instalações locais do MariaDB ou MySQL podem causar erros relacionados ao plugin `auth_gssapi_client` em comandos do Prisma. Confira a configuração de autenticação da instalação local e da conexão usada pelo projeto.
+
+Ao alterar a definição das tabelas, gere uma migration com `npm run db:migrate`. Se precisar recriar um banco local por incompatibilidade de migrations, `npm run db:migrate-reset` aplica as migrations novamente **e apaga todos os dados do banco configurado**; confira a conexão antes de executá-lo.
 
 ## 🧰 Execução sem o container da aplicação
 
@@ -223,7 +227,22 @@ Comece por [Comece por aqui](docs/-1%20-%20Come%C3%A7e%20por%20aqui.md) ou pelo 
 
 ## 🤝 Contribuindo com o projeto
 
-Crie branches de trabalho a partir de `homol`. Prefixos usados pelo projeto incluem `feature/`, `fix/`, `hotfix/`, `docs/`, `refactor/`, `chore/`, `test/` e `spike/`. Ao concluir, abra um Pull Request para `homol` usando o template do repositório.
+Crie branches de trabalho a partir de `homol`. As branches e prefixos usados pelo projeto são:
+
+| Branch       | Propósito                                            | Ambiente de teste       |
+| ------------ | ---------------------------------------------------- | ----------------------- |
+| `main`       | Código estável de produção                           | Produção                |
+| `homol`      | Pré-produção e testes em ambiente similar à produção | Homologação             |
+| `feature/*`  | Desenvolvimento de funcionalidades                   | Servidor privado        |
+| `fix/*`      | Correção de bugs                                     | Servidor privado        |
+| `hotfix/*`   | Correção urgente relacionada à produção              | Conforme a correção     |
+| `docs/*`     | Documentação                                         | Conforme a alteração    |
+| `refactor/*` | Refatoração sem mudança de comportamento             | Servidor privado        |
+| `chore/*`    | Manutenção e configuração                            | Conforme a alteração    |
+| `test/*`     | Adição ou correção de testes                         | Servidor privado        |
+| `spike/*`    | Investigação ou experimento                          | Conforme a investigação |
+
+Inclua o código da tarefa e uma breve descrição no nome, por exemplo `docs/CPDD-1917-criar-documentacao-testes`. Ao concluir, abra um Pull Request para `homol` usando o template do repositório. Para identificar as pessoas responsáveis por uma decisão ou pela manutenção, consulte as conversas e os responsáveis nas issues e Pull Requests do repositório.
 
 ## 📜 Licença
 
