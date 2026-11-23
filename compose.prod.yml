@@ -1,3 +1,5 @@
 services:
   app:
     image: ghcr.io/coletivo-popular-design-desenvolvimento/checkin-discord-bot-v1:homol
+    ports:
+      - "127.0.0.1:3010:3001"
